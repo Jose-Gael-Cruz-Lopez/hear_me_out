@@ -1,0 +1,55 @@
+#!/bin/sh
+# Every push must update STATUS.md in at least one of the commits it sends (see CLAUDE.md → Workflow).
+# Turned on by `pnpm install` (prepare → git config core.hooksPath .githooks). Skip only when a person
+# says so: git push --no-verify.
+
+remote="$1"
+zero=0000000000000000000000000000000000000000
+failed=0
+
+# Commits already on this remote don't count as new; fall back to every remote if pushing to a URL.
+if git remote | grep -qx "$remote"; then known="--remotes=$remote"; else known="--remotes"; fi
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue                         # deleting a branch
+  case "$remote_ref" in refs/heads/*) ;; *) continue ;; esac     # tags, notes, …
+
+  if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    new=$(git rev-list "$remote_sha..$local_sha")
+  else
+    new=$(git rev-list "$local_sha" --not $known)                # new branch, or remote moved on
+  fi
+  [ -z "$new" ] && continue                                      # nothing new to push
+
+  touched=no
+  for c in $new; do
+    if git diff-tree --no-commit-id --name-only -r -m --root "$c" | grep -qx 'STATUS.md'; then
+      touched=yes
+      break
+    fi
+  done
+
+  if [ "$touched" = no ]; then
+    count=$(echo "$new" | wc -l | tr -d ' ')
+    branch=${remote_ref#refs/heads/}
+    cat >&2 <<MSG
+
+✋ pre-push: none of the $count new commit(s) for '$branch' update STATUS.md.
+
+Add a Push log entry (newest first) and move your task between sections, then commit and push again:
+
+  ### $(date +%Y-%m-%d) · $branch · <who> (<agent, if any>)
+  - **Changed:** what this push does, in plain words
+  - **Verified:** tests/sims you ran and their result
+  - **Not done / unverified:** anything left, or "nothing"
+
+Details: CLAUDE.md → Workflow. Skip only if a person says so: git push --no-verify
+MSG
+    failed=1
+  fi
+done
+
+if [ "$failed" = 0 ]; then
+  echo "pre-push: STATUS.md updated ✓  After the push, post a Shipped: entry to Trov (CLAUDE.md → Trov)." >&2
+fi
+exit "$failed"

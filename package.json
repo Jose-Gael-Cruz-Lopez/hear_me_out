@@ -14,6 +14,7 @@
     "sim": "tsx --env-file-if-exists=.env scripts/sim.ts",
     "test": "vitest run",
     "typecheck": "pnpm -r --parallel typecheck && tsc -p scripts/tsconfig.json",
+    "prepare": "git config core.hooksPath .githooks || true",
     "sim:strangers": "tsx --env-file-if-exists=.env scripts/sim-strangers.ts",
     "dev": "concurrently -k -n orch,web -c magenta,cyan \"pnpm orchestrator\" \"pnpm web\"",
     "prewarm": "pnpm --filter @hmo/orchestrator exec tsx --env-file-if-exists=../../.env src/scripts/prewarm.ts",
