@@ -57,11 +57,13 @@ export function MuseConnectedPill() {
   );
 }
 
-const STEP_MS = [1400, 1700, 1500];
+// How long each booking step shows (~25 s in all), so it reads like a real booking, not an instant one.
+const STEP_MS = [4500, 6000, 6500, 8000];
+const DONE = STEP_MS.length;
 
 function savedStep(key: string): number {
   try {
-    return sessionStorage.getItem(key) ? 3 : 0;
+    return sessionStorage.getItem(key) ? DONE : 0;
   } catch {
     return 0;
   }
@@ -76,9 +78,9 @@ export function MuseReservation({ plan, option, category, party, ready, big = fa
   const [progress, setProgress] = useState(() => ({ key, step: savedStep(key) }));
   const step = progress.key === key ? progress.step : savedStep(key);
   useEffect(() => {
-    if (!ready || step >= 3) return;
+    if (!ready || step >= DONE) return;
     const t = setTimeout(() => {
-      if (step === 2) {
+      if (step === DONE - 1) {
         play('ding');
         try {
           sessionStorage.setItem(key, '1');
@@ -93,7 +95,7 @@ export function MuseReservation({ plan, option, category, party, ready, big = fa
 
   const what = reservationWhat(category, totalParty);
   const What = what[0].toUpperCase() + what.slice(1);
-  const lines = [`Contacting ${option.title}…`, `Requesting ${what} · ${plan.slotLabel}`, 'Holding it for the group…'];
+  const lines = [`Contacting ${option.title}…`, `Checking availability · ${plan.slotLabel}`, `Requesting ${what}`, `Waiting for ${option.title} to confirm…`];
   const title = big ? 'font-display text-3xl font-black' : 'font-display text-2xl font-black';
 
   if (!ready) {
@@ -104,7 +106,7 @@ export function MuseReservation({ plan, option, category, party, ready, big = fa
       </div>
     );
   }
-  if (step < 3) {
+  if (step < DONE) {
     return (
       <div className="card space-y-3 p-5">
         <div className={`flex items-center gap-3 ${title}`}>

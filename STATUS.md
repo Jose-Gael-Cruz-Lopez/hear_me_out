@@ -5,7 +5,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 ## In progress
 
 <!-- One line each: what · who (agent) · branch -->
-- _Nothing in progress. Add your task here when you start._
+- Iterating on the combined build (main + Jose's latest design commits) · Anish (Claude Code) · `fix-names-whatsapp-muse` (same as `deploy-combined` up to `cc94a6a`)
 
 ## Up next / on hold
 
@@ -16,6 +16,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Done recently
 
+- Live Apify scrape every game (no venue reuse); slower, more believable Muse pull (~13 s) and booking (~25 s). · Anish (Claude Code)
 - Plan screen redesign: TV is a one-screen dashboard, phone is one ticket; popular-times chart rebuilt. · Prisha (Claude Code)
 - Busyness-aware plan time from Google popular times ("Go at 8:00, not 6:00"). · Prisha (Claude Code)
 - Menu check: Apify Website Content Crawler proves diet claims with real dishes from each finalist's own site. · Prisha (Claude Code)
@@ -44,6 +45,16 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Verified:**
 - **Not done / unverified:**
 -->
+
+### 2026-10-24 · Updated-for-META · Prisha (Claude Code)
+- **Changed:** every phone screen in the mobile player-app design from `export/`: shared header (you, room · phase, sound, timer ring) with an 8-step phase rail; scrolling body with the primary action pinned at the bottom; lobby, hot take, swipeable finalist cards with photos, compact ballot/vote rows, case file, record (collapsible case, big record button, Send it / Redo pinned), playback (speaker + photo, transcript, sway bar and lean picker merged into one card, reactions, OBJECTION! pinned), verdict with photo and awards, plan ticket with RSVP segment and Timing / Menu / Invite tabs plus a 4-button action bar. Profile steps and the join page are mapped onto the same style without markup changes. Layout and styles only: same data, conditions and reducer calls. Also applied Anish's `0496aee` (live Apify scrape every game, slower Muse pull and booking; DECISIONS #50).
+- **Verified:** `pnpm typecheck` clean, `pnpm test` 70/70, `pnpm sim` 36/36.
+- **Not done / unverified:** the new phone screens were not clicked through in a browser before this push (only typecheck, tests and the simulator); Home's mobile layout from the export not applied. Trov: not posted (no access).
+
+### 2026-10-24 · fix-names-whatsapp-muse · Anish (Claude Code)
+- **Changed:** venue scouting no longer reuses earlier Apify results (was a 6 h cache), so every game runs a real Google Maps scrape when the place is picked; `pnpm prewarm` is removed (DECISIONS #46). Muse's "pulling your info" now takes ~13 s and the booking ~25 s over four steps (contacting, checking availability, requesting, waiting to confirm).
+- **Verified:** `pnpm typecheck` clean, `pnpm test` 54/54, `pnpm sim` 24 and `pnpm sim:match` 16 checks (DEMO_MODE, so no Apify spend), `pnpm web:build:maincloud` built.
+- **Not done / unverified:** no live Apify run tested (it costs credits); timings not watched in the browser. Each game, and each place/category change in the lobby, now spends one Apify run. Trov: not posted (no access).
 
 ### 2026-10-24 · Updated-for-META · Prisha (Claude Code)
 - **Changed:** new branch on top of `claude/modest-cerf-72dq1o`. Find my people page in the mobile player-app design from the `export/` design file (layout and styles only; same fields, 18+ rule, `joinMatchmaking` call and redirect). Restaurant photos on the brief, the phone's pitch card, the lean picker, the verdict (TV + phone) and both plan screens, bigger on phone finalist cards and the matched-room stage. Calmer results: no invite paragraph or per-person "why" list on the TV plan, menu proof as dish-name chips, silent when there's nothing to prove. Applied Anish's `fix-names-whatsapp-muse` fix commit (`cc94a6a`: duplicate names never block a join, friends rejoin by name, WhatsApp in friends games incl. the TV QR, Muse shown as connected, ruling text) without merging that branch's older base. DECISIONS #47–#49.
