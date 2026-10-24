@@ -3,6 +3,7 @@ import { ScheduleAt } from 'spacetimedb';
 import spacetimedb, { janitorTimer, phaseTimer } from '../schema';
 import { advance, type Ctx } from '../core';
 import { applyFallback, deleteRoomData } from '../cleanup';
+import { tryMatch } from '../queue';
 
 export const init = spacetimedb.init(ctx => {
   if (!ctx.db.config.id.find(0)) ctx.db.config.insert({ id: 0, adminIdentity: ctx.sender });
@@ -26,6 +27,7 @@ export const advancePhase = spacetimedb.reducer({ onSchedule: phaseTimer }, { ti
   requireScheduler(ctx);
   const r = ctx.db.room.id.find(timer.roomId);
   if (!r || r.phaseSeq !== timer.phaseSeq) return; // stale: the phase already moved on
+  if (r.mode === 'queue') return tryMatch(ctx, r, true); // matchmaking check after things went quiet
   advance(ctx, r);
 });
 

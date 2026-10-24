@@ -19,7 +19,8 @@
     "prewarm": "pnpm --filter @hmo/orchestrator exec tsx --env-file-if-exists=../../.env src/scripts/prewarm.ts",
     "actor:push": "pnpm --filter vibe-profiler push",
     "demo:player": "tsx --env-file-if-exists=.env scripts/demo-player.ts",
-    "web:build:maincloud": "SPACETIMEDB_URI=wss://maincloud.spacetimedb.com pnpm --filter @hmo/web build"
+    "web:build:maincloud": "SPACETIMEDB_URI=wss://maincloud.spacetimedb.com pnpm --filter @hmo/web build",
+    "sim:match": "tsx --env-file-if-exists=.env scripts/sim-match.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

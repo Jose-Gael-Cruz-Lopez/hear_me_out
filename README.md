@@ -2,7 +2,7 @@
 
 **The party game that turns “idk, where do you want to go?” into an actual plan.**
 
-Everyone joins from their own browser window; a shared TV runs the show. The AI finds **real places nearby** that fit the whole group (budget, diet, distance, open hours), then assigns each player a place to **defend, often not their own favorite**, with a personalized prompt (“Defend Barrio like a sunny taco tour guide with margarita sparkle”). Players pitch for 30 seconds, the AI **fact-checks claims live** against the venue data (“OBJECTION SUSTAINED: it closes at 9 PM, not midnight!”), everyone votes, and the winner becomes **the plan**: a time that works for everyone, an invite poster, a calendar invite and live RSVPs. A public **Strangers** mode turns it into small meetups, and two groups that pick the same place can **merge tables**.
+Everyone joins from their own browser window; a shared TV runs the show. The AI finds **real places nearby** that fit the whole group (budget, diet, distance, open hours), then assigns each player a place to **defend, often not their own favorite**, with a personalized prompt (“Defend Barrio like a sunny taco tour guide with margarita sparkle”). Players pitch for 30 seconds, the AI **fact-checks claims live** against the venue data (“OBJECTION SUSTAINED: it closes at 9 PM, not midnight!”), everyone votes, and the winner becomes **the plan**: a time that works for everyone, an invite poster, a calendar invite and live RSVPs. A public **Strangers** mode turns it into small meetups: **Find my people** matches you with 2–3 strangers who share your vibe (no host, no TV, no bots), and two groups that pick the same place can **merge tables**.
 
 ![TV: tonight's contestants](docs/screenshots/finalists.jpg)
 
@@ -108,6 +108,7 @@ Open `http://localhost:5173` → **Friends game** in one window (the TV), then j
 | `pnpm sim --muse` | The same round on live Muse (transcription of real speech, poster image) |
 | `pnpm sim --live` | The same round with a live Apify scrape |
 | `pnpm sim:strangers` | Lobby browser, vibe match, safety rules, meetup confirmation and a two-room merge (15 checks) |
+| `pnpm sim:match` | Find my people: 3 strangers queue, get matched into one server-owned room and confirm a meetup |
 | `cd actors/vibe-profiler && npx vitest run --config vitest.config.ts` | 49 tests for the vibe-profiler actor (normalization, enrichment, Muse parsing) |
 | `pnpm demo:player CODE Name [pitch.webm]` | A scripted player that joins a real room from the terminal (handy for solo testing) |
 | `pnpm typecheck` | Every package |

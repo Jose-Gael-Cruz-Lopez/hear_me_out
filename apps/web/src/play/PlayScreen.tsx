@@ -1,10 +1,11 @@
 import { motion } from 'motion/react';
 import { Avatar, Countdown, MuteButton } from '../components/ui';
-import { useRoom } from '../lib/room';
+import { isMatchedRoom, useRoom } from '../lib/room';
 import { unlockAudio } from '../lib/sound';
 import { JoinForm } from './Join';
 import { ProfileFlow } from './Profile';
 import { Recorder } from './Recorder';
+import { FollowMatch, QueueScreen } from './Queue';
 import {
   PlayAssignment,
   PlayFinalists,
@@ -20,6 +21,14 @@ import {
 
 export function PlayScreen() {
   const { room, me } = useRoom();
+  if (room.mode === 'queue') {
+    return (
+      <>
+        <FollowMatch />
+        {me ? <Frame><QueueScreen /></Frame> : <JoinForm />}
+      </>
+    );
+  }
   if (!me) return <JoinForm />;
 
   const screen = (() => {
@@ -55,6 +64,26 @@ export function PlayScreen() {
     }
   })();
 
+  return <Frame>{screen}</Frame>;
+}
+
+/** Matched meetups: the tags at least two of you share (why the matcher put you together). */
+function MatchedOn() {
+  const { room, profiles } = useRoom();
+  if (!isMatchedRoom(room)) return null;
+  const counts = new Map<string, number>();
+  for (const p of profiles.values()) for (const t of p.approvedTags) counts.set(t, (counts.get(t) ?? 0) + 1);
+  const shared = [...counts.entries()].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => `#${t}`);
+  return (
+    <div className="mx-4 mt-3 chip justify-center bg-lime/15 px-4 py-2 text-lime ring-1 ring-lime/40">
+      🤝 {room.groupName}: {shared.length ? `matched on ${shared.join(' ')}` : 'new people, new vibes'}
+    </div>
+  );
+}
+
+function Frame({ children }: { children: React.ReactNode }) {
+  const { room, me } = useRoom();
+  if (!me) return null;
   return (
     <div className="mx-auto flex min-h-full max-w-xl flex-col" onClick={unlockAudio}>
       <header className="flex items-center justify-between gap-3 px-4 pt-4">
@@ -70,9 +99,10 @@ export function PlayScreen() {
           <Countdown deadline={room.phaseDeadline} startedAt={room.phaseStartedAt} size={52} />
         </div>
       </header>
+      <MatchedOn />
       <main className="flex flex-1 flex-col px-4 py-5">
                   <motion.div key={room.phase} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-1 flex-col">
-            {screen}
+            {children}
           </motion.div>
       </main>
     </div>

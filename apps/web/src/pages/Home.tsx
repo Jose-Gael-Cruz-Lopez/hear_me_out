@@ -79,6 +79,9 @@ export function Home() {
             <button className="btn btn-sun" disabled={code.length !== 4}>
               Join
             </button>
+            <button type="button" className="btn btn-sky" onClick={() => navigate('/meet')}>
+              Find my people
+            </button>
             <button type="button" className="btn btn-ghost" onClick={() => navigate('/lobbies')}>
               Browse open meetups
             </button>

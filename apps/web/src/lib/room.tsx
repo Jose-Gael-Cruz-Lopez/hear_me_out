@@ -22,6 +22,11 @@ import {
 } from '@hmo/bindings';
 import { toast } from './toast';
 
+/** Rooms the matcher created: strangers mode, not listed publicly, no human host or TV. */
+export function isMatchedRoom(room: Room): boolean {
+  return room.mode === 'strangers' && !room.isPublic;
+}
+
 export function useRoomByCode(code: string): { room: Room | undefined; ready: boolean } {
   const [rooms, ready] = useTable(tables.room.where(r => r.code.eq(code.toUpperCase())));
   return { room: rooms[0], ready };
@@ -62,6 +67,8 @@ export function useRoom(): RoomData {
 /** One set of room-scoped subscriptions per screen; components read from context. */
 export function RoomDataProvider({ room, withMedia, children }: { room: Room; withMedia: boolean; children: ReactNode }) {
   const id = room.id;
+  // Matched strangers rooms have no shared TV: every window is the stage, so it needs the pitch audio.
+  withMedia = withMedia || isMatchedRoom(room);
   const { identity } = useSpacetimeDB();
   const [players] = useTable(tables.player.where(p => p.roomId.eq(id)));
   const [profiles] = useTable(tables.profilePublic.where(p => p.roomId.eq(id)));

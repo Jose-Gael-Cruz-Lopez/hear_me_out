@@ -12,6 +12,21 @@ const WINDOWS = [
   { label: '11pm–late', startMin: 23 * 60, endMin: 26 * 60 },
 ];
 const VIBES = ['Spicy', 'Cheap', 'Cozy', 'Loud', 'Board games', 'Night owl', 'Early bird', 'Outdoors', 'Live music', 'Dessert', 'Drinks', 'Adventurous'];
+// "Connect your Muse" is SIMULATED for the demo: Meta has no public API for personal Muse memory yet.
+// Swap simulatedMuseMemory() for the real import when it exists (see DECISIONS.md).
+const MUSE_MEMORIES = [
+  'Loves spicy ramen and late-night noodle spots. Usually spends about $20 on dinner. Free most evenings after 7pm. Into board game nights and anime. Close friends: Priya and Sam, who are both vegetarian.',
+  'Big on tacos, live music and craft beer. Budget around $25. Free Friday and Saturday nights. Goes bowling with coworkers. Friends with lots of karaoke fans.',
+  'Coffee and dessert person, prefers cozy quiet spots. Vegetarian. Budget about $15-20. Free after 6pm. Joins weekly trivia and escape rooms with college friends.',
+  'Adventurous eater: Korean BBQ, Thai, dumplings. Night owl, free after 8pm. Loves arcades and photography walks. Connected with a climbing group and a film club.',
+];
+function simulatedMuseMemory(seed: string): string {
+  let h = 0;
+  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return MUSE_MEMORIES[h % MUSE_MEMORIES.length];
+}
+const SOURCE_LABEL: Record<string, string> = { paste: 'your Muse', chips: 'your picks', basics: 'your basics', social: 'your posts' };
+
 const MUSE_PROMPT = 'Summarize my food likes, budget, and free time this week in 5 bullets.';
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -124,7 +139,7 @@ export function ProfileFlow() {
                 <motion.div key={tag} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="card flex items-center gap-3 p-3">
                   <div className="flex-1">
                     <div className="font-display text-xl font-black text-sky">#{tag}</div>
-                    <div className="text-sm text-cream/70">{why ? `${why.reason} · from ${why.source}` : 'Added by you'}</div>
+                    <div className="text-sm text-cream/70">{why ? `${why.reason} · from ${SOURCE_LABEL[why.source] ?? why.source}` : 'Added by you'}</div>
                   </div>
                   <button className="chip bg-ink-3 text-cream/80" onClick={() => setEditedTags(tags.filter(t => t !== tag))} aria-label={`Remove ${tag}`}>
                     ✕
@@ -236,8 +251,18 @@ export function ProfileFlow() {
         <div className="font-display text-3xl font-black">Bring your Muse</div>
         <div className="text-cream/75">Paste what your own Meta AI knows about your taste. We only use what you paste here.</div>
       </div>
+      <button
+        type="button"
+        className={`btn ${pasted ? 'btn-lime' : 'btn-sky'} w-full`}
+        onClick={() => {
+          setPasted(simulatedMuseMemory(me.name + room.code));
+          toast('Connected to your Muse: imported your tastes and connections');
+        }}
+      >
+        {pasted ? '✓ Muse connected' : '✨ Connect your Muse'}
+      </button>
       <div className="card space-y-3 p-4">
-        <div className="text-sm font-bold text-muted">Ask your Meta AI app:</div>
+        <div className="text-sm font-bold text-muted">Or ask your Meta AI app:</div>
         <div className="rounded-2xl bg-ink p-3 font-mono text-sm">{MUSE_PROMPT}</div>
         <button
           type="button"

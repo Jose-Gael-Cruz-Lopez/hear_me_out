@@ -6,3 +6,4 @@ export * from './reducers/profile';
 export * from './reducers/game';
 export * from './reducers/jobs';
 export * from './reducers/strangers';
+export * from './reducers/matchmaking';

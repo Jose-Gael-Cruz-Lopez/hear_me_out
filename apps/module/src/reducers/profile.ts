@@ -2,6 +2,7 @@ import { SenderError, t } from 'spacetimedb/server';
 import spacetimedb, { profileDraft, SocialLink, TimeWindow } from '../schema';
 import { checkEarly, enqueueJob, getRoom, requireMyPlayer, requirePhase } from '../core';
 import { clampText, sanitizeDiets, sanitizeTags } from '../logic/text';
+import { scheduleQueueCheck } from '../queue';
 
 const PLATFORMS = ['instagram', 'tiktok', 'facebook'];
 
@@ -97,7 +98,8 @@ export const approveTags = spacetimedb.reducer({ roomId: t.u64(), tags: t.array(
   const draft = ctx.db.profileDraft.playerId.find(me.id);
   if (draft) ctx.db.profileDraft.playerId.update({ ...draft, status: 'approved' });
   ctx.db.player.id.update({ ...me, ready: true, actedSeq: r.phaseSeq });
-  checkEarly(ctx, roomId);
+  if (r.mode === 'queue') scheduleQueueCheck(ctx, r);
+  else checkEarly(ctx, roomId);
 });
 
 /** A player's own private draft (inputs + unapproved tags). Other players never see these rows. */

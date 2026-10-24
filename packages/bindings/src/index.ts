@@ -59,6 +59,7 @@ import FinishPosterReducer from "./finish_poster_reducer";
 import FinishScoutReducer from "./finish_scout_reducer";
 import FinishTranscribeReducer from "./finish_transcribe_reducer";
 import FinishWarmupReducer from "./finish_warmup_reducer";
+import JoinMatchmakingReducer from "./join_matchmaking_reducer";
 import JoinPublicRoomReducer from "./join_public_room_reducer";
 import JoinRoomReducer from "./join_room_reducer";
 import KickPlayerReducer from "./kick_player_reducer";
@@ -397,6 +398,7 @@ const reducersSchema = __reducers(
   __reducerSchema("finish_scout", FinishScoutReducer),
   __reducerSchema("finish_transcribe", FinishTranscribeReducer),
   __reducerSchema("finish_warmup", FinishWarmupReducer),
+  __reducerSchema("join_matchmaking", JoinMatchmakingReducer),
   __reducerSchema("join_public_room", JoinPublicRoomReducer),
   __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("kick_player", KickPlayerReducer),

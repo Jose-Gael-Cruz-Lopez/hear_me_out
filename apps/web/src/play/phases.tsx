@@ -4,7 +4,8 @@ import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
 import { MergeBanner } from '../components/MergeBanner';
 import { SafetyList } from '../components/Safety';
 import { Avatar, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
-import { useCall, useRoom } from '../lib/room';
+import { isMatchedRoom, useCall, useRoom } from '../lib/room';
+import { HostPlayback } from '../host/Playback';
 import { play } from '../lib/sound';
 import { tsMs } from '../lib/time';
 import { toast } from '../lib/toast';
@@ -154,8 +155,14 @@ export function PlayPlayback() {
   const option = optionById(pitch.optionId);
   const mine = pitch.playerId === me?.id;
   const objected = objections.some(o => o.pitchId === pitch.id && o.playerId === me?.id);
+  const stage = isMatchedRoom(room);
   return (
     <div className="flex flex-1 flex-col gap-5">
+      {stage && (
+        <div key={String(pitch.id)} className="flex flex-col">
+          <HostPlayback />
+        </div>
+      )}
       <div className="card flex items-center gap-4 p-4">
         {speaker && <Avatar player={speaker} size={64} label={false} />}
         <div>
