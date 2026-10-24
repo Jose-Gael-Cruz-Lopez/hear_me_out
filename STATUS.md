@@ -9,11 +9,12 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Up next / on hold
 
-- WhatsApp group link **UI**: render `my_group_chat` (paste box, "Join WhatsApp group", share) on the plan screens. On hold by request; backend is done. · claude/modest-cerf-72dq1o
-- Connect `Jose-Gael-Cruz-Lopez/jacky_boxie` in Trov (Org settings › Repositories) so Trov writes its own per-push digests. Needs a Trov admin in the web app.
+- Rest of the WhatsApp UI is on hold by request (the public-meetup QR is done). Not planned: showing it on the TV, which is a shared screen in the room.
+- Trov: the repo was connected but the dashboard still lists no repos for the org (`repos: []`, branches "not connected"). A Trov admin needs to run **Sync GitHub** / give Trov's GitHub app access to jacky_boxie in the web app.
 
 ## Done recently
 
+- WhatsApp QR on the public-meetup plan screen (phones), with a paste box for the invite. · diyab (Claude Code)
 - Agent workflow: `AGENTS.md` router, full `CLAUDE.md` guide, this file, `pre-push` hook, Trov entry per push. · diyab (Claude Code)
 - WhatsApp group link backend for people going to a meetup (`82e7020`). · diyab (Claude Code)
 - `claude/modest-cerf-72dq1o` now matches Hear Me Out (`451aa73`); the older Pitch Fight code stays in history. · Prisha
@@ -35,6 +36,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Verified:**
 - **Not done / unverified:**
 -->
+
+### 2026-10-24 · claude/modest-cerf-72dq1o · diyab (Claude Code)
+- **Changed:** public meetups now show a WhatsApp card on each phone's plan screen once the meetup is confirmed, only to people who RSVP'd "I'm in". Someone going pastes the group invite (with a suggested group name to copy); then everyone going gets a QR code to scan, "Join WhatsApp group" and Share. New `qrcode` dependency in the web app. Not on the TV (shared screen).
+- **Verified:** in the browser against a local server, a 3-person public meetup: no card at 2/3 RSVPs, card after "I'm in" confirmed it, a wa.me phone link was refused, a real invite showed the QR + buttons. `pnpm test` 45/45, `pnpm typecheck` clean.
+- **Not done / unverified:** didn't scan the QR with a real phone camera.
 
 ### 2026-10-24 · claude/modest-cerf-72dq1o · diyab (Claude Code)
 - **Changed:** `AGENTS.md` is now the entry point that sends every agent to `CLAUDE.md`; `CLAUDE.md` describes the build, stack and components plus the STATUS.md and Trov rules; the SpacetimeDB reference moved to `docs/SPACETIMEDB.md`; added this file and a `pre-push` hook that blocks pushes without a STATUS.md update. **Everyone: run `git config core.hooksPath .githooks` once in your clone** (a fresh `pnpm install` also does it).

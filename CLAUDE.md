@@ -40,7 +40,7 @@ A party game that turns "where do we go?" into a plan. A TV runs the show, playe
 
 **Orchestrator (`apps/orchestrator/src`)** — `runner.ts` claims jobs, `jobs/handlers.ts` one handler per job kind, `services/` `muse.ts`, `venues.ts`, `curation.ts`, `factcheck.ts`, `audio.ts`, `social.ts`, `geocode.ts`, `offline.ts` (fallback copy), `prompts/`.
 
-**Web (`apps/web/src`)** — routes in `App.tsx`: `/` Home, `/host/:code` TV (`host/`), `/play/:code` player (`play/`), `/lobbies` public lobby browser, `/meet` Find my people. Shared pieces in `components/` (Ink, Crowd, Muse, Safety, MergeBanner, ReactionLayer, …) and `lib/` (connection, room, muse (simulated connection, see Rules), sound, time, toast).
+**Web (`apps/web/src`)** — routes in `App.tsx`: `/` Home, `/host/:code` TV (`host/`), `/play/:code` player (`play/`), `/lobbies` public lobby browser, `/meet` Find my people. Shared pieces in `components/` (Ink, Crowd, Muse, Safety, MergeBanner, ReactionLayer, WhatsAppGroup (QR + invite for people going), …) and `lib/` (connection, room, muse (simulated connection, see Rules), sound, time, toast).
 
 ## Commands
 

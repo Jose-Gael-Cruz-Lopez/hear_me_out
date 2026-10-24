@@ -6,6 +6,7 @@ import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
 import { SafetyList } from '../components/Safety';
+import { WhatsAppGroup } from '../components/WhatsAppGroup';
 import { Avatar, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
 import { HostPlayback } from '../host/Playback';
@@ -326,6 +327,7 @@ export function PlayPlan() {
         {plan.whyForEach.find(w => w.playerId === me?.id) && <div className="text-lime"><IconText text={"💚 "} />{plan.whyForEach.find(w => w.playerId === me?.id)!.line}</div>}
       </div>
       <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
+      <WhatsAppGroup />
       <div className="grid grid-cols-3 gap-3">
         {(['yes', 'maybe', 'no'] as const).map(s => (
           <button key={s} className={`btn text-lg ${mine?.status === s ? 'btn-lime' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.setRsvp({ planId: plan.id, status: s }))}>
