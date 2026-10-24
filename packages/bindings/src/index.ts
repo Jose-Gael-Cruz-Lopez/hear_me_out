@@ -67,6 +67,7 @@ import LeaveRoomReducer from "./leave_room_reducer";
 import RaiseObjectionReducer from "./raise_objection_reducer";
 import ReactReducer from "./react_reducer";
 import ReportPlayerReducer from "./report_player_reducer";
+import SetGroupChatLinkReducer from "./set_group_chat_link_reducer";
 import SetMeetupDetailsReducer from "./set_meetup_details_reducer";
 import SetRoomSetupReducer from "./set_room_setup_reducer";
 import SetRsvpReducer from "./set_rsvp_reducer";
@@ -89,6 +90,7 @@ import AwardRow from "./award_table";
 import MediaRow from "./media_table";
 import MergeOfferRow from "./merge_offer_table";
 import MergeVoteRow from "./merge_vote_table";
+import MyGroupChatRow from "./my_group_chat_table";
 import MyLobbyMatchesRow from "./my_lobby_matches_table";
 import MyPrevoteRow from "./my_prevote_table";
 import MyProfileDraftRow from "./my_profile_draft_table";
@@ -348,6 +350,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdminVenueCacheRow),
+  myGroupChat: __table({
+    name: 'my_group_chat',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyGroupChatRow),
   myLobbyMatches: __table({
     name: 'my_lobby_matches',
     indexes: [
@@ -406,6 +415,7 @@ const reducersSchema = __reducers(
   __reducerSchema("raise_objection", RaiseObjectionReducer),
   __reducerSchema("react", ReactReducer),
   __reducerSchema("report_player", ReportPlayerReducer),
+  __reducerSchema("set_group_chat_link", SetGroupChatLinkReducer),
   __reducerSchema("set_meetup_details", SetMeetupDetailsReducer),
   __reducerSchema("set_room_setup", SetRoomSetupReducer),
   __reducerSchema("set_rsvp", SetRsvpReducer),

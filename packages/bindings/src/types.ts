@@ -69,6 +69,24 @@ export const Config = __t.object("Config", {
 });
 export type Config = __Infer<typeof Config>;
 
+export const GroupChat = __t.object("GroupChat", {
+  roomId: __t.u64(),
+  inviteUrl: __t.string(),
+  setByIdentity: __t.identity(),
+  updatedAt: __t.timestamp(),
+});
+export type GroupChat = __Infer<typeof GroupChat>;
+
+export const GroupChatInfo = __t.object("GroupChatInfo", {
+  roomId: __t.u64(),
+  inviteUrl: __t.string(),
+  suggestedName: __t.string(),
+  intro: __t.string(),
+  shareUrl: __t.string(),
+  canEdit: __t.bool(),
+});
+export type GroupChatInfo = __Infer<typeof GroupChatInfo>;
+
 export const JanitorTimer = __t.object("JanitorTimer", {
   scheduledId: __t.u64(),
   scheduledAt: __t.scheduleAt(),
@@ -116,6 +134,9 @@ export const MergeVote = __t.object("MergeVote", {
   yes: __t.bool(),
 });
 export type MergeVote = __Infer<typeof MergeVote>;
+
+export const MyGroupChat = __t.object("MyGroupChat", {});
+export type MyGroupChat = __Infer<typeof MyGroupChat>;
 
 export const MyLobbyMatches = __t.object("MyLobbyMatches", {});
 export type MyLobbyMatches = __Infer<typeof MyLobbyMatches>;

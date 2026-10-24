@@ -388,6 +388,20 @@ const report = table(
   }
 );
 
+/**
+ * Private: the WhatsApp group invite link for a meetup, pasted by someone going. Exposed only to people who
+ * RSVP'd yes (and the host) through the my_group_chat view, so the link never sits in the public plan row.
+ */
+const groupChat = table(
+  { name: 'group_chat' },
+  {
+    roomId: t.u64().primaryKey(),
+    inviteUrl: t.string(),
+    setByIdentity: t.identity(),
+    updatedAt: t.timestamp(),
+  }
+);
+
 /** Pitch audio and posters, stored as bytes. Only the TV subscribes to a room's media. */
 const media = table(
   { name: 'media', public: true },
@@ -463,6 +477,7 @@ const spacetimedb = schema({
   mergeVote,
   lobbyMatch,
   report,
+  groupChat,
   media,
   aiJob,
   phaseTimer,
@@ -492,6 +507,7 @@ export {
   mergeVote,
   lobbyMatch,
   report,
+  groupChat,
   media,
   aiJob,
   phaseTimer,
