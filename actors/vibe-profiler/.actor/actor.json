@@ -1,0 +1,22 @@
+{
+  "$schema": "https://apify.com/schemas/v1/actor.ide.json",
+  "actorSpecification": 1,
+  "name": "vibe-profiler",
+  "title": "Vibe Profiler: Social Posts to Interest & Taste Tags",
+  "description": "Turn public social posts into interest & taste tags. Scrapes recent Instagram, TikTok and Facebook posts, derives top hashtags, places, interests and posting-time pattern, and (optionally with Muse Spark) up to 8 evidence-backed vibe tags. Raw post text is not stored.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "meta": {
+    "templateId": "ts-start"
+  },
+  "input": "./input_schema.json",
+  "output": "./output_schema.json",
+  "storages": {
+    "dataset": "./dataset_schema.json"
+  },
+  "dockerfile": "../Dockerfile",
+  "readme": "../README.md",
+  "defaultMemoryMbytes": 256,
+  "minMemoryMbytes": 128,
+  "maxMemoryMbytes": 1024
+}
