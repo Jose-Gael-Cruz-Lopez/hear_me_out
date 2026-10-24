@@ -115,7 +115,7 @@ Open `http://localhost:5173` → **Friends game** in one window (the TV), then j
 ## Deploy (multiple Macs)
 
 - **Database:** `pnpm db:maincloud` publishes the module to SpacetimeDB Maincloud. Set `SPACETIMEDB_URI=wss://maincloud.spacetimedb.com` for the web build and the orchestrator.
-- **Web:** Vercel, project root `apps/web` (SPA rewrite in `vercel.json`); every Mac opens the same HTTPS URL, so the mic works.
+- **Web:** `pnpm web:build:maincloud`, then `npx vercel deploy apps/web/dist --prod` (a static upload; the SPA rewrite ships inside `dist`). Every Mac opens the same HTTPS URL, so the mic works.
 - **Orchestrator:** `pnpm orchestrator` on the host Mac (outgoing connections only). Running a second copy is safe: `claim_job` is atomic.
 - Before presenting: `pnpm prewarm` caches live venues for `DEMO_LOCATION`.
 
