@@ -4,6 +4,8 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   // Lets phones on the same Wi-Fi load the dev server by LAN IP.
   allowedDevOrigins: ['*.local', '192.168.*.*', '10.*.*.*'],
+  // The options route reads cached places JSON from disk at runtime; ship it with the serverless bundle.
+  outputFileTracingIncludes: { '/api/options': ['./data/places/**'] },
 };
 
 export default nextConfig;

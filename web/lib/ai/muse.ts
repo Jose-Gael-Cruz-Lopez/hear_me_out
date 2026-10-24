@@ -147,7 +147,8 @@ const mock: AiHost = {
   async pickTime({ optionName, slots, total }) {
     const best = slots[0]!;
     const who = best.count >= total ? 'Everyone' : `${best.count} of ${total} of you`;
-    return { slot: best.slot, blurb: `${who} said you're free ${best.label.toLowerCase()}. ${optionName} it is — no take-backs.` };
+    const when = best.label.replace(' · ', ' at ').replace(/^(Today|Tomorrow)/, w => w.toLowerCase());
+    return { slot: best.slot, blurb: `${who} can make it ${when}. ${optionName} it is — no take-backs.` };
   },
 
   async transcribe(_audio, browserHint) {
@@ -189,8 +190,21 @@ export function mockPosterSvg(name: string, category: string, blurb: string) {
   const hue = h % 360;
   const titleLines = wrap(name.toUpperCase(), 13, 3);
   const titleSize = titleLines.some(l => l.length > 10) ? 58 : 72;
-  const tagline = pick(TAGLINES, name);
-  const blurbLines = wrap(blurb, 34, 3);
+  const taglineLines = wrap(pick(TAGLINES, name), 32, 2);
+  const blurbLines = wrap(blurb, 36, 3);
+  // Lay out top-to-bottom so long titles push everything down instead of overlapping.
+  let y = 400;
+  const title = titleLines.map(l => {
+    y += titleSize + 6;
+    return `<text x="300" y="${y}" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif" font-size="${titleSize}" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${xml(l)}</text>`;
+  });
+  y += 18;
+  const tag = taglineLines.map(l => {
+    y += 28;
+    return `<text x="300" y="${y}" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="21" fill="#fff">${xml(l)}</text>`;
+  });
+  y = Math.max(y + 40, 720);
+  const blurbText = blurbLines.map((l, i) => `<text x="300" y="${y + i * 27}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="19" fill="#fff" opacity="0.9">${xml(l)}</text>`);
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" width="600" height="900">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
@@ -198,26 +212,19 @@ export function mockPosterSvg(name: string, category: string, blurb: string) {
       <stop offset="0.6" stop-color="hsl(${(hue + 40) % 360},80%,40%)"/>
       <stop offset="1" stop-color="hsl(${(hue + 80) % 360},85%,55%)"/>
     </linearGradient>
-    <radialGradient id="spot" cx="0.5" cy="0.35" r="0.5">
+    <radialGradient id="spot" cx="0.5" cy="0.3" r="0.5">
       <stop offset="0" stop-color="#fff" stop-opacity="0.35"/>
       <stop offset="1" stop-color="#fff" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="600" height="900" fill="url(#g)"/>
   <rect width="600" height="900" fill="url(#spot)"/>
-  <text x="300" y="70" text-anchor="middle" font-family="Georgia, serif" font-size="18" letter-spacing="3" fill="#fff" opacity="0.85">A PITCH FIGHT PRODUCTION</text>
-  <text x="300" y="330" text-anchor="middle" font-size="190">${categoryEmoji(category)}</text>
-  ${titleLines
-    .map(
-      (l, i) =>
-        `<text x="300" y="${470 + i * (titleSize + 8)}" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif" font-size="${titleSize}" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke">${xml(l)}</text>`
-    )
-    .join('\n  ')}
-  <text x="300" y="${500 + titleLines.length * (titleSize + 8)}" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="22" fill="#fff">${xml(tagline)}</text>
-  ${blurbLines
-    .map((l, i) => `<text x="300" y="${740 + i * 28}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#fff" opacity="0.9">${xml(l)}</text>`)
-    .join('\n  ')}
-  <text x="300" y="870" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" letter-spacing="2" fill="#fff" opacity="0.7">${xml(category.toUpperCase())} · RATED G FOR GROUP DECISION</text>
+  <text x="300" y="64" text-anchor="middle" font-family="Georgia, serif" font-size="18" letter-spacing="3" fill="#fff" opacity="0.85">A PITCH FIGHT PRODUCTION</text>
+  <text x="300" y="320" text-anchor="middle" font-size="180">${categoryEmoji(category)}</text>
+  ${title.join('\n  ')}
+  ${tag.join('\n  ')}
+  ${blurbText.join('\n  ')}
+  <text x="300" y="872" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" letter-spacing="2" fill="#fff" opacity="0.7">${xml(category.toUpperCase())} · RATED G FOR GROUP DECISION</text>
 </svg>`;
 }
 
