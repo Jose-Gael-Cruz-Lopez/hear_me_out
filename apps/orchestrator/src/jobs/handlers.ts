@@ -77,7 +77,7 @@ const distill_profile: Handler = async (job, d) => {
       vibeChips: p.vibeChips,
       pastedFromTheirMuse: p.pastedContext || '(nothing pasted)',
     },
-    effort: 'low',
+    effort: 'minimal',
     roomId: job.roomId,
   });
   const tags = out?.tags ?? fallback;

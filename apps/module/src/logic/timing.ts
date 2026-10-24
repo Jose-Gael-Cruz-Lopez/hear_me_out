@@ -21,7 +21,7 @@ export type Phase =
  */
 const PHASE_SECONDS: Record<Phase, readonly [number, number] | null> = {
   lobby: null,
-  profiles: [75, 6],
+  profiles: [75, 15],
   warmup: [45, 3],
   scouting: [120, 20],
   finalists: [15, 2],

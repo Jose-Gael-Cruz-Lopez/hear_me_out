@@ -1,93 +1,32 @@
 // pnpm sim — drives a Friends room from lobby to plan against the local SpacetimeDB server.
 // Two scripted "human" connections + three bots; the orchestrator runs in-process on fixtures
 // (DEMO_MODE) unless --live is passed. Exits non-zero if any acceptance check fails.
-import { DbConnection, tables, type Room } from '@hmo/bindings';
+import type { Room } from '@hmo/bindings';
 import { startOrchestrator } from '@hmo/orchestrator';
+import { check, checks, connect, DB, quiet, sineWav, t, URI, VERBOSE, waitFor } from './simlib';
 
-const URI = process.env.SPACETIMEDB_URI || 'ws://127.0.0.1:3000';
-const DB = process.env.SPACETIMEDB_DB_NAME || 'hear-me-out';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+function sayToFile(text: string): Uint8Array {
+  const file = join(mkdtempSync(join(tmpdir(), 'hmo-say-')), 'pitch.aiff');
+  execFileSync('say', ['-o', file, text]);
+  return new Uint8Array(readFileSync(file));
+}
+
 const LIVE = process.argv.includes('--live');
-const VERBOSE = process.argv.includes('--verbose');
+/** --muse: live Meta Muse, venues from recorded fixtures (saves Apify credit). */
+const MUSE = process.argv.includes('--muse');
 const started = Date.now();
-const t = () => `${((Date.now() - started) / 1000).toFixed(1).padStart(5)}s`;
-const checks: { ok: boolean; label: string }[] = [];
-
-function check(ok: boolean, label: string): void {
-  checks.push({ ok, label });
-  console.log(`${t()}  ${ok ? 'PASS' : 'FAIL'}  ${label}`);
-}
-
-function connect(label: string): Promise<DbConnection> {
-  return new Promise((resolve, reject) => {
-    DbConnection.builder()
-      .withUri(URI)
-      .withDatabaseName(DB)
-      .onConnect(conn => {
-        conn
-          .subscriptionBuilder()
-          .onApplied(() => resolve(conn))
-          .subscribe([
-            tables.room,
-            tables.player,
-            tables.profilePublic,
-            tables.option,
-            tables.assignment,
-            tables.pitch,
-            tables.warmup,
-            tables.vote,
-            tables.award,
-            tables.plan,
-            tables.rsvp,
-            tables.objection,
-            tables.myProfileDraft,
-            tables.myPrevote,
-            tables.adminJobs,
-          ]);
-      })
-      .onConnectError((_ctx, err) => reject(new Error(`${label}: ${err}`)))
-      .build();
-  });
-}
-
-async function waitFor<T>(label: string, fn: () => T | undefined | null | false, timeoutMs = 30_000): Promise<T> {
-  const deadline = Date.now() + timeoutMs;
-  for (;;) {
-    const v = fn();
-    if (v) return v;
-    if (Date.now() > deadline) throw new Error(`Timed out waiting for: ${label}`);
-    await new Promise(r => setTimeout(r, 40));
-  }
-}
-
-/** A short mono 16 kHz sine-wave WAV, standing in for a recorded pitch. */
-function sineWav(seconds: number): Uint8Array {
-  const rate = 16000;
-  const n = Math.floor(rate * seconds);
-  const buf = new ArrayBuffer(44 + n * 2);
-  const v = new DataView(buf);
-  const str = (o: number, x: string) => [...x].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
-  str(0, 'RIFF');
-  v.setUint32(4, 36 + n * 2, true);
-  str(8, 'WAVEfmt ');
-  v.setUint32(16, 16, true);
-  v.setUint16(20, 1, true);
-  v.setUint16(22, 1, true);
-  v.setUint32(24, rate, true);
-  v.setUint32(28, rate * 2, true);
-  v.setUint16(32, 2, true);
-  v.setUint16(34, 16, true);
-  str(36, 'data');
-  v.setUint32(40, n * 2, true);
-  for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.round(Math.sin((2 * Math.PI * 440 * i) / rate) * 8000), true);
-  return new Uint8Array(buf);
-}
-
-const quiet = <T>(p: Promise<T>) => p.catch(err => (VERBOSE ? console.log(`${t()}  (expected) ${String(err).slice(0, 120)}`) : undefined));
 
 async function main(): Promise<void> {
   if (!VERBOSE) process.env.SPACETIMEDB_SDK_LOG_LEVEL = 'error';
-  console.log(`Hear Me Out simulator → ${URI}/${DB} (${LIVE ? 'live APIs' : 'DEMO_MODE fixtures'})`);
-  const orch = await startOrchestrator({ demoMode: !LIVE });
+  console.log(`Hear Me Out simulator → ${URI}/${DB} (${MUSE ? 'live Muse + recorded venues' : LIVE ? 'live APIs' : 'DEMO_MODE fixtures'})`);
+  const orch = await startOrchestrator(MUSE ? { demoMode: false, apifyToken: '' } : { demoMode: !LIVE });
+  // With live Muse, upload real speech (macOS `say`) so transcription has words to hear.
+  const speech = MUSE ? sayToFile('Members of the jury! This place is so cheap, and only a two minute walk. Trust me, this is the one!') : null;
   const host = await connect('host');
   const alex = await connect('alex');
   const sam = await connect('sam');
@@ -166,9 +105,9 @@ async function main(): Promise<void> {
           once(k, () =>
             h.conn.reducers.uploadPitchAudio({
               pitchId: mine.id,
-              mime: 'audio/wav',
-              bytes: sineWav(1.5),
-              durationMs: 1500,
+              mime: speech ? 'audio/aiff' : 'audio/wav',
+              bytes: speech ?? sineWav(6.5), // ~208 KB, the size of a 30 s Opus pitch: proves large reducer args work
+              durationMs: 6500,
               browserTranscript: 'It is so cheap, and only a 2 minute walk. Trust me, this is the one.',
             })
           );
@@ -225,7 +164,10 @@ async function main(): Promise<void> {
   const pitches = [...host.db.pitch.iter()].filter(p => p.roomId === rid);
   check(pitches.length === all.length && pitches.every(p => p.status === 'ready'), 'all pitches ready (typed, recorded, bot)');
   const samPitch = pitches.find(p => p.playerId === sam1.id);
-  check(!!samPitch && samPitch.audioMediaId !== 0n && samPitch.transcriptSource === (LIVE ? samPitch.transcriptSource : 'browser'), `recorded pitch stored in SpacetimeDB media and transcribed (source: ${samPitch?.transcriptSource})`);
+  check(
+    !!samPitch && samPitch.audioMediaId !== 0n && samPitch.transcriptSource === (MUSE ? 'muse' : LIVE ? samPitch.transcriptSource : 'browser'),
+    `recorded pitch stored in SpacetimeDB media and transcribed (source: ${samPitch?.transcriptSource}): "${samPitch?.transcript.slice(0, 80)}"`
+  );
   const rulings = pitches.filter(p => p.rulingKind === 'sustained' || p.rulingKind === 'verified');
   check(rulings.length >= 1, `fact-check rulings: ${rulings.map(p => `[${p.rulingKind}] ${p.rulingText}`).join(' / ')}`);
   check(pitches.every(p => p.rulingKind !== 'pending'), 'no ruling left pending');
@@ -246,6 +188,21 @@ async function main(): Promise<void> {
   check(plan.inviteText.length > 0 && plan.whyForEach.length > 0, `invite: "${plan.inviteText.slice(0, 90)}…"`);
   const rsvps = [...host.db.rsvp.iter()].filter(x => x.roomId === rid);
   check(rsvps.length === all.length, `${rsvps.length} RSVPs`);
+
+  if (MUSE) {
+    await waitFor('poster', () => [...host.db.plan.iter()].find(p => p.roomId === rid && (p.posterMediaId !== 0n || p.posterUrl)), 45_000).catch(() => undefined);
+    const p2 = [...host.db.plan.iter()].find(p => p.roomId === rid);
+    check(!!p2 && p2.posterMediaId !== 0n, 'Muse Image poster stored in SpacetimeDB media');
+    console.log('\n--- What Muse wrote ---');
+    for (const o of options) console.log(`finalist ${o.title}: ${o.fitSummary} | ${o.perPlayerFit.map(f => f.line).join(' / ')}`);
+    for (const a of assignments) console.log(`brief: ${a.stylePrompt} | ${a.hints.join(' / ')}`);
+    for (const w of [...host.db.warmup.iter()].filter(w => w.roomId === rid)) console.log(`warmup: ${w.question} [${w.choiceA} | ${w.choiceB}]`);
+    for (const p of pitches.filter(p => p.transcriptSource === 'bot')) console.log(`bot pitch: ${p.transcript}`);
+    console.log(`invite: ${p2?.inviteText}`);
+    for (const w of p2?.whyForEach ?? []) console.log(`why: ${w.line}`);
+    for (const i of p2?.icebreakers ?? []) console.log(`icebreaker: ${i}`);
+    console.log(`tags (Alex): ${host.db.profilePublic.playerId.find(alexPlayer.id)?.approvedTags.join(', ')}`);
+  }
 
   const elapsed = (Date.now() - started) / 1000;
   const failed = checks.filter(c => !c.ok);
