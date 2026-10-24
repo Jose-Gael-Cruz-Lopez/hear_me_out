@@ -14,13 +14,17 @@
     "sim": "tsx --env-file-if-exists=.env scripts/sim.ts",
     "test": "vitest run",
     "typecheck": "pnpm -r --parallel typecheck && tsc -p scripts/tsconfig.json",
-    "sim:strangers": "tsx --env-file-if-exists=.env scripts/sim-strangers.ts"
+    "sim:strangers": "tsx --env-file-if-exists=.env scripts/sim-strangers.ts",
+    "dev": "concurrently -k -n orch,web -c magenta,cyan \"pnpm orchestrator\" \"pnpm web\"",
+    "prewarm": "pnpm --filter @hmo/orchestrator exec tsx --env-file-if-exists=../../.env src/scripts/prewarm.ts",
+    "actor:push": "pnpm --filter vibe-profiler push"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
     "tsx": "^4.20.0",
     "typescript": "~5.6.2",
-    "vitest": "^3.2.0"
+    "vitest": "^3.2.0",
+    "concurrently": "^9.2.0"
   },
   "dependencies": {
     "@hmo/bindings": "workspace:*",

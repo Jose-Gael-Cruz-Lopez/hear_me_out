@@ -105,7 +105,7 @@ const warmup: Handler = async (job, d) => {
 
 // ---------- Scouting ----------
 
-interface ScoutPayload {
+export interface ScoutPayload {
   category: string;
   locationLabel: string;
   lat: number;
@@ -115,8 +115,11 @@ interface ScoutPayload {
 
 const SIX_HOURS_MS = 6 * 3600 * 1000;
 
-const scout: Handler = async (job, d) => {
-  const p = payload<ScoutPayload>(job);
+/**
+ * Venues for a category + place: fresh cache (6 h) → live Apify run → recorded fixtures.
+ * Live and fixture results are written to venue_cache so curation (and later rooms) can use them.
+ */
+export async function resolveVenueSet(d: Deps, p: ScoutPayload): Promise<{ key: string; center: LatLng; count: number; source: 'cache' | 'apify' | 'fixture' }> {
   const category = p.category || 'food';
   let center: LatLng | null = p.hasGeo ? { lat: p.lat, lng: p.lng } : null;
   if (!center && p.locationLabel && !d.cfg.demoMode) center = await geocode(p.locationLabel);
@@ -126,11 +129,9 @@ const scout: Handler = async (job, d) => {
   const key = venueKey(center, p.locationLabel, category, queries);
 
   const cached = [...d.conn.db.adminVenueCache.iter()].find(c => c.key === key);
-  const cachedFresh = cached && Date.now() - Number(cached.fetchedAt.microsSinceUnixEpoch / 1000n) < SIX_HOURS_MS;
-  if (cached && cachedFresh) {
+  if (cached && Date.now() - Number(cached.fetchedAt.microsSinceUnixEpoch / 1000n) < SIX_HOURS_MS) {
     const set = JSON.parse(cached.itemsJson) as { center: LatLng; venues: Venue[] };
-    await d.conn.reducers.finishScout({ jobId: job.id, venueKey: key, lat: set.center.lat, lng: set.center.lng, hasGeo: true, count: set.venues.length, source: 'cache' });
-    return;
+    return { key, center: set.center, count: set.venues.length, source: 'cache' };
   }
 
   const live = await scrapeVenues(d.cfg, { center, locationLabel: p.locationLabel, queries, timeoutMs: 85_000 });
@@ -138,8 +139,7 @@ const scout: Handler = async (job, d) => {
     const liveCenter = center ?? { lat: live.venues[0].lat, lng: live.venues[0].lng };
     if (live.rawItems) saveRawScrape(d.cfg.fixturesDir, key, live.rawItems);
     await d.conn.reducers.cacheVenues({ key, category, query: queries.join('+'), source: 'apify', itemsJson: JSON.stringify({ center: liveCenter, venues: live.venues }) });
-    await d.conn.reducers.finishScout({ jobId: job.id, venueKey: key, lat: liveCenter.lat, lng: liveCenter.lng, hasGeo: true, count: live.venues.length, source: 'apify' });
-    return;
+    return { key, center: liveCenter, count: live.venues.length, source: 'apify' };
   }
 
   if (!fixture) throw new Error('No live venues and no fixtures');
@@ -147,7 +147,12 @@ const scout: Handler = async (job, d) => {
   const fixtureKey = `fixture:${fixture.area}|${category}`;
   const fixtureCenter = { lat: fixture.lat, lng: fixture.lng };
   await d.conn.reducers.cacheVenues({ key: fixtureKey, category, query: queries.join('+'), source: 'fixture', itemsJson: JSON.stringify({ center: fixtureCenter, venues }) });
-  await d.conn.reducers.finishScout({ jobId: job.id, venueKey: fixtureKey, lat: fixtureCenter.lat, lng: fixtureCenter.lng, hasGeo: true, count: venues.length, source: 'fixture' });
+  return { key: fixtureKey, center: fixtureCenter, count: venues.length, source: 'fixture' };
+}
+
+const scout: Handler = async (job, d) => {
+  const set = await resolveVenueSet(d, payload<ScoutPayload>(job));
+  await d.conn.reducers.finishScout({ jobId: job.id, venueKey: set.key, lat: set.center.lat, lng: set.center.lng, hasGeo: true, count: set.count, source: set.source });
 };
 
 // ---------- Curation ----------

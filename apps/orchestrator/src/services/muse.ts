@@ -32,6 +32,14 @@ export interface JsonRequest<T> {
   roomId: bigint;
 }
 
+/** Muse sometimes adds markdown emphasis; our UI renders plain text, so strip it from every string. */
+function stripMarkdown<T>(v: T): T {
+  if (typeof v === 'string') return v.replace(/\*\*|__|`/g, '').replace(/^#+\s*/gm, '') as T;
+  if (Array.isArray(v)) return v.map(stripMarkdown) as T;
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, stripMarkdown(x)])) as T;
+  return v;
+}
+
 function stringify(v: unknown): string {
   return JSON.stringify(v, (_k, x) => (typeof x === 'bigint' ? x.toString() : x));
 }
@@ -83,7 +91,7 @@ export function createMuse(cfg: Config): Muse {
           total: totalTokens,
         });
         const content = res.choices[0]?.message?.content ?? '';
-        const parsed = req.schema.safeParse(JSON.parse(content));
+        const parsed = req.schema.safeParse(stripMarkdown(JSON.parse(content)));
         if (parsed.success) return parsed.data;
         // Retry once with the validation error appended, as the spec asks.
         messages.push({ role: 'assistant', content });
