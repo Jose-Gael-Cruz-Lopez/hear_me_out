@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from 'next';
+import { Anton, Nunito } from 'next/font/google';
 import './globals.css';
+
+const display = Anton({ weight: '400', subsets: ['latin'], variable: '--font-display', display: 'swap' });
+const body = Nunito({ weight: ['600', '700', '800', '900'], subsets: ['latin'], variable: '--font-body', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Pitch Fight',
@@ -9,13 +13,16 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#1a0f2e',
+  themeColor: '#0e1116',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
+      <body>
+        <div className="ambient" aria-hidden />
+        {children}
+      </body>
     </html>
   );
 }

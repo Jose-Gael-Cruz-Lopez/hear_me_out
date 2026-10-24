@@ -14,6 +14,7 @@ export const useHostVoice = () => useContext(VoiceContext);
 
 export function HostVoiceProvider({ children }: { children: ReactNode }) {
   const [caption, setCaption] = useState('');
+  const [talking, setTalking] = useState(false);
   const [muted, setMuted] = useState(false);
   const queue = useRef<string[]>([]);
   const speaking = useRef(false);
@@ -30,8 +31,12 @@ export function HostVoiceProvider({ children }: { children: ReactNode }) {
   const pump = useCallback(() => {
     if (speaking.current) return;
     const next = queue.current.shift();
-    if (!next) return;
+    if (!next) {
+      setTalking(false);
+      return;
+    }
     speaking.current = true;
+    setTalking(true);
     setCaption(next);
     const done = () => {
       speaking.current = false;
@@ -39,7 +44,6 @@ export function HostVoiceProvider({ children }: { children: ReactNode }) {
     };
     const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined;
     if (mutedRef.current || !synth) {
-      // Muted: still show the caption long enough to read it.
       setTimeout(done, Math.min(8000, 1200 + next.length * 45));
       return;
     }
@@ -77,8 +81,21 @@ export function HostVoiceProvider({ children }: { children: ReactNode }) {
     <VoiceContext.Provider value={{ say, muted }}>
       {children}
       <div className="captions" aria-live="polite">
-        <span className="mic">🎙️</span>
-        <span style={{ flex: 1 }}>{caption || <span className="muted">The AI host is warming up…</span>}</span>
+        <span className={`orb ${talking ? 'talking' : ''}`}>
+          {talking ? (
+            <span className="wave sm">
+              <span />
+              <span />
+              <span />
+            </span>
+          ) : (
+            '🎙️'
+          )}
+        </span>
+        <span className="tagline">AI HOST</span>
+        <span key={caption} className="text slideup">
+          {caption || <span className="muted">The AI host is warming up…</span>}
+        </span>
         <button className="btn ghost" onClick={toggle} aria-label={muted ? 'Unmute host' : 'Mute host'}>
           {muted ? '🔇 Muted' : '🔊 Sound on'}
         </button>

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAction, useConn } from '@/lib/stdb';
 import { DEFAULT_LOCATION } from '@/lib/game/questions';
-import { ErrorBox, Spinner } from '../ui';
+import { ErrorBox, Spinner } from '../shared/ui';
 
 // No I/O so codes are easy to read off a TV.
 const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -52,26 +52,31 @@ export function CreateLobby() {
 
   return (
     <main className="phone" style={{ justifyContent: 'center', gap: 24 }}>
-      <div className="center">
-        <div className="logo" style={{ fontSize: '3rem' }}>
+      <div className="center stack" style={{ alignItems: 'center' }}>
+        <div className="hero-avatar" style={{ background: 'var(--yellow)', width: 120, height: 120, fontSize: 64 }}>
+          🥊
+        </div>
+        <div className="logo pop" style={{ fontSize: '3.4rem' }}>
           Pitch Fight
         </div>
-        <p className="muted">This screen becomes the big screen. Put it where everyone can see it.</p>
+        <p className="muted" style={{ fontWeight: 700, margin: 0 }}>
+          This screen becomes the arena. Put it where everyone can see it.
+        </p>
       </div>
-      <div className="card stack">
-        <div className="muted small">Finding places near</div>
+      <div className="card stack slideup">
+        <div className="eyebrow">Battleground</div>
         <b style={{ fontSize: '1.2rem' }}>📍 {loc.label}</b>
         <button className="btn ghost" onClick={useMyLocation} disabled={locating}>
           {locating ? <Spinner /> : '🧭'} Use my current location instead
         </button>
       </div>
-      <button className="btn big pink block" disabled={!isActive || act.busy} onClick={start}>
+      <button className="btn big pink block breathe" disabled={!isActive || act.busy} onClick={start}>
         {!isActive ? (
           <>
             <Spinner /> Connecting to SpacetimeDB…
           </>
         ) : (
-          '🥊 Start game'
+          '🥊 Open the arena'
         )}
       </button>
       <ErrorBox error={act.error} />
