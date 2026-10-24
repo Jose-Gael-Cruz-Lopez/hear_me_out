@@ -68,3 +68,29 @@ describe('offline style prompts', () => {
     expect(offlineStylePrompt('Pho Real', ['night-owl'], 1)).toBe('Defend Pho Real like a nature-documentary narrator at 2am after three espressos.');
   });
 });
+
+describe('audio conversion', () => {
+  it('converts a recording to 24 kHz mono 16-bit WAV with ffmpeg', async () => {
+    const { toWav } = await import('./audio');
+    const rate = 8000;
+    const n = rate;
+    const buf = Buffer.alloc(44 + n * 2);
+    buf.write('RIFF', 0);
+    buf.writeUInt32LE(36 + n * 2, 4);
+    buf.write('WAVEfmt ', 8);
+    buf.writeUInt32LE(16, 16);
+    buf.writeUInt16LE(1, 20);
+    buf.writeUInt16LE(2, 22); // stereo in
+    buf.writeUInt32LE(rate, 24);
+    buf.writeUInt32LE(rate * 4, 28);
+    buf.writeUInt16LE(4, 32);
+    buf.writeUInt16LE(16, 34);
+    buf.write('data', 36);
+    buf.writeUInt32LE(n * 2, 40);
+    const out = await toWav(new Uint8Array(buf), 'audio/wav');
+    expect(out.toString('ascii', 0, 4)).toBe('RIFF');
+    expect(out.readUInt16LE(22)).toBe(1); // mono
+    expect(out.readUInt32LE(24)).toBe(24000);
+    expect(out.readUInt16LE(34)).toBe(16);
+  });
+});

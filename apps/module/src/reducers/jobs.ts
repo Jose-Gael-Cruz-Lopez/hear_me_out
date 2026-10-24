@@ -132,7 +132,10 @@ export const finishScout = spacetimedb.reducer(
       lat: r.hasGeo ? r.lat : lat,
       lng: r.hasGeo ? r.lng : lng,
       hasGeo: r.hasGeo || hasGeo,
-      aiStatus: r.phase === 'lobby' || r.phase === 'profiles' ? `Found ${count} real places nearby.` : r.aiStatus,
+      aiStatus:
+        r.phase === 'lobby' || r.phase === 'profiles'
+          ? `Found ${count} real places nearby${source === 'fixture' ? ' (recorded Apify data)' : source === 'cache' ? ' (cached Apify data)' : ''}.`
+          : r.aiStatus,
     };
     ctx.db.room.id.update(next);
     maybeStartCurate(ctx, next);

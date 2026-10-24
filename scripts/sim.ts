@@ -59,6 +59,29 @@ async function waitFor<T>(label: string, fn: () => T | undefined | null | false,
   }
 }
 
+/** A short mono 16 kHz sine-wave WAV, standing in for a recorded pitch. */
+function sineWav(seconds: number): Uint8Array {
+  const rate = 16000;
+  const n = Math.floor(rate * seconds);
+  const buf = new ArrayBuffer(44 + n * 2);
+  const v = new DataView(buf);
+  const str = (o: number, x: string) => [...x].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  str(0, 'RIFF');
+  v.setUint32(4, 36 + n * 2, true);
+  str(8, 'WAVEfmt ');
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true);
+  v.setUint32(28, rate * 2, true);
+  v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true);
+  str(36, 'data');
+  v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.round(Math.sin((2 * Math.PI * 440 * i) / rate) * 8000), true);
+  return new Uint8Array(buf);
+}
+
 const quiet = <T>(p: Promise<T>) => p.catch(err => (VERBOSE ? console.log(`${t()}  (expected) ${String(err).slice(0, 120)}`) : undefined));
 
 async function main(): Promise<void> {
@@ -135,9 +158,20 @@ async function main(): Promise<void> {
       if (r.phase === 'prevote' && opts.length) once(k, () => h.conn.reducers.castPrevote({ roomId: r.id, optionId: opts[h.name === 'Alex' ? 0 : 1 % opts.length].id }));
       if (r.phase === 'pitching') {
         const mine = [...h.conn.db.pitch.iter()].find(p => p.roomId === r.id && p.playerId === me.id);
-        if (mine) {
-          const claim = h.name === 'Alex' ? 'It is open until 2am and has five stars!' : 'It is so cheap, and only a 2 minute walk.';
-          once(k, () => h.conn.reducers.submitTypedPitch({ pitchId: mine.id, text: `Friends, jurors, hungry people. ${claim} Trust me, this is the one.` }));
+        if (mine && h.name === 'Alex') {
+          once(k, () => h.conn.reducers.submitTypedPitch({ pitchId: mine.id, text: 'Friends, jurors, hungry people. It is open until 2am and has five stars! Trust me, this is the one.' }));
+        }
+        if (mine && h.name === 'Sam') {
+          // A real recording path: audio bytes stored in SpacetimeDB + the browser's caption as the fallback transcript.
+          once(k, () =>
+            h.conn.reducers.uploadPitchAudio({
+              pitchId: mine.id,
+              mime: 'audio/wav',
+              bytes: sineWav(1.5),
+              durationMs: 1500,
+              browserTranscript: 'It is so cheap, and only a 2 minute walk. Trust me, this is the one.',
+            })
+          );
         }
       }
       if (r.phase === 'playback' && h.name === 'Alex') {
@@ -189,7 +223,9 @@ async function main(): Promise<void> {
   check(assignments.every(a => a.stylePrompt.startsWith('Defend') && a.hints.length === 3), `style prompts + 3 hints, e.g. "${alexAssign?.stylePrompt}"`);
 
   const pitches = [...host.db.pitch.iter()].filter(p => p.roomId === rid);
-  check(pitches.length === all.length && pitches.every(p => p.status === 'ready'), 'all pitches ready (typed + bot)');
+  check(pitches.length === all.length && pitches.every(p => p.status === 'ready'), 'all pitches ready (typed, recorded, bot)');
+  const samPitch = pitches.find(p => p.playerId === sam1.id);
+  check(!!samPitch && samPitch.audioMediaId !== 0n && samPitch.transcriptSource === (LIVE ? samPitch.transcriptSource : 'browser'), `recorded pitch stored in SpacetimeDB media and transcribed (source: ${samPitch?.transcriptSource})`);
   const rulings = pitches.filter(p => p.rulingKind === 'sustained' || p.rulingKind === 'verified');
   check(rulings.length >= 1, `fact-check rulings: ${rulings.map(p => `[${p.rulingKind}] ${p.rulingText}`).join(' / ')}`);
   check(pitches.every(p => p.rulingKind !== 'pending'), 'no ruling left pending');

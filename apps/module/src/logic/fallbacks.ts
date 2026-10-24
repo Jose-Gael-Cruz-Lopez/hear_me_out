@@ -85,18 +85,31 @@ export function defaultWarmup(tags: readonly string[], index: number): { questio
   return { question: q[0], choiceA: q[1], choiceB: q[2] };
 }
 
+const OPENERS: [RegExp, string][] = [
+  [/lawyer/i, 'Members of the jury!'],
+  [/documentary|narrator/i, 'Here, in its natural habitat…'],
+  [/sports|commentator/i, 'AND THE CROWD GOES WILD!'],
+  [/trailer/i, 'In a world of indecision…'],
+  [/herald|royal/i, 'Hear ye, hear ye!'],
+  [/infomercial/i, "But wait, there's more!"],
+  [/detective/i, 'The clues all point to one place.'],
+  [/coach/i, 'Listen up, team!'],
+  [/toast/i, 'Raise your glasses, everyone!'],
+  [/weather/i, "Tonight's forecast: delicious."],
+];
+
+/** A spoken-sounding pitch built only from real venue facts, opened in the assigned persona's voice. */
 export function botPitchText(v: VenueFacts, stylePrompt: string, botName: string): string {
-  const style = stylePrompt.replace(/^Defend .*? like /i, 'like ');
-  const facts = defaultHints(v);
-  return [
-    `Ladies and gentlemen, I, ${botName}, present ${v.title}.`,
-    `Speaking ${style.replace(/\.$/, '')}: ${facts[0]}.`,
-    `It is ${facts[1]}.`,
-    facts[2] ? `${facts[2]}.` : '',
-    `Do not let this group chat die in indecision. Vote ${v.title}!`,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const opener = OPENERS.find(([re]) => re.test(stylePrompt))?.[1] ?? 'Ladies and gentlemen!';
+  const parts = [opener, `I, ${botName}, present ${v.title}.`];
+  if (v.rating > 0) parts.push(`${v.rating.toFixed(1)} stars from ${withCommas(v.reviewCount)} reviews.`);
+  parts.push(v.priceLevel > 0 ? `It's ${'$'.repeat(v.priceLevel)} and about ${v.travelMin} minutes away.` : `It's about ${v.travelMin} minutes away.`);
+  const diet = v.dietaryNotes.find(n => !n.startsWith("Couldn't"));
+  const quoted = diet?.match(/"([^"]+)"/)?.[1];
+  if (quoted) parts.push(`They even have ${quoted.toLowerCase()}.`);
+  else if (v.reviewSnippets[0]) parts.push(`One reviewer said: "${v.reviewSnippets[0].split(/(?<=[.!?])\s/)[0].slice(0, 100)}"`);
+  parts.push(`Do not let this group chat die in indecision. Vote ${v.title}!`);
+  return parts.join(' ');
 }
 
 export function defaultInvite(title: string, slotLabel: string, names: readonly string[]): string {

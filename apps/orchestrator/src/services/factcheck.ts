@@ -57,27 +57,28 @@ const checkHours: Check = (t, v) => {
       ? { kind: 'verified', text: `Claim verified: open until ${closeText} tonight.` }
       : { kind: 'sustained', text: `OBJECTION SUSTAINED: ${v.title} closes at ${closeText} tonight.` };
   }
-  const m =
-    t.match(/\b(?:open|opened|serving|serves)\s+(?:until|till|til|'til|to)\s+(midnight|noon|\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?)/i) ??
-    t.match(/\bcloses?\s+(?:at\s+)?(midnight|\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?)/i);
-  if (!m) return null;
-  const claimed = parseClaimTime(m[1]);
-  if (claimed === null) return null;
-  if (claimed > close + 15) return { kind: 'sustained', text: `OBJECTION SUSTAINED: it closes at ${closeText}, not ${m[1].trim()}.` };
-  return { kind: 'verified', text: `Claim verified: open until ${closeText} tonight.` };
+  const re = /\b(?:(?:open|opened|serving|serves)\s+(?:until|till|til|'til|to)|closes?\s+(?:at\s+)?)\s*(midnight|noon|\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?)/gi;
+  let verified: Ruling | null = null;
+  for (const m of t.matchAll(re)) {
+    const claimed = parseClaimTime(m[1]);
+    if (claimed === null) continue;
+    if (claimed > close + 15) return { kind: 'sustained', text: `OBJECTION SUSTAINED: it closes at ${closeText}, not ${m[1].trim()}.` };
+    verified ??= { kind: 'verified', text: `Claim verified: open until ${closeText} tonight.` };
+  }
+  return verified;
 };
 
 const checkRating: Check = (t, v) => {
   if (v.rating <= 0) return null;
   const actual = `${v.rating.toFixed(1)} stars from ${withCommas(v.reviewCount)} reviews`;
-  const num = t.match(/\b(\d(?:\.\d)?)\s*(?:-|\s)?stars?\b/i);
-  const word = t.match(/\b(five|four|three)[- ]stars?\b/i);
-  const claimed = num ? Number(num[1]) : word ? NUMBER_WORDS[word[1].toLowerCase()] : null;
-  if (claimed !== null && claimed !== undefined && claimed <= 5) {
-    return claimed - v.rating >= 0.3
-      ? { kind: 'sustained', text: `OBJECTION SUSTAINED: it's ${v.rating.toFixed(1)} stars, not ${claimed}.` }
-      : { kind: 'verified', text: `Claim verified: ${actual}.` };
+  let verified: Ruling | null = null;
+  for (const m of t.matchAll(/\b(\d(?:\.\d)?|five|four|three)[- ]?\s*stars?\b/gi)) {
+    const claimed = /^\d/.test(m[1]) ? Number(m[1]) : NUMBER_WORDS[m[1].toLowerCase()];
+    if (claimed === undefined || claimed > 5) continue;
+    if (claimed - v.rating >= 0.3) return { kind: 'sustained', text: `OBJECTION SUSTAINED: it's ${v.rating.toFixed(1)} stars, not ${claimed}.` };
+    verified ??= { kind: 'verified', text: `Claim verified: ${actual}.` };
   }
+  if (verified) return verified;
   if (/\b(highest[- ]rated|best[- ]rated|perfect rating|top[- ]rated)\b/i.test(t)) {
     return v.rating >= 4.6
       ? { kind: 'verified', text: `Claim verified: ${actual}.` }
@@ -103,15 +104,14 @@ const checkPrice: Check = (t, v) => {
 
 const checkDistance: Check = (t, v) => {
   const est = `about ${v.travelMin} min away`;
-  const m = t.match(/\b(\d{1,2}|one|two|three|four|five|ten|fifteen|twenty|thirty)\s*(?:-|\s)?min(?:ute)?s?\b/i);
-  if (m) {
+  let verified: Ruling | null = null;
+  for (const m of t.matchAll(/\b(\d{1,2}|one|two|three|four|five|ten|fifteen|twenty|thirty)\s*(?:-|\s)?min(?:ute)?s?\b/gi)) {
     const claimed = /^\d+$/.test(m[1]) ? Number(m[1]) : NUMBER_WORDS[m[1].toLowerCase()];
-    if (claimed !== undefined) {
-      return claimed < v.travelMin * 0.6 - 1
-        ? { kind: 'sustained', text: `OBJECTION SUSTAINED: it's ${est}, not ${claimed}.` }
-        : { kind: 'verified', text: `Claim verified: ${est}.` };
-    }
+    if (claimed === undefined) continue;
+    if (claimed < v.travelMin * 0.6 - 1) return { kind: 'sustained', text: `OBJECTION SUSTAINED: it's ${est}, not ${claimed}.` };
+    verified ??= { kind: 'verified', text: `Claim verified: ${est}.` };
   }
+  if (verified) return verified;
   if (/\b(around the corner|right next door|walking distance|super close|so close|close by|nearby)\b/i.test(t)) {
     return v.travelMin <= 12
       ? { kind: 'verified', text: `Claim verified: ${est}.` }

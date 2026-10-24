@@ -187,11 +187,17 @@ function toOptionInput(c: Candidate, fitSummary: string, lines: { playerId: bigi
   };
 }
 
-function deterministicSummary(c: Candidate): string {
-  const v = c.venue;
-  const bits = [v.category, v.rating > 0 ? `${v.rating.toFixed(1)}★` : '', v.priceLevel > 0 ? '$'.repeat(v.priceLevel) : '', `~${c.travelMin} min`];
+/** Why this venue fits the group, in a few words (the card already shows rating, price and distance). */
+function deterministicSummary(c: Candidate, members: Member[]): string {
+  const bits: string[] = [];
+  const diets = [...new Set(members.flatMap(m => m.dietary))];
+  if (diets.length && c.dietOk) bits.push(`${diets.join(' + ')} ✓`);
+  if (c.venue.priceLevel > 0 && c.budgetOk) bits.push('fits every budget');
+  if (c.travelOk) bits.push("within everyone's travel time");
+  if (c.hoursOk) bits.push('open when you are free');
   if (c.tagHits[0]) bits.push(`for the ${c.tagHits[0].replace(/-/g, ' ')} crowd`);
-  return bits.filter(Boolean).join(' · ');
+  if (bits.length === 0) bits.push(c.venue.category);
+  return bits.slice(0, 3).join(' · ');
 }
 
 const curate: Handler = async (job, d) => {
@@ -257,7 +263,7 @@ const curate: Handler = async (job, d) => {
       log.warn('muse curate returned unusable finalists, using deterministic picks', { got: unique.length, n });
     }
   }
-  options ??= pickVaried(short, n).map(c => toOptionInput(c, deterministicSummary(c), c.fitLines, c.score));
+  options ??= pickVaried(short, n).map(c => toOptionInput(c, deterministicSummary(c, members), c.fitLines, c.score));
   await d.conn.reducers.finishCurate({ jobId: job.id, options });
 };
 

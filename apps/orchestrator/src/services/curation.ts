@@ -69,7 +69,7 @@ export function evaluate(venues: readonly Venue[], group: readonly Member[], ctx
     let score = 0;
     if (venue.rating > 0) score += Math.max(0, Math.min(30, ((venue.rating - 3.5) / 1.5) * 30));
     score += Math.min(1, Math.log10(venue.reviewCount + 1) / 4) * 10;
-    score += budgetOk ? 15 : Math.max(0, 15 - 6 * (venue.priceLevel - budgetCap));
+    score += venue.priceLevel === 0 ? 9 : budgetOk ? 15 : Math.max(0, 15 - 6 * (venue.priceLevel - budgetCap));
     score += travelOk ? 15 * Math.max(0.3, 1 - travelMin / Math.max(travelCap, 1)) : 0;
     score += diets.length === 0 ? 15 : (15 * evidence.filter(e => e.confirmed).length) / diets.length;
     score += Math.min(15, tagHits.length * 5);

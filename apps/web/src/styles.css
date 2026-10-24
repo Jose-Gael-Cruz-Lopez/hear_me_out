@@ -1,0 +1,119 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #150a2b;
+  --color-ink-2: #22123f;
+  --color-ink-3: #321c5c;
+  --color-ink-4: #4a2f80;
+  --color-cream: #fff7e8;
+  --color-muted: #b9a8dd;
+  --color-pop: #ff3e8a;
+  --color-sun: #ffd23f;
+  --color-sky: #3ee0ff;
+  --color-lime: #a3ff5c;
+  --color-tang: #ff8a3d;
+  --color-grape: #9b5cff;
+  --color-sustain: #ff4d4d;
+  --color-verify: #3ddc84;
+
+  --shadow-chunky: 0 6px 0 0 rgb(0 0 0 / 0.35);
+  --shadow-chunky-sm: 0 4px 0 0 rgb(0 0 0 / 0.35);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-ink);
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, rgb(155 92 255 / 0.35), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, rgb(255 62 138 / 0.25), transparent 60%),
+    radial-gradient(800px 600px at 50% 120%, rgb(62 224 255 / 0.18), transparent 60%);
+  background-attachment: fixed;
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 font-display text-xl font-extrabold tracking-tight transition-transform select-none;
+  box-shadow: var(--shadow-chunky);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 rgb(0 0 0 / 0.35);
+}
+.btn:disabled {
+  @apply opacity-40;
+}
+.btn-pop {
+  @apply bg-pop text-white;
+}
+.btn-sun {
+  @apply bg-sun text-ink;
+}
+.btn-sky {
+  @apply bg-sky text-ink;
+}
+.btn-lime {
+  @apply bg-lime text-ink;
+}
+.btn-ghost {
+  @apply bg-ink-3 text-cream;
+}
+
+.card {
+  @apply rounded-3xl bg-ink-2/90 ring-1 ring-white/10 backdrop-blur;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+}
+
+.chip {
+  @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-bold;
+}
+
+.text-outline {
+  -webkit-text-stroke: 2px rgb(0 0 0 / 0.35);
+  paint-order: stroke fill;
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+.wobble {
+  animation: wobble 2.4s ease-in-out infinite;
+}
+
+@keyframes float-up {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-70vh) scale(1.6);
+    opacity: 0;
+  }
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

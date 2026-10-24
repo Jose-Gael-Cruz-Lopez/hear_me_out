@@ -11,7 +11,7 @@ import ffmpegPath from 'ffmpeg-static';
 export async function toWav(input: Uint8Array, mime: string, timeoutMs = 20_000): Promise<Buffer> {
   if (!ffmpegPath) throw new Error('ffmpeg-static binary not found');
   const dir = await mkdtemp(join(tmpdir(), 'hmo-audio-'));
-  const ext = mime.includes('mp4') || mime.includes('m4a') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
+  const ext = mime.includes('mp4') || mime.includes('m4a') ? 'm4a' : mime.includes('ogg') ? 'ogg' : mime.includes('wav') ? 'wav' : 'webm';
   const inFile = join(dir, `in.${ext}`);
   const outFile = join(dir, 'out.wav');
   try {
