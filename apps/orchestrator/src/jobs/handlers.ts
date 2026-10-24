@@ -122,13 +122,12 @@ export interface ScoutPayload {
   hasGeo: boolean;
 }
 
-const SIX_HOURS_MS = 6 * 3600 * 1000;
-
 /**
- * Venues for a category + place: fresh cache (6 h) → live Apify run → recorded fixtures.
- * Live and fixture results are written to venue_cache so curation (and later rooms) can use them.
+ * Venues for a category + place: a live Apify run every time (no reuse of earlier scrapes, so each
+ * game shows the real search) → recorded fixtures if it fails. The result is written to venue_cache,
+ * which is how curation reads it.
  */
-export async function resolveVenueSet(d: Deps, p: ScoutPayload): Promise<{ key: string; center: LatLng; count: number; source: 'cache' | 'apify' | 'fixture' }> {
+export async function resolveVenueSet(d: Deps, p: ScoutPayload): Promise<{ key: string; center: LatLng; count: number; source: 'apify' | 'fixture' }> {
   const category = p.category || 'food';
   let center: LatLng | null = p.hasGeo ? { lat: p.lat, lng: p.lng } : null;
   if (!center && p.locationLabel && !d.cfg.demoMode) center = await geocode(p.locationLabel);
@@ -136,12 +135,6 @@ export async function resolveVenueSet(d: Deps, p: ScoutPayload): Promise<{ key: 
   if (!center && fixture && (d.cfg.demoMode || p.locationLabel === d.cfg.demoLocation)) center = { lat: fixture.lat, lng: fixture.lng };
   const queries = DEFAULT_QUERIES[category] ?? DEFAULT_QUERIES.food;
   const key = venueKey(center, p.locationLabel, category, queries);
-
-  const cached = [...d.conn.db.adminVenueCache.iter()].find(c => c.key === key);
-  if (cached && Date.now() - Number(cached.fetchedAt.microsSinceUnixEpoch / 1000n) < SIX_HOURS_MS) {
-    const set = JSON.parse(cached.itemsJson) as { center: LatLng; venues: Venue[] };
-    return { key, center: set.center, count: set.venues.length, source: 'cache' };
-  }
 
   const live = await scrapeVenues(d.cfg, { center, locationLabel: p.locationLabel, queries, timeoutMs: 85_000 });
   if (live && live.venues.length >= 4) {

@@ -18,7 +18,8 @@ const WINDOWS = [
 const VIBES = ['Spicy', 'Cheap', 'Cozy', 'Loud', 'Board games', 'Night owl', 'Early bird', 'Outdoors', 'Live music', 'Dessert', 'Drinks', 'Adventurous'];
 // Simulated Muse pull, shown without labels (DECISIONS.md #40; see lib/muse.ts). No account is read.
 const PULL_STEPS = ['Connected to your Muse', 'Reading your memories', 'Checking your calendar for free time', 'Summarizing your taste and budget'];
-const PULL_MS = [700, 1300, 1200, 1400];
+// ~13 s in all, so the pull reads like Muse is really fetching.
+const PULL_MS = [2000, 4000, 3500, 3500];
 const SOURCE_LABEL: Record<string, string> = { paste: 'your Muse', chips: 'your picks', basics: 'your basics', social: 'your posts' };
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {

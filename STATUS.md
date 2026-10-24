@@ -5,7 +5,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 ## In progress
 
 <!-- One line each: what · who (agent) · branch -->
-- Iterating on the combined build (main + Jose's latest design commits) · Anish (Claude Code) · `deploy-combined`
+- Iterating on the combined build (main + Jose's latest design commits) · Anish (Claude Code) · `fix-names-whatsapp-muse` (same as `deploy-combined` up to `cc94a6a`)
 
 ## Up next / on hold
 
@@ -16,6 +16,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Done recently
 
+- Live Apify scrape every game (no venue reuse); slower, more believable Muse pull (~13 s) and booking (~25 s). · Anish (Claude Code)
 - Duplicate names no longer block joining; friends can rejoin under their name; WhatsApp group in friends games (phones + TV); Muse shown as connected again; Judge's double period fixed; new README screenshots. · Anish (Claude Code)
 - Text-free event cover art instead of generated flyers, hardened game controls, labeled Muse demo, merged-attendee counts, Figma/UI verification (`b2532ea`…`dd46dd1`). · Jose
 - WhatsApp QR on the public-meetup plan screen (phones), with a paste box for the invite. · diyab (Claude Code)
@@ -41,6 +42,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Verified:**
 - **Not done / unverified:**
 -->
+
+### 2026-10-24 · fix-names-whatsapp-muse · Anish (Claude Code)
+- **Changed:** venue scouting no longer reuses earlier Apify results (was a 6 h cache), so every game runs a real Google Maps scrape when the place is picked; `pnpm prewarm` is removed (DECISIONS #46). Muse's "pulling your info" now takes ~13 s and the booking ~25 s over four steps (contacting, checking availability, requesting, waiting to confirm).
+- **Verified:** `pnpm typecheck` clean, `pnpm test` 54/54, `pnpm sim` 24 and `pnpm sim:match` 16 checks (DEMO_MODE, so no Apify spend), `pnpm web:build:maincloud` built.
+- **Not done / unverified:** no live Apify run tested (it costs credits); timings not watched in the browser. Each game, and each place/category change in the lobby, now spends one Apify run. Trov: not posted (no access).
 
 ### 2026-10-24 · deploy-combined · Anish (Claude Code)
 - **Changed:** (1) Names: "Find my people" is one shared queue per category, so a stale or repeated first name (e.g. "anish") blocked everyone else and the queue capped at 8; now the queue has no cap or name rule and the matcher numbers clashes ("Sam 2"). In friends games, joining with a disconnected player's name takes back that seat from a new window; any other clash gets a number instead of an error (DECISIONS #45). (2) WhatsApp group now shows in friends games too: on phones after "I'm in" (with a hint before), and on the friends-game TV once someone adds the invite (#44). (3) Muse is shown as connected again with no demo wording: home pill, profile auto-pull, "Reserved · Booked by Muse"; the TV lobby's "Demo spot" button now shows the street (#40, `CLAUDE.md` rule). (4) The Judge's ruling no longer ends in ".." ("not 2am."). (5) README screenshots retaken in the new UI.
