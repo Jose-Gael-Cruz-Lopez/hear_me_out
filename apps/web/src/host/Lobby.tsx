@@ -1,6 +1,7 @@
-import { AnimatePresence, motion } from 'motion/react';
+import { IconText } from '../components/Ink';
+import { motion } from 'motion/react';
 import { useState } from 'react';
-import { Avatar } from '../components/ui';
+import { Crowd } from '../components/Crowd';
 import { DEMO_LOCATION } from '../lib/connection';
 import { useCall, useRoom } from '../lib/room';
 import { unlockAudio } from '../lib/sound';
@@ -51,9 +52,9 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
       <div className="flex flex-col gap-8">
         <div className="card p-8 text-center">
           <div className="text-xl font-bold text-cream/80">Join from your own browser window at</div>
-          <div className="mt-2 font-display text-3xl font-black text-sky">{joinUrl.replace(/^https?:\/\//, '')}</div>
+          <div className="mt-2 break-all text-lg font-black text-sky">{joinUrl.replace(/^https?:\/\//, '')}</div>
           <div className="mt-6 text-lg font-bold text-cream/70">or enter the code</div>
-          <motion.div className="font-display text-[9rem] leading-none font-black tracking-[0.15em] text-sun text-outline" animate={{ rotate: [-1.5, 1.5, -1.5] }} transition={{ repeat: Infinity, duration: 3 }}>
+          <motion.div className="font-display text-[clamp(4rem,9vw,7rem)] leading-none font-black tracking-[0.15em] text-sun text-outline" animate={{ rotate: [-1.5, 1.5, -1.5] }} transition={{ repeat: Infinity, duration: 3 }}>
             {room.code}
           </motion.div>
         </div>
@@ -62,21 +63,14 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
           <div className="mb-4 flex items-center justify-between">
             <div className="font-display text-3xl font-black">Players ({players.length}/8)</div>
             {isHost && (
-              <button className="btn btn-ghost text-base" onClick={() => call(c => c.reducers.addBot({ roomId: room.id }))} disabled={players.length >= 8}>
-                🤖 Add bot
-              </button>
+              <button className="btn btn-ghost text-base" onClick={() => call(c => c.reducers.addBot({ roomId: room.id }))} disabled={players.length >= 8}><IconText text={" 🤖 Add bot "} /></button>
             )}
           </div>
           {players.length === 0 && <div className="text-xl text-cream/60">Waiting for the jury to arrive…</div>}
-          <div className="flex flex-wrap gap-6">
-            <AnimatePresence>
-              {players.map(p => (
-                <motion.div key={String(p.id)} initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 14 }}>
-                  <Avatar player={p} size={88} />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+          <div className="queue-scene" style={{ height: 300 }}>
+            <Crowd variant="stage" phase="LOBBY" members={players.map(p=>({ id:p.id,name:p.name,connected:p.connected,isBot:p.isBot,status:p.connected?'In the room':'Reconnecting…' }))} />
           </div>
+          <div className="mt-3 flex flex-wrap gap-2">{players.map(p=><span className="chip bg-white" key={String(p.id)}>{p.name}{p.isBot?' · bot':''}</span>)}</div>
         </div>
       </div>
 
@@ -93,7 +87,7 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
               }}
               className={`rounded-3xl p-4 font-display text-2xl font-black transition ${category === c.id ? 'bg-sun text-ink shadow-[0_6px_0_rgb(0_0_0/0.35)]' : 'bg-ink-3 text-cream hover:bg-ink-4'}`}
             >
-              <div className="text-5xl">{c.emoji}</div>
+              <div className="text-5xl"><IconText text={c.emoji} size={42} /></div>
               {c.label}
             </button>
           ))}
@@ -120,13 +114,10 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
             </button>
           </form>
           <div className="flex flex-wrap gap-2">
-            <button className="chip bg-ink-3 px-4 py-2 text-cream ring-1 ring-white/10" disabled={!isHost || locating} onClick={useMyLocation}>
-              📍 {locating ? 'Locating…' : "Use this computer's location"}
+            <button className="chip bg-ink-3 px-4 py-2 text-cream ring-1 ring-white/10" disabled={!isHost || locating} onClick={useMyLocation}><IconText text={" 📍 "} />{locating ? 'Locating…' : "Use this computer's location"}
             </button>
             {DEMO_LOCATION && (
-              <button className="chip bg-ink-3 px-4 py-2 text-cream ring-1 ring-white/10" disabled={!isHost} onClick={() => (setWhere(DEMO_LOCATION), void saveSetup(category, DEMO_LOCATION))}>
-                🏛️ Demo spot
-              </button>
+              <button className="chip bg-ink-3 px-4 py-2 text-cream ring-1 ring-white/10" disabled={!isHost} onClick={() => (setWhere(DEMO_LOCATION), void saveSetup(category, DEMO_LOCATION))}><IconText text={" 🏛️ Demo spot "} /></button>
             )}
           </div>
         </div>
@@ -162,7 +153,7 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
                 </button>
               ))}
             </div>
-            <div className="text-sm text-cream/70">🛡️ 18+ · first names only · public venues · exact address after RSVP · 3 RSVPs to confirm</div>
+            <div className="text-sm text-cream/70"><IconText text={"🛡️ 18+ · first names only · public venues · exact address after RSVP · 3 RSVPs to confirm"} /></div>
           </div>
         )}
 
@@ -170,10 +161,10 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
           {room.scoutStatus === '' && <div className="text-cream/60">Pick a category and a place. The Judge starts scouting real venues right away.</div>}
           {room.scoutStatus === 'running' && (
             <div className="flex items-center gap-3 text-lg">
-              <span className="inline-block animate-spin text-2xl">🛰️</span> Scouting real places near {room.locationLabel || 'you'} with Apify…
+              <span className="inline-block animate-spin text-2xl"><IconText text={"🛰️"} /></span> Scouting real places near {room.locationLabel || 'you'} with Apify…
             </div>
           )}
-          {room.scoutStatus === 'done' && <div className="text-lg font-bold text-lime">✅ {room.aiStatus || 'Venues ready.'}</div>}
+          {room.scoutStatus === 'done' && <div className="text-lg font-bold text-lime"><IconText text={"✅ "} />{room.aiStatus || 'Venues ready.'}</div>}
           {room.scoutStatus === 'failed' && <div className="text-lg text-tang">Scouting hit traffic. We'll use saved venue data.</div>}
         </div>
 
@@ -187,7 +178,7 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
                 void call(c => c.reducers.startGame({ roomId: room.id }));
               }}
             >
-              {players.length < 2 ? 'Need 2+ players' : !ready ? 'Pick category + place' : "Let's go! ▶"}
+              <IconText text={players.length < 2 ? 'Need 2+ players' : !ready ? 'Pick category + place' : "Let's go! ▶"} />
             </button>
           ) : (
             <div className="text-center text-cream/60">Waiting for the host…</div>

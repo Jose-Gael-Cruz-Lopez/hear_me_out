@@ -1,5 +1,6 @@
+import { IconText, AvatarMark } from '../components/Ink';
 import { useState } from 'react';
-import { Logo, seatColor } from '../components/ui';
+import { Logo } from '../components/ui';
 import { useCall, useRoom } from '../lib/room';
 import { unlockAudio } from '../lib/sound';
 
@@ -13,7 +14,7 @@ export function JoinForm() {
   const [avatar, setAvatar] = useState(AVATARS.find(a => !taken.has(a)) ?? AVATARS[0]);
   const [busy, setBusy] = useState(false);
   const [adult, setAdult] = useState(false);
-  const isPublic = room.mode === 'strangers';
+  const isPublic = room.mode === 'strangers' || room.mode === 'queue';
   const open = room.phase === 'lobby' || room.phase === 'profiles';
 
   return (
@@ -52,19 +53,21 @@ export function JoinForm() {
                 <button
                   type="button"
                   key={a}
+                  aria-label={`Avatar ${i+1}`}
+                  aria-pressed={avatar === a}
                   onClick={() => setAvatar(a)}
                   disabled={taken.has(a)}
-                  className="grid aspect-square place-items-center rounded-2xl text-2xl transition disabled:opacity-20"
-                  style={{ background: avatar === a ? seatColor(i) : 'rgb(255 255 255 / 0.06)', transform: avatar === a ? 'scale(1.1)' : undefined }}
+                  className="avatar-choice grid aspect-square place-items-center rounded-2xl transition disabled:opacity-20"
+                  style={{ background: avatar === a ? '#f2dc6e' : '#fff', transform: avatar === a ? 'scale(1.1)' : undefined }}
                 >
-                  {a}
+                  <AvatarMark value={a} size={36} />
                 </button>
               ))}
             </div>
           </div>
           {isPublic && (
             <div className="space-y-2 rounded-2xl bg-sky/10 p-4 text-sm ring-1 ring-sky/30">
-              <div className="font-bold text-sky">🛡️ Public meetup with people you don't know yet</div>
+              <div className="font-bold text-sky"><IconText text={"🛡️ Public meetup with people you don't know yet"} /></div>
               <ul className="list-disc space-y-0.5 pl-5 text-cream/80">
                 <li>First names only</li>
                 <li>Public venues only; the exact address unlocks after you RSVP</li>

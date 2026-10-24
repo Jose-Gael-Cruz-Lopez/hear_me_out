@@ -1,5 +1,6 @@
-import { motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
+import { Crowd } from '../components/Crowd';
+import { DoodleIcon } from '../components/DoodleIcon';
 import { useLocation } from 'wouter';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables } from '@hmo/bindings';
@@ -15,6 +16,7 @@ export function Home() {
   const [code, setCode] = useState('');
   const creating = useRef<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const joinDialog = useRef<HTMLDialogElement>(null);
 
   // After create_room, jump to the newest room this tab hosts.
   useEffect(() => {
@@ -37,61 +39,37 @@ export function Home() {
   };
 
   return (
-    <div className="mx-auto flex min-h-full max-w-5xl flex-col items-center justify-center gap-10 px-4 py-10">
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
+    <main className="ink-cover">
+      <Crowd variant="cover" />
+      <div className="cover-wash" />
+      <button className="cover-join ink-pill" onClick={() => joinDialog.current?.showModal()}>Join a room <DoodleIcon name="arrowUpRight" size={18} /></button>
+      <section className="cover-center" aria-label="Hear Me Out">
         <Logo size="xl" />
-        <p className="mx-auto mt-5 max-w-2xl text-2xl text-cream/85">
-          The party game that turns <span className="font-bold text-sun">“idk, where do you want to go?”</span> into an actual plan.
-        </p>
-      </motion.div>
-
-      <div className="grid w-full gap-6 md:grid-cols-2">
-        <div className="card space-y-4 p-6">
-          <div className="font-display text-3xl font-black">📺 Host on this screen</div>
-          <p className="text-cream/80">This window becomes the TV. Everyone else joins from their own browser window with the room code.</p>
-          <div className="flex flex-wrap gap-3">
-            <button className="btn btn-pop" disabled={!isActive || busy} onClick={() => host('friends')}>
-              Friends game
-            </button>
-            <button className="btn btn-ghost" disabled={!isActive || busy} onClick={() => host('strangers')}>
-              Public meetup
-            </button>
-          </div>
+        <p className="cover-tagline">Make your case. Make a plan.</p>
+        <div className="cover-actions">
+          <button className="ink-pill primary" disabled={!isActive || busy} onClick={() => host('friends')}>Friends game <DoodleIcon name="arrow" size={18} /></button>
+          <button className="ink-pill" onClick={() => navigate('/meet')}>Find my people <DoodleIcon name="group" size={18} /></button>
         </div>
-
-        <form
-          className="card space-y-4 p-6"
-          onSubmit={e => {
-            e.preventDefault();
-            unlockAudio();
-            if (code.trim().length === 4) navigate(`/play/${code.trim().toUpperCase()}`);
-          }}
-        >
-          <div className="font-display text-3xl font-black">🙋 Join a game</div>
-          <input
-            value={code}
-            onChange={e => setCode(e.target.value.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase())}
-            placeholder="ROOM CODE"
-            className="w-full rounded-2xl bg-ink px-5 py-4 text-center font-display text-4xl font-black tracking-[0.4em] text-sun ring-2 ring-white/10 outline-none placeholder:text-white/20 focus:ring-sun"
-            autoFocus
-          />
-          <div className="flex flex-wrap gap-3">
-            <button className="btn btn-sun" disabled={code.length !== 4}>
-              Join
-            </button>
-            <button type="button" className="btn btn-sky" onClick={() => navigate('/meet')}>
-              Find my people
-            </button>
-            <button type="button" className="btn btn-ghost" onClick={() => navigate('/lobbies')}>
-              Browse open meetups
-            </button>
-          </div>
+        <div className="cover-other">
+          <button disabled={!isActive || busy} onClick={() => host('strangers')}>Host a public meetup</button>
+          <span aria-hidden="true">·</span>
+          <button onClick={() => navigate('/lobbies')}>Browse open meetups</button>
+        </div>
+      </section>
+      <p className="cover-footnote">A party game about finally deciding where to go. Friends or soon-to-be friends.</p>
+      <dialog ref={joinDialog} className="ink-dialog" onClick={e => { if (e.target === e.currentTarget) joinDialog.current?.close(); }}>
+        <button type="button" className="dialog-close" aria-label="Close join dialog" onClick={() => joinDialog.current?.close()}><DoodleIcon name="cross" /></button>
+        <form className="space-y-5 text-center" onSubmit={e => {
+          e.preventDefault(); unlockAudio();
+          if (code.trim().length === 4) navigate(`/play/${code.trim().toUpperCase()}`);
+        }}>
+          <DoodleIcon name="ticket" size={48} />
+          <h1 className="ink-heading text-4xl">Got a room?</h1>
+          <label className="block font-bold" htmlFor="room-code">Enter the four-letter code</label>
+          <input id="room-code" value={code} onChange={e => setCode(e.target.value.replace(/[^a-zA-Z]/g, '').slice(0,4).toUpperCase())} placeholder="ROOM CODE" autoComplete="off" className="w-full rounded-2xl px-5 py-4 text-center text-3xl font-black tracking-[.3em]" />
+          <button className="btn btn-pop w-full" disabled={code.length !== 4}>Join the game <DoodleIcon name="arrow" /></button>
         </form>
-      </div>
-
-      <div className="max-w-2xl text-center text-sm text-muted">
-        Real places from Google Maps (via Apify) · AI by Meta Muse · live game state on SpacetimeDB.
-      </div>
-    </div>
+      </dialog>
+    </main>
   );
 }

@@ -29,7 +29,7 @@ export function Toaster() {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10 }}
-            className="rounded-2xl bg-cream px-5 py-3 font-bold text-ink shadow-xl"
+            className="rounded-2xl bg-white border border-ink px-5 py-3 font-bold text-ink shadow-xl"
           >
             {t.text}
           </motion.div>

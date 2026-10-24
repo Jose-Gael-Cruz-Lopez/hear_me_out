@@ -1,3 +1,4 @@
+import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
 import { useEffect, useRef } from 'react';
 import { useSpacetimeDB } from 'spacetimedb/react';
@@ -87,7 +88,7 @@ export function HostScreen() {
   })();
 
   return (
-    <div className="flex min-h-full flex-col" onClick={unlockAudio}>
+    <div className="host-shell flex min-h-full flex-col" onClick={unlockAudio}>
       <header className="flex items-center justify-between gap-4 px-6 pt-5">
         <div className="flex items-center gap-4">
           <Logo size="sm" />
@@ -110,7 +111,8 @@ export function HostScreen() {
             initial={{ opacity: 0, y: 30, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-            className="flex flex-1 flex-col"
+            className="host-content flex flex-1 flex-col"
+            data-phase={room.phase}
           >
             {screen}
           </motion.div>
@@ -123,7 +125,7 @@ export function HostScreen() {
           <div className="flex gap-2">
             {!['lobby', 'plan', 'ended'].includes(room.phase) && (
               <button className="chip bg-ink-3 px-4 py-2 text-cream ring-1 ring-white/10 hover:bg-ink-4" onClick={() => call(c => c.reducers.skipPhase({ roomId: room.id }))}>
-                {room.phase === 'playback' ? 'Next pitch ⏭' : 'Skip ⏭'}
+                <IconText text={room.phase === 'playback' ? 'Next pitch ⏭' : 'Skip ⏭'} />
               </button>
             )}
           </div>

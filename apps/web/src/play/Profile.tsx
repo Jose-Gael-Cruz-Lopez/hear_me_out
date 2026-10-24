@@ -1,3 +1,4 @@
+import { IconText } from '../components/Ink';
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { useCall, useRoom } from '../lib/room';
@@ -75,7 +76,7 @@ export function ProfileFlow() {
     const tags = profiles.get(me.id)?.approvedTags ?? [];
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
-        <div className="text-7xl">✅</div>
+        <div className="text-7xl"><IconText text={"✅"} /></div>
         <div className="font-display text-3xl font-black">You're locked in</div>
         <div className="flex flex-wrap justify-center gap-2">
           {tags.map(t => (
@@ -113,9 +114,7 @@ export function ProfileFlow() {
     if (myDraft.status === 'distilling') {
       return (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <motion.div className="text-7xl" animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}>
-            ✨
-          </motion.div>
+          <motion.div className="text-7xl" animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}><IconText text={" ✨ "} /></motion.div>
           <div className="font-display text-2xl font-black">Distilling your vibe…</div>
           {myDraft.socialLinks.length > 0 && <div className="text-cream/70">Reading your public posts with Apify. This can take up to a minute.</div>}
         </div>
@@ -129,7 +128,7 @@ export function ProfileFlow() {
           <div className="font-display text-3xl font-black">Approve your tags</div>
           <div className="mt-1 text-cream/75">Nobody sees these until you approve. Remove anything you don't want shared.</div>
         </div>
-        <div className="chip self-start bg-lime/15 text-lime ring-1 ring-lime/40">🔒 Only what you approve is shared. Private messages are never read.</div>
+        <div className="chip self-start bg-lime/15 text-lime ring-1 ring-lime/40"><IconText text={"🔒 Only what you approve is shared. Private messages are never read."} /></div>
         {myDraft.note && <div className="text-sm text-muted">{myDraft.note}</div>}
         <div className="space-y-2">
           <AnimatePresence>
@@ -141,9 +140,7 @@ export function ProfileFlow() {
                     <div className="font-display text-xl font-black text-sky">#{tag}</div>
                     <div className="text-sm text-cream/70">{why ? `${why.reason} · from ${SOURCE_LABEL[why.source] ?? why.source}` : 'Added by you'}</div>
                   </div>
-                  <button className="chip bg-ink-3 text-cream/80" onClick={() => setEditedTags(tags.filter(t => t !== tag))} aria-label={`Remove ${tag}`}>
-                    ✕
-                  </button>
+                  <button className="chip bg-ink-3 text-cream/80" onClick={() => setEditedTags(tags.filter(t => t !== tag))} aria-label={`Remove ${tag}`}><IconText text={" ✕ "} /></button>
                 </motion.div>
               );
             })}
@@ -256,11 +253,12 @@ export function ProfileFlow() {
         className={`btn ${pasted ? 'btn-lime' : 'btn-sky'} w-full`}
         onClick={() => {
           setPasted(simulatedMuseMemory(me.name + room.code));
-          toast('Connected to your Muse: imported your tastes and connections');
+          toast('Demo profile loaded. Review or edit it before sharing.');
         }}
       >
-        {pasted ? '✓ Muse connected' : '✨ Connect your Muse'}
+        <IconText text={pasted ? '✓ Profile text ready' : '✨ Try a demo Muse profile'} />
       </button>
+      <p className="text-xs text-muted">The demo button uses sample context. It does not access your Meta AI account or private history.</p>
       <div className="card space-y-3 p-4">
         <div className="text-sm font-bold text-muted">Or ask your Meta AI app:</div>
         <div className="rounded-2xl bg-ink p-3 font-mono text-sm">{MUSE_PROMPT}</div>
@@ -270,9 +268,7 @@ export function ProfileFlow() {
           onClick={() => {
             void navigator.clipboard?.writeText(MUSE_PROMPT).then(() => toast('Copied!'), () => toast('Copy it by hand'));
           }}
-        >
-          📋 Copy prompt
-        </button>
+        ><IconText text={" 📋 Copy prompt "} /></button>
         <textarea
           value={pasted}
           onChange={e => setPasted(e.target.value.slice(0, 2000))}
@@ -312,9 +308,7 @@ export function ProfileFlow() {
         <button className="btn btn-ghost text-base" onClick={() => setStep('basics')}>
           Back
         </button>
-        <button className="btn btn-pop flex-1" disabled={busy || (!!handle.trim() && !consent)} onClick={() => void submit()}>
-          ✨ Distill my vibe
-        </button>
+        <button className="btn btn-pop flex-1" disabled={busy || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={" ✨ Distill my vibe "} /></button>
       </div>
     </div>
   );

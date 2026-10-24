@@ -1,3 +1,4 @@
+import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
 import { Avatar, Countdown, MuteButton } from '../components/ui';
 import { isMatchedRoom, useRoom } from '../lib/room';
@@ -75,8 +76,7 @@ function MatchedOn() {
   for (const p of profiles.values()) for (const t of p.approvedTags) counts.set(t, (counts.get(t) ?? 0) + 1);
   const shared = [...counts.entries()].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => `#${t}`);
   return (
-    <div className="mx-4 mt-3 chip justify-center bg-lime/15 px-4 py-2 text-lime ring-1 ring-lime/40">
-      🤝 {room.groupName}: {shared.length ? `matched on ${shared.join(' ')}` : 'new people, new vibes'}
+    <div className="mx-4 mt-3 chip justify-center bg-lime/15 px-4 py-2 text-lime ring-1 ring-lime/40"><IconText text={" 🤝 "} />{room.groupName}: {shared.length ? `matched on ${shared.join(' ')}` : 'new people, new vibes'}
     </div>
   );
 }

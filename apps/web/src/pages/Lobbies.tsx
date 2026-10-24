@@ -1,3 +1,4 @@
+import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'wouter';
@@ -55,9 +56,7 @@ export function Lobbies() {
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
       <div className="flex items-center justify-between">
         <Logo />
-        <Link href="/" className="chip bg-ink-3 text-cream">
-          ← Home
-        </Link>
+        <Link href="/" className="chip bg-ink-3 text-cream"><IconText text={" ← Home "} /></Link>
       </div>
       <div>
         <div className="font-display text-4xl font-black">Open meetups near you</div>
@@ -76,14 +75,13 @@ export function Lobbies() {
           <button
             className="chip bg-ink-3 px-4 py-2 text-cream"
             onClick={() => navigator.geolocation?.getCurrentPosition(p => setGeo({ lat: p.coords.latitude, lng: p.coords.longitude }), () => undefined, { timeout: 8000 })}
-          >
-            📍 {geo ? 'Using your location' : 'Use my location'}
+          ><IconText text={" 📍 "} />{geo ? 'Using your location' : 'Use my location'}
           </button>
           <span className="text-sm text-muted">Lobbies only show a neighborhood. The exact place unlocks after you RSVP.</span>
         </div>
       </div>
 
-      <div className="chip bg-sky/15 px-4 py-2 text-sky ring-1 ring-sky/40">🛡️ 18+ only · first names only · public venues only · block & report on every player</div>
+      <div className="chip bg-sky/15 px-4 py-2 text-sky ring-1 ring-sky/40"><IconText text={"🛡️ 18+ only · first names only · public venues only · block & report on every player"} /></div>
 
       {cards.length === 0 && <div className="card p-6 text-lg text-cream/70">No open meetups right now. Host one from the home screen!</div>}
       <div className="grid gap-4 md:grid-cols-2">
@@ -94,7 +92,7 @@ export function Lobbies() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="font-display text-2xl font-black">
-                    {CATEGORY_EMOJI[r.category] ?? '✨'} {r.groupName || 'Open meetup'}
+                    <IconText text={CATEGORY_EMOJI[r.category] ?? '✨'} size={25} /> {r.groupName || 'Open meetup'}
                   </div>
                   <div className="text-sm text-cream/70">
                     {neighborhood(r.locationLabel)}
@@ -108,8 +106,8 @@ export function Lobbies() {
               </div>
               <div className="text-cream/85">{m.blurb}</div>
               <div className="flex flex-wrap gap-2 text-sm">
-                <span className="chip bg-ink-3">👥 {count}/8</span>
-                <span className="chip bg-ink-3">🕒 {r.targetStartMin >= 0 ? `around ${formatClock(r.targetStartMin)}` : 'flexible time'}</span>
+                <span className="chip bg-ink-3"><IconText text={"👥 "} />{count}/8</span>
+                <span className="chip bg-ink-3"><IconText text={"🕒 "} />{r.targetStartMin >= 0 ? `around ${formatClock(r.targetStartMin)}` : 'flexible time'}</span>
                 {r.vibeTags.map(t => (
                   <span key={t} className={`chip ${m.sharedTags.includes(t) ? 'bg-sun/20 text-sun' : 'bg-ink-3 text-cream/70'}`}>
                     #{t}

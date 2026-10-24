@@ -1,23 +1,23 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Nunito', ui-rounded, system-ui, sans-serif;
+  --font-sans: 'Nunito', ui-rounded, system-ui, sans-serif;
 
-  --color-ink: #150a2b;
-  --color-ink-2: #22123f;
-  --color-ink-3: #321c5c;
-  --color-ink-4: #4a2f80;
-  --color-cream: #fff7e8;
-  --color-muted: #b9a8dd;
-  --color-pop: #ff3e8a;
-  --color-sun: #ffd23f;
-  --color-sky: #3ee0ff;
-  --color-lime: #a3ff5c;
-  --color-tang: #ff8a3d;
-  --color-grape: #9b5cff;
-  --color-sustain: #ff4d4d;
-  --color-verify: #3ddc84;
+  --color-ink: #14140f;
+  --color-ink-2: #ffffff;
+  --color-ink-3: #e9e8e2;
+  --color-ink-4: #dbdad2;
+  --color-cream: #14140f;
+  --color-muted: #68685f;
+  --color-pop: #14140f;
+  --color-sun: #f2dc6e;
+  --color-sky: #d1e6eb;
+  --color-lime: #dbe4c9;
+  --color-tang: #f3d8d2;
+  --color-grape: #b8b8af;
+  --color-sustain: #b42c24;
+  --color-verify: #dbe4c9;
 
   --shadow-chunky: 0 6px 0 0 rgb(0 0 0 / 0.35);
   --shadow-chunky-sm: 0 4px 0 0 rgb(0 0 0 / 0.35);
@@ -31,12 +31,7 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--color-ink);
-  background-image:
-    radial-gradient(1200px 600px at 10% -10%, rgb(155 92 255 / 0.35), transparent 60%),
-    radial-gradient(900px 500px at 110% 10%, rgb(255 62 138 / 0.25), transparent 60%),
-    radial-gradient(800px 600px at 50% 120%, rgb(62 224 255 / 0.18), transparent 60%);
-  background-attachment: fixed;
+  background-color: #f4f3ef;
   color: var(--color-cream);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -78,7 +73,8 @@ button:disabled {
 
 .card {
   @apply rounded-3xl bg-ink-2/90 ring-1 ring-white/10 backdrop-blur;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+  box-shadow: 4px 5px 0 #14140f;
+  border: 1.5px solid #14140f;
 }
 
 .chip {
@@ -117,3 +113,139 @@ button:disabled {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Shared paper-and-ink foundations, including the new matchmaking routes. */
+@font-face { font-family: Nunito; src: url('/fonts/Nunito-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: Nunito; src: url('/fonts/Nunito-Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: Nunito; src: url('/fonts/Nunito-Black.ttf') format('truetype'); font-weight: 800 1000; font-display: swap; }
+@font-face { font-family: 'Luckiest Guy'; src: url('/fonts/LuckiestGuy-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+:root { color-scheme: light; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
+:focus-visible { outline: 3px solid #14140f; outline-offset: 4px; }
+input:not([type=checkbox]):not([type=range]), textarea, select { color: #14140f; background: #fff; border: 1.5px solid #14140f; box-shadow: none; }
+input::placeholder, textarea::placeholder { color: #83837b; opacity: 1; }
+input[type=checkbox], input[type=range] { accent-color: #14140f; }
+.btn { border: 2px solid #14140f; border-radius: 25px 29px 24px 27px; min-height: 46px; box-shadow: 3px 4px 0 #14140f; font-size: 1.05rem; }
+.btn:hover:not(:disabled) { transform: translateY(-2px); }
+.btn-pop { background: #14140f; color: #fff; }
+.btn-ghost, .btn-sky { background: #fff; color: #14140f; }
+.btn-sun { color: #14140f; }
+.btn-lime { color: #235c30; }
+.chip { border: 1px solid #14140f40; }
+a { color: inherit; }
+[class~='bg-ink'], [class*='bg-ink/'] { background-color: #f4f3ef; }
+[class*='text-sun'] { color: #14140f; }
+[class*='text-sky'] { color: #315964; }
+[class*='text-lime'] { color: #235c30; }
+[class*='ring-white/'] { --tw-ring-color: #14140f30; }
+[class*='from-grape'], [class*='from-pop'] { --tw-gradient-from: #d1e6eb; }
+.text-outline { -webkit-text-stroke: 0; }
+.ink-heading, h1.font-display, h2.font-display, .text-3xl.font-display, .text-4xl.font-display, .text-5xl.font-display, .text-6xl.font-display { font-family: 'Luckiest Guy', sans-serif; font-weight: 400; letter-spacing: .01em; }
+.doodle-icon { vertical-align: middle; flex-shrink: 0; }
+.avatar-mark { color: #14140f; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+.ink-logo { font-family: 'Luckiest Guy', sans-serif; color: #14140f; font-weight: 400; line-height: .87; letter-spacing: -.035em; text-transform: uppercase; }
+.ink-logo.sm { font-size: 25px; max-width: 130px; }
+.ink-logo.md { font-size: 39px; }
+.ink-logo.xl { font-size: clamp(98px,14.5vw,183px); line-height: .78; }
+.ink-logo.xl span { display: block; }
+.ink-logo.xl span:nth-child(2) { transform: rotate(-2deg); }
+.ink-logo.xl span:last-child { transform: rotate(1deg); }
+.ink-cover { position: relative; isolation: isolate; height: 100dvh; min-height: 680px; overflow: hidden; background: #f4f3ef; }
+.cover-wash { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: #f4f3ef73; }
+.cover-center { position: absolute; z-index: 2; top: 10.5%; left: 50%; transform: translateX(-50%); width: min(94%,900px); text-align: center; pointer-events: none; }
+.cover-center button { pointer-events: auto; }
+.cover-tagline { color: #44443e; margin: 26px 0 22px; font-size: 21px; font-weight: 700; }
+.cover-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+.ink-pill { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid #14140f; border-radius: 29px 34px 28px 30px; background: #f4f3ef; color: #14140f; min-height: 47px; padding: 11px 22px; font-weight: 900; box-shadow: 4px 5px 0 #14140f; transition: transform 140ms, background 140ms; }
+.ink-pill.primary { background: #14140f; color: #fff; }
+.ink-pill:hover:not(:disabled) { transform: translateY(-2px); }
+.ink-pill:disabled { opacity: .45; }
+.cover-join { position: absolute; z-index: 3; right: 28px; top: 24px; min-height: 42px; font-size: 13px; padding: 8px 15px; }
+.cover-other { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; font-size: 13px; font-weight: 800; }
+.cover-other button { text-decoration: underline; text-underline-offset: 4px; min-height: 32px; }
+.cover-footnote { position: absolute; z-index: 2; bottom: 14px; left: 20px; right: 20px; text-align: center; color: #68685f; font-size: 11px; pointer-events: none; }
+.ink-dialog { position: fixed; width: min(460px,calc(100% - 30px)); padding: 36px 28px; background: #f4f3ef; color: #14140f; border: 2px solid #14140f; border-radius: 23px 27px 22px 25px; box-shadow: 6px 8px 0 #14140f; }
+.ink-dialog::backdrop { background: #f4f3efb5; backdrop-filter: blur(3px); }
+.dialog-close { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #14140f; border-radius: 50%; }
+.meet-page { max-width: 1040px; padding: 28px 24px 48px; margin: auto; }
+.meet-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,430px); gap: 60px; margin-top: 56px; align-items: start; }
+.meet-intro { position: sticky; top: 36px; padding-top: 25px; }
+.meet-intro h1 { font-family: 'Luckiest Guy',sans-serif; font-size: clamp(46px,5vw,66px); line-height: .96; margin: 18px 0; }
+.meet-intro p { font-size: 17px; line-height: 1.6; max-width: 400px; color: #57574f; }
+.meet-steps { display: flex; flex-direction: column; gap: 14px; margin: 30px 0; font-weight: 800; }
+.meet-steps > div { display: flex; gap: 13px; align-items: center; }
+.meet-steps b { display: grid; place-items: center; width: 30px; height: 30px; border: 1.5px solid #14140f; border-radius: 50%; background: #fff; }
+.meet-category { border: 1.5px solid #14140f; display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 90px; }
+.avatar-choice { border: 1.5px solid #14140f; border-radius: 12px; min-height: 44px; background: #fff; color: #14140f; }
+.avatar-choice[aria-pressed=true] { background: #f2dc6e; box-shadow: 2px 3px 0 #14140f; }
+.queue-scene { position: relative; height: 270px; width: 100%; overflow: hidden; border: 1.5px solid #14140f; border-radius: 22px; background: #f4f3ef; }
+.host-shell { position: relative; isolation: isolate; }
+.host-world { position: absolute; inset: 0; z-index: -1; opacity: .3; pointer-events: none; }
+.host-shell > header, .host-shell > footer { position: relative; z-index: 2; background: #f4f3ef; flex-wrap: wrap; }
+.host-shell > main { min-height: 0; }
+.host-content { background: #f4f3ef; border: 1.5px solid #14140f; border-radius: 22px 25px 20px 24px; padding: 24px; box-shadow: 4px 5px 0 #14140f; }
+.host-content[data-phase=lobby] { background: transparent; border: 0; box-shadow: none; padding: 0; }
+.host-content .card { background: #fff; }
+.ink-poster { background: #f4f3ef !important; color: #14140f; border: 2px solid #14140f; }
+.ink-poster .blur-2xl { display: none; }
+.ink-poster .text-outline { color: #14140f; }
+@media (prefers-reduced-motion: no-preference) {
+ .cover-center .ink-logo { animation: ink-arrive 900ms cubic-bezier(.16,1,.3,1) both; }
+ .cover-tagline, .cover-actions { animation: ink-arrive 700ms 250ms cubic-bezier(.16,1,.3,1) both; }
+}
+@keyframes ink-arrive { from { opacity: 0; translate: 0 24px; scale: .95; } to { opacity: 1; translate: 0 0; scale: 1; } }
+@media (max-width:700px) {
+ .ink-cover { min-height: 680px; }
+ .cover-center { top: 18%; }
+ .ink-logo.xl { font-size: clamp(100px,23vw,150px); line-height: .82; }
+ .cover-tagline { font-size: 16px; margin: 24px 0; }
+ .cover-actions { padding: 0 20px; }
+ .cover-actions .ink-pill { font-size: 13px; padding: 11px 15px; }
+ .cover-other { gap: 8px; font-size: 12px; margin-top: 16px; }
+ .cover-join { right: 18px; top: 18px; }
+ .cover-footnote { font-size: 10px; }
+ .meet-page { padding: 22px 18px 36px; }
+ .meet-grid { grid-template-columns: 1fr; gap: 20px; margin-top: 24px; }
+ .meet-intro { position: static; padding: 0; }
+ .meet-intro h1 { font-size: 42px; margin: 12px 0; }
+ .meet-intro p { font-size: 15px; }
+ .meet-steps { flex-direction: row; flex-wrap: wrap; gap: 10px; font-size: 12px; margin: 20px 0; }
+ .meet-steps b { width: 24px; height: 24px; }
+ .host-shell > header { padding-inline: 16px; }
+ .host-shell > header > div { flex-wrap: wrap; }
+ .host-shell > main { padding: 18px 12px; }
+ .host-content { padding: 18px 12px; }
+ .host-content [class*='text-6xl'] { font-size: 2.5rem; }
+ .host-content [class*='text-[9rem]'] { font-size: 5rem; }
+}
+@media (prefers-reduced-motion:reduce) {
+ *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
+
+/* Status and selected controls stay legible against paper. */
+[class*='text-white/25'] { color: #83837b; }
+.cover-other button:disabled { opacity: .45; cursor: not-allowed; }
+.host-content button:has(.avatar-mark) { min-width: 0; }
+
+button.chip, a.chip { min-height: 40px; }
+@media (max-width:700px) { button.chip, a.chip { min-height: 44px; } }
+
+/* Matched groups have no TV: make the stage usable in a phone controller. */
+.matched-playback > div { gap: 16px; }
+.matched-playback > div > div:first-child { display: grid; grid-template-columns: 72px minmax(0,1fr); align-items: center; gap: 12px; }
+.matched-playback > div > div:first-child > div:first-child { grid-column: 1 / -1; justify-content: center; }
+.matched-playback .playback-speaker > div > div { width: 64px !important; height: 64px !important; }
+.matched-playback .playback-speaker .avatar-mark { width: 52px; height: 52px; }
+.matched-playback > div > div:first-child > div:nth-child(3) { min-width: 0; text-align: left; }
+.matched-playback .text-5xl { font-size: 1.6rem; }
+.matched-playback .text-xl { font-size: .9rem; }
+.matched-playback img { grid-column: 1 / -1; height: 90px; max-width: none; }
+.matched-playback .card { min-height: 0; padding: 16px; }
+.matched-playback .text-4xl { font-size: 1.15rem; line-height: 1.5; }
+.matched-playback [class*='text-[8rem]'] { font-size: clamp(2rem,10vw,4rem); }
+
+.matched-playback .card p { font-family: Nunito, sans-serif; font-weight: 800; }
+.reaction-controls button { border: 1.5px solid #14140f; box-shadow: 2px 3px 0 #14140f; }
+
+[class*='text-tang'] { color: #91291f; }

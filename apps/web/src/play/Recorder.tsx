@@ -1,3 +1,4 @@
+import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { useCall, useRoom } from '../lib/room';
@@ -142,7 +143,7 @@ export function Recorder() {
           <TypeBox initial={mine.liveCaption} onSend={sendTyped} title="We couldn't transcribe that. Type your pitch instead:" />
         ) : (
           <div className="card space-y-3 p-6 text-center">
-            <div className="text-6xl">{mine.status === 'ready' ? '✅' : '📝'}</div>
+            <div className="text-6xl"><IconText text={mine.status === 'ready' ? '✅' : '📝'} /></div>
             <div className="font-display text-2xl font-black">{mine.status === 'ready' ? 'Pitch submitted!' : 'Transcribing…'}</div>
             {mine.transcript && <div className="text-cream/80 italic">“{mine.transcript}”</div>}
             <div className="text-sm text-muted">Get ready to hear everyone out on the TV.</div>
@@ -156,10 +157,8 @@ export function Recorder() {
     return (
       <div className="flex flex-col gap-5">
         <BriefCard />
-        <TypeBox initial={captions} onSend={sendTyped} title="Type your pitch (it'll be read aloud on the TV):" />
-        <button className="btn btn-ghost text-base" onClick={() => setTyping(false)}>
-          🎙️ Record instead
-        </button>
+        <TypeBox initial={captions} onSend={sendTyped} title="Type your pitch (everyone can follow it during playback):" />
+        <button className="btn btn-ghost text-base" onClick={() => setTyping(false)}><IconText text={" 🎙️ Record instead "} /></button>
       </div>
     );
   }
@@ -187,7 +186,7 @@ export function Recorder() {
               transition={{ repeat: Infinity, duration: 1 }}
               className={`grid h-36 w-36 place-items-center rounded-full font-display text-xl font-black shadow-[0_8px_0_rgb(0_0_0/0.35)] ${state === 'recording' ? 'bg-sustain text-white' : 'bg-pop text-white'}`}
             >
-              {state === 'recording' ? `${Math.ceil((MAX_MS - elapsed) / 1000)}s · stop` : '🎙️ Record'}
+              <IconText text={state === 'recording' ? `${Math.ceil((MAX_MS - elapsed) / 1000)}s · stop` : '🎙️ Record'} />
             </motion.div>
           </button>
         )}

@@ -1,3 +1,4 @@
+import { IconText } from './Ink';
 import { motion } from 'motion/react';
 import { useTable } from 'spacetimedb/react';
 import { tables } from '@hmo/bindings';
@@ -24,7 +25,7 @@ export function MergeBanner({ asPlayer }: { asPlayer: boolean }) {
     const guests = [...players.map(p => ({ p, r: rsvps.find(x => x.playerId === p.id) })), ...otherPlayers.map(p => ({ p, r: otherRsvps.find(x => x.playerId === p.id) }))];
     return (
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card space-y-3 bg-gradient-to-r from-grape/40 to-pop/30 p-5">
-        <div className="font-display text-2xl font-black">🎉 Tables merged with {other?.groupName ?? 'another group'}!</div>
+        <div className="font-display text-2xl font-black"><IconText text={"🎉 Tables merged with "} />{other?.groupName ?? 'another group'}!</div>
         <div className="text-lg">{offer.introText}</div>
         <div className="flex flex-wrap gap-4">
           {guests.map(({ p, r }) => (
@@ -46,9 +47,7 @@ export function MergeBanner({ asPlayer }: { asPlayer: boolean }) {
       </div>
       {asPlayer && me && (
         <div className="flex gap-3">
-          <button className={`btn flex-1 ${myVote?.yes ? 'btn-lime' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.voteMerge({ offerId: offer.id, yes: true }))}>
-            Merge! 🤝
-          </button>
+          <button className={`btn flex-1 ${myVote?.yes ? 'btn-lime' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.voteMerge({ offerId: offer.id, yes: true }))}><IconText text={" Merge! 🤝 "} /></button>
           <button className={`btn flex-1 ${myVote && !myVote.yes ? 'btn-pop' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.voteMerge({ offerId: offer.id, yes: false }))}>
             Just us
           </button>

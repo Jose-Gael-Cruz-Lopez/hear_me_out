@@ -1,3 +1,4 @@
+import { IconText } from './Ink';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useState } from 'react';
 import { useTable } from 'spacetimedb/react';
@@ -44,7 +45,7 @@ export function ReactionLayer() {
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {particles.map(p => (
         <span key={p.id} className="absolute bottom-0 text-6xl" style={{ left: `${p.x}%`, animation: 'float-up 2.6s ease-out forwards' }}>
-          {p.emoji}
+          <IconText text={p.emoji} size={56} />
         </span>
       ))}
       <AnimatePresence>

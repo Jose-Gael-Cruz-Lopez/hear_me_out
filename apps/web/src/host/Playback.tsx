@@ -1,3 +1,4 @@
+import { IconText } from '../components/Ink';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, seatColor, useObjectUrl, VenueImage } from '../components/ui';
@@ -112,7 +113,7 @@ export function HostPlayback() {
             <span key={String(p.id)} className={`h-3 w-10 rounded-full ${i < room.currentPitchIdx ? 'bg-cream/40' : i === room.currentPitchIdx ? 'bg-sun' : 'bg-ink-3'}`} />
           ))}
         </div>
-        <Avatar player={speaker} size={200} bounce={level} />
+        <div className="playback-speaker"><Avatar player={speaker} size={200} bounce={level} /></div>
         <div className="text-center">
           <div className="font-display text-xl font-black text-cream/60">defending</div>
           <div className="font-display text-5xl leading-tight font-black" style={{ color }}>
@@ -144,13 +145,13 @@ export function HostPlayback() {
             <motion.div initial={{ scale: 2.2, opacity: 0, rotate: -8 }} animate={{ scale: 1, opacity: 1, rotate: -2 }} transition={{ type: 'spring', stiffness: 420, damping: 14 }}>
               {pitch.rulingKind === 'sustained' && (
                 <div className="rounded-3xl bg-sustain p-6 text-white shadow-[0_8px_0_rgb(0_0_0/0.35)]">
-                  <div className="font-display text-xl font-black tracking-[0.3em]">🔨 THE JUDGE RULES</div>
+                  <div className="font-display text-xl font-black tracking-[0.3em]"><IconText text={"🔨 THE JUDGE RULES"} /></div>
                   <div className="mt-2 font-display text-4xl leading-tight font-black">{pitch.rulingText}</div>
                 </div>
               )}
               {pitch.rulingKind === 'verified' && (
                 <div className="rounded-3xl bg-verify p-6 text-ink shadow-[0_8px_0_rgb(0_0_0/0.35)]">
-                  <div className="font-display text-xl font-black tracking-[0.3em]">✅ FACT CHECK</div>
+                  <div className="font-display text-xl font-black tracking-[0.3em]"><IconText text={"✅ FACT CHECK"} /></div>
                   <div className="mt-2 font-display text-4xl leading-tight font-black">{pitch.rulingText}</div>
                 </div>
               )}
@@ -159,7 +160,7 @@ export function HostPlayback() {
                   <div className="font-display text-3xl font-black">Objection overruled. No facts on file to contradict it.</div>
                 </div>
               )}
-              {pitch.rulingKind === 'pending' && <div className="card p-6 font-display text-2xl font-black text-cream/70">⚖️ The Judge is checking the facts…</div>}
+              {pitch.rulingKind === 'pending' && <div className="card p-6 font-display text-2xl font-black text-cream/70"><IconText text={"⚖️ The Judge is checking the facts…"} /></div>}
             </motion.div>
           )}
         </AnimatePresence>
