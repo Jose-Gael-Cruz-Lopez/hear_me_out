@@ -1,5 +1,6 @@
 import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
+import { ReactionLayer } from '../components/ReactionLayer';
 import { Avatar, Countdown, MuteButton } from '../components/ui';
 import { isMatchedRoom, useRoom } from '../lib/room';
 import { unlockAudio } from '../lib/sound';
@@ -85,7 +86,7 @@ function Frame({ children }: { children: React.ReactNode }) {
   const { room, me } = useRoom();
   if (!me) return null;
   return (
-    <div className="mx-auto flex min-h-full max-w-xl flex-col" onClick={unlockAudio}>
+    <div className="relative isolate mx-auto flex min-h-full max-w-xl flex-col" onClick={unlockAudio}>
       <header className="flex items-center justify-between gap-3 px-4 pt-4">
         <div className="flex items-center gap-3">
           <Avatar player={me} size={44} label={false} />
@@ -105,6 +106,7 @@ function Frame({ children }: { children: React.ReactNode }) {
             {children}
           </motion.div>
       </main>
+      {room.phase === 'playback' && <ReactionLayer key={room.currentPitchIdx} viewport />}
     </div>
   );
 }

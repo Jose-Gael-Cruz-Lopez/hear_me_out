@@ -1,6 +1,7 @@
 import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
 import { useRef } from 'react';
+import { PITCH_REACTIONS } from '../lib/reactions';
 import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
 import { MergeBanner } from '../components/MergeBanner';
 import { SafetyList } from '../components/Safety';
@@ -144,8 +145,6 @@ export function PlayAssignment() {
   );
 }
 
-const EMOJIS = ['😂', '🔥', '🧑‍⚖️', '🍜', '👏', '😱', '💯', '🤔'];
-
 export function PlayPlayback() {
   const { room, playable, me, playerById, optionById, objections } = useRoom();
   const call = useCall();
@@ -173,19 +172,20 @@ export function PlayPlayback() {
           </div>
         </div>
       </div>}
-      <div className="reaction-controls grid grid-cols-4 gap-2">
-        {EMOJIS.map(e => (
+      <div className="reaction-controls grid grid-cols-3 gap-2">
+        {PITCH_REACTIONS.map(({ emoji, label }) => (
           <button
-            key={e}
-            aria-label={`React: ${['Laugh', 'Fire', 'Judge', 'Noodles', 'Applause', 'Surprise', 'Perfect', 'Thinking'][EMOJIS.indexOf(e)]}`}
-            className="grid h-14 place-items-center rounded-2xl bg-ink-3 text-4xl shadow-[0_5px_0_rgb(0_0_0/0.35)] active:translate-y-1"
+            key={emoji}
+            type="button"
+            className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-ink-3 px-1 py-2 text-xs font-black shadow-[0_5px_0_rgb(0_0_0/0.35)] active:translate-y-1 sm:flex-row sm:gap-2 sm:text-sm"
             onClick={() => {
               if (Date.now() - last.current < 200) return;
               last.current = Date.now();
-              void call(c => c.reducers.react({ pitchId: pitch.id, emoji: e }), { silent: true });
+              void call(c => c.reducers.react({ pitchId: pitch.id, emoji }), { silent: true });
             }}
           >
-            <IconText text={e} size={34} />
+            <IconText text={emoji} size={24} />
+            <span>{label}</span>
           </button>
         ))}
       </div>

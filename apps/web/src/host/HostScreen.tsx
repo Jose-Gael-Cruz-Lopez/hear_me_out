@@ -116,7 +116,7 @@ export function HostScreen() {
           >
             {screen}
           </motion.div>
-        <ReactionLayer />
+        <ReactionLayer key={`${room.id}:${room.phase}:${room.currentPitchIdx}`} />
       </main>
 
       {isHost && (
