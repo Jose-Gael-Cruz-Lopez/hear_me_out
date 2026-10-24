@@ -87,7 +87,7 @@ const quiet = <T>(p: Promise<T>) => p.catch(err => (VERBOSE ? console.log(`${t()
 async function main(): Promise<void> {
   if (!VERBOSE) process.env.SPACETIMEDB_SDK_LOG_LEVEL = 'error';
   console.log(`Hear Me Out simulator → ${URI}/${DB} (${LIVE ? 'live APIs' : 'DEMO_MODE fixtures'})`);
-  const orch = await startOrchestrator(LIVE ? {} : { demoMode: true });
+  const orch = await startOrchestrator({ demoMode: !LIVE });
   const host = await connect('host');
   const alex = await connect('alex');
   const sam = await connect('sam');

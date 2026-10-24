@@ -130,7 +130,7 @@ const scout: Handler = async (job, d) => {
     return;
   }
 
-  const live = await scrapeVenues(d.cfg, { center, locationLabel: p.locationLabel, queries, timeoutMs: 100_000 });
+  const live = await scrapeVenues(d.cfg, { center, locationLabel: p.locationLabel, queries, timeoutMs: 85_000 });
   if (live && live.venues.length >= 4) {
     const liveCenter = center ?? { lat: live.venues[0].lat, lng: live.venues[0].lng };
     if (live.rawItems) saveRawScrape(d.cfg.fixturesDir, key, live.rawItems);

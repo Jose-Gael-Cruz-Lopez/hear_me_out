@@ -37,7 +37,7 @@ export const janitor = spacetimedb.reducer({ onSchedule: janitorTimer }, { timer
 
   for (const job of [...ctx.db.aiJob.status.filter('running')]) {
     const claimed = job.claimedAt?.microsSinceUnixEpoch ?? job.createdAt.microsSinceUnixEpoch;
-    if (now - claimed < 90n * SECOND) continue;
+    if (now - claimed < 150n * SECOND) continue; // longer than the orchestrator's own 120 s job timeout
     if (job.attempts < 3) ctx.db.aiJob.id.update({ ...job, status: 'queued', claimedAt: undefined });
     else applyFallback(ctx, job, 'timed out');
   }
