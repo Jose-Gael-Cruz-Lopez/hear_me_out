@@ -1,0 +1,5 @@
+{
+  "module-path": "./apps/module",
+  "server": "local",
+  "database": "hear-me-out"
+}
