@@ -59,6 +59,19 @@ export function Home() {
         </div>
       </section>
       <p className="cover-footnote">A party game about finally deciding where to go. Friends or soon-to-be friends.</p>
+      {/* Phones (mobile design): join-by-code is the front door; hosting happens on a TV or laptop. */}
+      <form className="cover-mobile" onSubmit={e => {
+        e.preventDefault(); unlockAudio();
+        if (code.trim().length === 4) navigate(`/play/${code.trim().toUpperCase()}`);
+      }}>
+        <label className="meet-label" htmlFor="m-room-code">GOT A ROOM CODE?</label>
+        <div className="cover-mobile-row">
+          <input id="m-room-code" value={code} onChange={e => setCode(e.target.value.replace(/[^a-zA-Z]/g, '').slice(0, 4).toUpperCase())} placeholder="CODE" autoComplete="off" className="cover-mobile-code" />
+          <button className="m-btn" disabled={code.length !== 4}>Join <DoodleIcon name="arrow" size={18} /></button>
+        </div>
+        <button type="button" className="m-btn m-btn-alt cover-mobile-meet" onClick={() => navigate('/meet')}>Find my people <DoodleIcon name="group" size={18} /></button>
+        <div className="cover-mobile-note">Hosting? Open Hear Me Out on a TV or laptop.</div>
+      </form>
       <dialog ref={joinDialog} className="ink-dialog" onClick={e => { if (e.target === e.currentTarget) joinDialog.current?.close(); }}>
         <button type="button" className="dialog-close" aria-label="Close join dialog" onClick={() => joinDialog.current?.close()}><DoodleIcon name="cross" /></button>
         <form className="space-y-5 text-center" onSubmit={e => {

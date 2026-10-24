@@ -47,6 +47,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 -->
 
 ### 2026-10-24 · Updated-for-META · Prisha (Claude Code)
+- **Changed:** finished the `export/` mobile design: home on phones (join-by-code field, Find my people, "Hosting? Open on a TV or laptop", pinned at the bottom; desktop home unchanged), the join screen (back + room code, "Who's making the case?", 4-column avatars with taken ones faded, safety box, "I'm in!" pinned), and the three profile steps (segmented budget/travel, toggle chips, collapsible dietary needs, Muse cards, tag list with remove + add, actions pinned). Layout and styles only. Anish's latest fixes on `fix-names-whatsapp-muse` (`cc94a6a`, `0496aee`) were already in this branch.
+- **Verified:** `pnpm typecheck` clean, `pnpm test` 70/70; home and join screens checked at 390×844 with no console errors.
+- **Not done / unverified:** profile steps and in-game phone screens not clicked through in a browser yet. Trov: not posted (no access).
+
+### 2026-10-24 · Updated-for-META · Prisha (Claude Code)
 - **Changed:** every phone screen in the mobile player-app design from `export/`: shared header (you, room · phase, sound, timer ring) with an 8-step phase rail; scrolling body with the primary action pinned at the bottom; lobby, hot take, swipeable finalist cards with photos, compact ballot/vote rows, case file, record (collapsible case, big record button, Send it / Redo pinned), playback (speaker + photo, transcript, sway bar and lean picker merged into one card, reactions, OBJECTION! pinned), verdict with photo and awards, plan ticket with RSVP segment and Timing / Menu / Invite tabs plus a 4-button action bar. Profile steps and the join page are mapped onto the same style without markup changes. Layout and styles only: same data, conditions and reducer calls. Also applied Anish's `0496aee` (live Apify scrape every game, slower Muse pull and booking; DECISIONS #50).
 - **Verified:** `pnpm typecheck` clean, `pnpm test` 70/70, `pnpm sim` 36/36.
 - **Not done / unverified:** the new phone screens were not clicked through in a browser before this push (only typecheck, tests and the simulator); Home's mobile layout from the export not applied. Trov: not posted (no access).

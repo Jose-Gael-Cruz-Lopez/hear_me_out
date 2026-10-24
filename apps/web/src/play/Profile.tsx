@@ -6,6 +6,7 @@ import { LiveDot, Spinner } from '../components/Muse';
 import { museMemory, museMemoryCount } from '../lib/muse';
 import { useCall, useRoom } from '../lib/room';
 import { toast } from '../lib/toast';
+import { MHead, MScreen } from '../components/Mobile';
 
 const DIETS = ['vegan', 'vegetarian', 'gluten-free', 'halal', 'kosher', 'dairy-free', 'nut-free', 'pescatarian'];
 const TRAVEL = [10, 20, 30, 45];
@@ -24,7 +25,7 @@ const SOURCE_LABEL: Record<string, string> = { paste: 'your Muse', chips: 'your 
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className={`chip px-4 py-2 text-base transition ${on ? 'bg-sun text-ink' : 'bg-ink-3 text-cream hover:bg-ink-4'}`}>
+    <button type="button" onClick={onClick} aria-pressed={on} className={`m-toggle ${on ? 'on' : ''}`}>
       {children}
     </button>
   );
@@ -83,18 +84,16 @@ export function ProfileFlow() {
   if (me.ready) {
     const tags = profiles.get(me.id)?.approvedTags ?? [];
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
-        <div className="text-7xl"><IconText text={"✅"} /></div>
-        <div className="font-display text-3xl font-black">You're locked in</div>
-        <div className="flex flex-wrap justify-center gap-2">
+      <MScreen center>
+        <IconText text={"✅"} size={64} />
+        <h1 className="m-h1 m-center-text">You're locked in</h1>
+        <div className="m-tagcloud">
           {tags.map(t => (
-            <span key={t} className="chip bg-sky/20 text-sky">
-              #{t}
-            </span>
+            <span key={t}>#{t}</span>
           ))}
         </div>
-        <div className="text-cream/70">Watch the TV while everyone else finishes.</div>
-      </div>
+        <p className="m-sub m-center-text">Watch the TV while everyone else finishes.</p>
+      </MScreen>
     );
   }
 
@@ -141,42 +140,60 @@ export function ProfileFlow() {
   if (myDraft && (myDraft.status === 'distilling' || myDraft.status === 'ready')) {
     if (myDraft.status === 'distilling') {
       return (
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <motion.div className="text-7xl" animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}><IconText text={" ✨ "} /></motion.div>
-          <div className="font-display text-2xl font-black">Distilling your vibe…</div>
-          {myDraft.socialLinks.length > 0 && <div className="text-cream/70">Reading your public posts with Apify. This can take up to a minute.</div>}
-        </div>
+        <MScreen center>
+          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}><IconText text={"✨"} size={64} /></motion.div>
+          <h1 className="m-h1 m-center-text">Distilling your vibe…</h1>
+          {myDraft.socialLinks.length > 0 && <p className="m-sub m-center-text">Reading your public posts with Apify. This can take up to a minute.</p>}
+        </MScreen>
       );
     }
     const tags = editedTags ?? myDraft.draftTags.map(t => t.tag);
+    const approve = async () => {
+      if (submittingRef.current || approvingRef.current) return;
+      approvingRef.current = true;
+      setApproving(true);
+      try {
+        await call(c => c.reducers.approveTags({ roomId: room.id, tags }));
+      } finally {
+        approvingRef.current = false;
+        setApproving(false);
+      }
+    };
     return (
-      <div className="flex flex-col gap-5">
-        <div>
-          <div className="font-display text-sm font-black tracking-[0.25em] text-sun">STEP 3 OF 3</div>
-          <div className="font-display text-3xl font-black">Approve your tags</div>
-          <div className="mt-1 text-cream/75">Nobody sees these until you approve. Remove anything you don't want shared.</div>
-        </div>
-        <div className="chip self-start bg-lime/15 text-lime ring-1 ring-lime/40"><IconText text={"🔒 Only what you approve is shared. Private messages are never read."} /></div>
-        {myDraft.note && <div className="text-sm text-muted">{myDraft.note}</div>}
-        <div className="space-y-2">
+      <MScreen
+        action={
+          <>
+            <button className="m-btn m-btn-ok" disabled={busy || approving} onClick={() => void approve()}>
+              {approving ? 'Sharing…' : 'Approve & share'}
+            </button>
+            <button className="m-btn m-btn-alt" disabled={busy || approving || !profiles.has(me.id)} onClick={() => void submit(true)}>
+              Redo
+            </button>
+          </>
+        }
+      >
+        <MHead kicker="STEP 3 OF 3" title="Approve your tags" sub="Nobody sees these until you approve." />
+        <div className="m-private"><IconText text={"🔒 Private messages are never read"} /></div>
+        {myDraft.note && <div className="m-small m-dim">{myDraft.note}</div>}
+        <div className="m-card m-tags">
           <AnimatePresence>
             {tags.map(tag => {
               const why = myDraft.draftTags.find(t => t.tag === tag);
               return (
-                <motion.div key={tag} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="card flex items-center gap-3 p-3">
-                  <div className="flex-1">
-                    <div className="font-display text-xl font-black text-sky">#{tag}</div>
-                    <div className="text-sm text-cream/70">{why ? `${why.reason} · from ${SOURCE_LABEL[why.source] ?? why.source}` : 'Added by you'}</div>
+                <motion.div key={tag} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="m-tag-row">
+                  <div className="m-tag-text">
+                    <div className="m-tag">#{tag}</div>
+                    <div className="m-tag-why">{why ? `${why.reason} · from ${SOURCE_LABEL[why.source] ?? why.source}` : 'Added by you'}</div>
                   </div>
-                  <button className="chip bg-ink-3 text-cream/80" disabled={busy || approving} onClick={() => setEditedTags(tags.filter(t => t !== tag))} aria-label={`Remove ${tag}`}><IconText text={" ✕ "} /></button>
+                  <button className="m-x" disabled={busy || approving} onClick={() => setEditedTags(tags.filter(t => t !== tag))} aria-label={`Remove ${tag}`}><IconText text={"✕"} /></button>
                 </motion.div>
               );
             })}
           </AnimatePresence>
-          {tags.length === 0 && <div className="text-cream/60">No tags. That's allowed: you'll still play.</div>}
+          {tags.length === 0 && <div className="m-tag-empty">No tags. That's allowed: you'll still play.</div>}
         </div>
         <form
-          className="flex gap-2"
+          className="m-add"
           onSubmit={e => {
             e.preventDefault();
             if (submittingRef.current || approvingRef.current) return;
@@ -187,72 +204,40 @@ export function ProfileFlow() {
             setNewTag('');
           }}
         >
-          <input value={newTag} disabled={busy || approving} onChange={e => setNewTag(e.target.value)} placeholder="Add a tag" className="min-w-0 flex-1 rounded-2xl bg-ink px-4 py-3 ring-2 ring-white/10 outline-none focus:ring-sky" />
-          <button className="btn btn-ghost text-base" disabled={busy || approving}>Add</button>
+          <input value={newTag} disabled={busy || approving} onChange={e => setNewTag(e.target.value)} placeholder="Add a tag" className="m-input" />
+          <button className="m-add-btn" disabled={busy || approving}>Add</button>
         </form>
-        <div className="flex gap-3">
-          <button className="btn btn-lime flex-1" disabled={busy || approving} onClick={async () => {
-            if (submittingRef.current || approvingRef.current) return;
-            approvingRef.current = true;
-            setApproving(true);
-            try {
-              await call(c => c.reducers.approveTags({ roomId: room.id, tags }));
-            } finally {
-              approvingRef.current = false;
-              setApproving(false);
-            }
-          }}>
-            {approving ? 'Sharing…' : 'Approve & share'}
-          </button>
-          <button className="btn btn-ghost text-base" disabled={busy || approving || !profiles.has(me.id)} onClick={() => void submit(true)}>
-            Redo
-          </button>
-        </div>
-      </div>
+      </MScreen>
     );
   }
 
   if (step === 'basics') {
     return (
-      <div className="flex flex-col gap-6">
-        <div>
-          <div className="font-display text-sm font-black tracking-[0.25em] text-sun">STEP 1 OF 3</div>
-          <div className="font-display text-3xl font-black">The basics</div>
-          <div className="text-cream/75">Shared with the group so the plan works for you.</div>
-        </div>
-        <section className="space-y-2">
-          <div className="font-bold">Budget tonight</div>
-          <div className="flex gap-2">
+      <MScreen action={<button className="m-btn" onClick={() => setStep('muse')}>Next</button>}>
+        <MHead kicker="STEP 1 OF 3" title="The basics" sub="Shared with the group so the plan works for you." />
+        <section className="m-field-group">
+          <div className="m-q">Budget tonight</div>
+          <div className="m-seg" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
             {[1, 2, 3, 4].map(b => (
-              <Chip key={b} on={budget === b} onClick={() => setBudget(b)}>
+              <button key={b} type="button" className={budget === b ? 'on' : ''} onClick={() => setBudget(b)}>
                 {'$'.repeat(b)}
-              </Chip>
+              </button>
             ))}
           </div>
         </section>
-        <section className="space-y-2">
-          <div className="font-bold">Dietary needs</div>
-          <div className="flex flex-wrap gap-2">
-            {DIETS.map(d => (
-              <Chip key={d} on={diets.includes(d)} onClick={() => setDiets(toggle(diets, d))}>
-                {d}
-              </Chip>
-            ))}
-          </div>
-        </section>
-        <section className="space-y-2">
-          <div className="font-bold">Max travel</div>
-          <div className="flex gap-2">
+        <section className="m-field-group">
+          <div className="m-q">Max travel</div>
+          <div className="m-seg" style={{ gridTemplateColumns: `repeat(${TRAVEL.length}, minmax(0, 1fr))` }}>
             {TRAVEL.map(t => (
-              <Chip key={t} on={travel === t} onClick={() => setTravel(t)}>
+              <button key={t} type="button" className={travel === t ? 'on' : ''} onClick={() => setTravel(t)}>
                 {t} min
-              </Chip>
+              </button>
             ))}
           </div>
         </section>
-        <section className="space-y-2">
-          <div className="font-bold">Free tonight</div>
-          <div className="flex flex-wrap gap-2">
+        <section className="m-field-group">
+          <div className="m-q">Free tonight</div>
+          <div className="m-chips">
             {WINDOWS.map(w => (
               <Chip key={w.label} on={times.includes(w.label)} onClick={() => setTimes(toggle(times, w.label))}>
                 {w.label}
@@ -263,9 +248,9 @@ export function ProfileFlow() {
             </Chip>
           </div>
         </section>
-        <section className="space-y-2">
-          <div className="font-bold">Your vibe</div>
-          <div className="flex flex-wrap gap-2">
+        <section className="m-field-group">
+          <div className="m-q">Your vibe</div>
+          <div className="m-chips">
             {VIBES.map(v => (
               <Chip key={v} on={vibes.includes(v)} onClick={() => setVibes(toggle(vibes, v))}>
                 {v}
@@ -273,21 +258,38 @@ export function ProfileFlow() {
             ))}
           </div>
         </section>
-        <button className="btn btn-pop" onClick={() => setStep('muse')}>
-          Next
-        </button>
-      </div>
+        <details className="m-collapse">
+          <summary>
+            <span>
+              Dietary needs <span className="m-dim">· {diets.length ? diets.join(', ') : 'none'}</span>
+            </span>
+            <span className="m-case-sign" aria-hidden="true" />
+          </summary>
+          <div className="m-chips m-collapse-body">
+            {DIETS.map(d => (
+              <Chip key={d} on={diets.includes(d)} onClick={() => setDiets(toggle(diets, d))}>
+                {d}
+              </Chip>
+            ))}
+          </div>
+        </details>
+      </MScreen>
     );
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <div className="font-display text-sm font-black tracking-[0.25em] text-sun">STEP 2 OF 3</div>
-        <div className="font-display text-3xl font-black">Your Muse</div>
-        <div className="text-cream/75">Muse is connected. It's pulling what it already knows about you.</div>
-      </div>
-      <div className="card space-y-3 p-4" role="status" aria-live="polite">
+    <MScreen
+      action={
+        <>
+          <button className="m-btn m-btn-alt" onClick={() => setStep('basics')}>
+            Back
+          </button>
+          <button className="m-btn" disabled={busy || !pullDone || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={pullDone ? " ✨ Distill my vibe " : "Muse is reading…"} /></button>
+        </>
+      }
+    >
+      <MHead kicker="STEP 2 OF 3" title="Your Muse" sub="Muse is connected. It's pulling what it already knows about you." />
+      <div className="m-card m-card-pad m-stack-sm" role="status" aria-live="polite">
         <div className="flex items-center gap-2 font-bold">
           <LiveDot /> Meta Muse · Connected
         </div>
@@ -307,19 +309,19 @@ export function ProfileFlow() {
               onChange={e => setPasted(e.target.value.slice(0, 2000))}
               rows={5}
               aria-label="What Muse knows about you"
-              className="w-full rounded-2xl bg-ink p-3 ring-2 ring-white/10 outline-none focus:ring-sky"
+              className="m-textarea m-type"
             />
           </motion.div>
         )}
       </div>
-      <div className="card space-y-3 p-4">
+      <div className="m-card m-card-pad m-stack-sm">
         <div className="font-bold">Link your own public account (optional)</div>
         <div className="text-sm text-cream/70">We read your recent public posts to suggest tags, then throw the posts away. You still approve every tag.</div>
         <div className="flex gap-2">
           <select
             value={platform}
             onChange={e => setPlatform(e.target.value as typeof platform)}
-            className="rounded-2xl bg-ink px-3 py-3 ring-2 ring-white/10 outline-none focus:ring-sky"
+            className="m-select"
           >
             <option value="instagram">Instagram</option>
             <option value="tiktok">TikTok</option>
@@ -329,7 +331,7 @@ export function ProfileFlow() {
             value={handle}
             onChange={e => setHandle(e.target.value.slice(0, 80))}
             placeholder={platform === 'facebook' ? 'facebook.com/yourpage' : '@yourhandle'}
-            className="min-w-0 flex-1 rounded-2xl bg-ink px-4 py-3 ring-2 ring-white/10 outline-none focus:ring-sky"
+            className="m-input"
           />
         </div>
         {handle.trim() && (
@@ -339,12 +341,6 @@ export function ProfileFlow() {
           </label>
         )}
       </div>
-      <div className="flex gap-3">
-        <button className="btn btn-ghost text-base" onClick={() => setStep('basics')}>
-          Back
-        </button>
-        <button className="btn btn-pop flex-1" disabled={busy || !pullDone || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={pullDone ? " ✨ Distill my vibe " : "Muse is reading…"} /></button>
-      </div>
-    </div>
+    </MScreen>
   );
 }
