@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 import type { Config } from '../config';
 import { log } from '../log';
+import { safeCoverArtPrompt } from './cover-art';
 
 export type Effort = 'minimal' | 'low' | 'medium' | 'high';
 
@@ -111,9 +112,9 @@ export function createMuse(cfg: Config): Muse {
       const res = await client.images.generate(
         {
           model: cfg.museImageModel,
-          prompt,
+          prompt: safeCoverArtPrompt(prompt),
           n: 1,
-          size: '1024x1536',
+          size: '1024x1024',
           response_format: 'b64_json',
           output_format: 'jpeg',
         } as OpenAI.Images.ImageGenerateParams,

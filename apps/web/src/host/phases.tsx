@@ -2,7 +2,7 @@ import { IconText, AvatarMark } from '../components/Ink';
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
@@ -301,7 +301,7 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
     <div className="plan-dash">
       <div className="plan-left">
         <motion.div initial={{ rotate: -6, scale: 0.85, opacity: 0 }} animate={{ rotate: -2, scale: 1, opacity: 1 }} transition={{ type: 'spring' }}>
-          <Poster compact plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
+          <Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
         </motion.div>
         <div className="plan-panel">
           <div className="plan-label">
@@ -312,18 +312,13 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
               const r = rsvps.find(x => x.playerId === p.id);
               return (
                 <div key={String(p.id)} className="plan-rsvp">
-                  <Avatar player={p} size={44} done={r?.status === 'yes'} dim={!r} />
+                  <Avatar player={p} size={38} done={r?.status === 'yes'} dim={!r} />
                   <span>{r ? (r.status === 'yes' ? 'going' : r.status) : '…'}</span>
                 </div>
               );
             })}
           </div>
         </div>
-        {isHost && (
-          <button className="btn btn-ghost self-start" onClick={() => navigate('/')}>
-            New game
-          </button>
-        )}
       </div>
 
       <div className="plan-main">
@@ -383,11 +378,16 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
             </ul>
           </div>
         )}
+        {isHost && (
+          <button className="btn btn-ghost self-start" onClick={() => navigate('/')}>
+            New game
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
 export function HostEnded() {
-  return <Waiting emoji="🔨" title="Court adjourned" sub="See you at the plan." />;
+  return <div className="flex flex-1 flex-col gap-6"><Waiting emoji="🔨" title="Court adjourned" sub="See you at the plan." /><Link href="/" className="btn btn-sun self-center">Back home</Link></div>;
 }

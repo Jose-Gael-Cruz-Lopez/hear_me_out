@@ -1,6 +1,6 @@
 import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { PITCH_REACTIONS } from '../lib/reactions';
 import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
 import { MergeBanner } from '../components/MergeBanner';
@@ -271,6 +271,7 @@ export function PlayResults() {
 export function PlayPlan() {
   const { plan, optionById, players, rsvps, me, media, room } = useRoom();
   const call = useCall();
+  const [manualInvite, setManualInvite] = useState(false);
   const option = plan ? optionById(plan.optionId) : undefined;
   const posterMedia = plan?.posterMediaId ? media.get(plan.posterMediaId) : undefined;
   const posterUrl = useObjectUrl(posterMedia?.bytes, posterMedia?.mime);
@@ -296,10 +297,13 @@ export function PlayPlan() {
   const share = async () => {
     const text = `${plan.inviteText}\n${option.mapsUrl}`;
     try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(text);
+      setManualInvite(false);
       toast('Invite copied. Paste it in the group chat!');
     } catch {
-      toast('Could not copy');
+      setManualInvite(true);
+      toast('Select and copy the invite below.');
     }
   };
   const cantMake = plan.cantMake.includes(me?.id ?? -1n);
@@ -382,12 +386,13 @@ export function PlayPlan() {
           <IconText text={'🔗 Share'} />
         </button>
       </div>
-      <details className="card p-4">
-        <summary className="cursor-pointer font-black">Invitation poster</summary>
-        <div className="mt-4">
-          <Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
-        </div>
-      </details>
+      <details className="card p-4"><summary className="cursor-pointer font-black">Invitation poster</summary><div className="mt-4"><Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} /></div></details>
+      {manualInvite && showAddress && (
+        <label className="card space-y-2 p-4 font-bold">
+          <span>Copy this invite</span>
+          <textarea aria-label="Invite to copy" readOnly value={`${plan.inviteText}\n${option.mapsUrl}`} onFocus={e => e.currentTarget.select()} className="block min-h-32 w-full rounded-xl bg-ink-3 p-3 text-sm font-normal text-ink" />
+        </label>
+      )}
       <SafetyList />
       <div className="text-center text-xs text-muted">Room {room.code}</div>
     </div>

@@ -7,6 +7,7 @@ import { tables } from '@hmo/bindings';
 import { formatClock } from '@hmo/module/logic/slot';
 import { Logo } from '../components/ui';
 import { useCall } from '../lib/room';
+import { toast } from '../lib/toast';
 
 const VIBES = ['spicy-food', 'board-games', 'karaoke', 'ramen', 'tacos', 'live-music', 'night-owl', 'cheap-eats', 'outdoors', 'dessert', 'anime', 'coffee', 'vegan', 'craft-beer'];
 const CATEGORY_EMOJI: Record<string, string> = { food: '🍜', activity: '🎳', movie: '🎬' };
@@ -28,6 +29,7 @@ export function Lobbies() {
   const { isActive } = useSpacetimeDB();
   const [tags, setTags] = useState<string[]>(['board-games', 'spicy-food']);
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
   const [matches] = useTable(tables.myLobbyMatches);
   const [rooms] = useTable(tables.room.where(r => r.isPublic.eq(true)));
   const [players] = useTable(tables.player);
@@ -66,7 +68,10 @@ export function Lobbies() {
       <div className="card space-y-4 p-5">
         <div className="flex flex-wrap gap-2">
           {VIBES.map(v => (
-            <button key={v} onClick={() => setTags(t => (t.includes(v) ? t.filter(x => x !== v) : [...t, v]))} className={`chip px-4 py-2 ${tags.includes(v) ? 'bg-sun text-ink' : 'bg-ink-3 text-cream'}`}>
+            <button key={v} aria-pressed={tags.includes(v)} onClick={() => {
+              if (!tags.includes(v) && tags.length >= 12) return toast('Choose up to 12 vibes.');
+              setTags(t => (t.includes(v) ? t.filter(x => x !== v) : [...t, v]));
+            }} className={`chip px-4 py-2 ${tags.includes(v) ? 'bg-sun text-ink' : 'bg-ink-3 text-cream'}`}>
               #{v}
             </button>
           ))}
@@ -74,8 +79,19 @@ export function Lobbies() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             className="chip bg-ink-3 px-4 py-2 text-cream"
-            onClick={() => navigator.geolocation?.getCurrentPosition(p => setGeo({ lat: p.coords.latitude, lng: p.coords.longitude }), () => undefined, { timeout: 8000 })}
-          ><IconText text={" 📍 "} />{geo ? 'Using your location' : 'Use my location'}
+            disabled={locating}
+            onClick={() => {
+              if (!navigator.geolocation) return toast('Location is unavailable. You can still browse by vibe.');
+              setLocating(true);
+              navigator.geolocation.getCurrentPosition(p => {
+                setLocating(false);
+                setGeo({ lat: p.coords.latitude, lng: p.coords.longitude });
+              }, () => {
+                setLocating(false);
+                toast('Could not use your location. You can still browse by vibe.');
+              }, { timeout: 8000 });
+            }}
+          ><IconText text={" 📍 "} />{locating ? 'Locating…' : geo ? 'Using your location' : 'Use my location'}
           </button>
           <span className="text-sm text-muted">Lobbies only show a neighborhood. The exact place unlocks after you RSVP.</span>
         </div>

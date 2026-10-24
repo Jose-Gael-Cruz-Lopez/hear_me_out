@@ -5,6 +5,7 @@ import { Crowd } from '../components/Crowd';
 import { DEMO_LOCATION } from '../lib/connection';
 import { useCall, useRoom } from '../lib/room';
 import { unlockAudio } from '../lib/sound';
+import { toast } from '../lib/toast';
 
 const MEETUP_VIBES = ['spicy-food', 'board-games', 'karaoke', 'ramen', 'tacos', 'live-music', 'night-owl', 'cheap-eats', 'outdoors', 'dessert', 'anime', 'coffee'];
 const MEETUP_TIMES = [
@@ -30,11 +31,16 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
   const joinUrl = `${window.location.origin}/play/${room.code}`;
   const ready = !!room.category && (!!room.locationLabel || room.hasGeo);
 
-  const saveSetup = (cat: string, label: string, geo?: { lat: number; lng: number }) =>
-    call(c => c.reducers.setRoomSetup({ roomId: room.id, category: cat, locationLabel: label, lat: geo?.lat ?? 0, lng: geo?.lng ?? 0, hasGeo: !!geo }));
+  const saveSetup = (cat: string, label: string, geo?: { lat: number; lng: number }) => {
+    const coordinates = geo ?? (room.hasGeo && label === room.locationLabel ? { lat: room.lat, lng: room.lng } : undefined);
+    return call(c => c.reducers.setRoomSetup({ roomId: room.id, category: cat, locationLabel: label, lat: coordinates?.lat ?? 0, lng: coordinates?.lng ?? 0, hasGeo: !!coordinates }));
+  };
 
   const useMyLocation = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      toast('Location is unavailable. Enter a neighborhood or address instead.');
+      return;
+    }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       pos => {
@@ -42,7 +48,10 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
         setWhere('Near this computer');
         void saveSetup(category, 'Near this computer', { lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
-      () => setLocating(false),
+      () => {
+        setLocating(false);
+        toast('Could not use this computer’s location. Enter a neighborhood or address instead.');
+      },
       { timeout: 8000 }
     );
   };
@@ -131,9 +140,9 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
                 return (
                   <button
                     key={v}
-                    disabled={!isHost}
+                    disabled={!isHost || (!on && room.vibeTags.length >= 6)}
                     onClick={() => call(c => c.reducers.setMeetupDetails({ roomId: room.id, vibeTags: on ? room.vibeTags.filter(x => x !== v) : [...room.vibeTags, v].slice(0, 6), targetStartMin: room.targetStartMin }))}
-                    className={`chip px-3 py-1.5 ${on ? 'bg-sun text-ink' : 'bg-ink-3 text-cream'}`}
+                    className={`chip px-3 py-1.5 disabled:opacity-40 ${on ? 'bg-sun text-ink' : 'bg-ink-3 text-cream'}`}
                   >
                     #{v}
                   </button>

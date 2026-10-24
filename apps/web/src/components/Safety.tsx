@@ -18,6 +18,7 @@ export function SafetyList() {
   const { room, players, me } = useRoom();
   const call = useCall();
   const [blocked, setBlocked] = useState<string[]>(readBlocked);
+  const [reporting, setReporting] = useState<string | null>(null);
   if (room.mode !== 'strangers') return null;
   const others = players.filter(p => p.id !== me?.id && !p.isBot);
   if (others.length === 0) return null;
@@ -35,7 +36,12 @@ export function SafetyList() {
             {!isBlocked && (
               <button
                 className="chip bg-ink-3 text-sustain"
+                disabled={reporting !== null}
                 onClick={async () => {
+                  setReporting(String(p.id));
+                  const reported = await call(c => c.reducers.reportPlayer({ roomId: room.id, playerId: p.id, reason: 'reported from player card' }));
+                  setReporting(null);
+                  if (!reported) return;
                   const next = [...blocked, String(p.id)];
                   setBlocked(next);
                   try {
@@ -43,10 +49,10 @@ export function SafetyList() {
                   } catch {
                     /* ignore */
                   }
-                  if (await call(c => c.reducers.reportPlayer({ roomId: room.id, playerId: p.id, reason: 'reported from player card' }))) toast(`Blocked and reported ${p.name}. Thanks for keeping it friendly.`);
+                  toast(`Blocked and reported ${p.name}. Thanks for keeping it friendly.`);
                 }}
               >
-                Block & report
+                {reporting === String(p.id) ? 'Reporting…' : 'Block & report'}
               </button>
             )}
           </div>

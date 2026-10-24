@@ -1,7 +1,7 @@
 import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
-import { useCall, useRoom } from '../lib/room';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { isMatchedRoom, useCall, useRoom } from '../lib/room';
 import { play } from '../lib/sound';
 import { toast } from '../lib/toast';
 import { BriefCard } from './phases';
@@ -52,6 +52,37 @@ export function Recorder() {
   const speech = useRef<SpeechRec | null>(null);
   const startedAt = useRef(0);
   const durationRef = useRef(0);
+  const streamRef = useRef<MediaStream | null>(null);
+  const mounted = useRef(true);
+  const captureRequest = useRef(0);
+
+  // Discarding a take (or leaving this screen) must also release the actual mic.
+  // Invalidate pending permission requests so a late grant cannot restart capture.
+  const discardCapture = useCallback(() => {
+    captureRequest.current += 1;
+    const recognizer = speech.current;
+    speech.current = null;
+    try { recognizer?.stop(); } catch { /* Already stopped. */ }
+    const recorder = recRef.current;
+    recRef.current = null;
+    if (recorder) {
+      recorder.ondataavailable = null;
+      recorder.onstop = null;
+      if (recorder.state !== 'inactive') {
+        try { recorder.stop(); } catch { /* Tracks are still released below. */ }
+      }
+    }
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      discardCapture();
+    };
+  }, [discardCapture]);
 
   useEffect(() => {
     if (state !== 'recording') return;
@@ -70,14 +101,28 @@ export function Recorder() {
   if (!mine || !me) return <div className="text-center text-xl">Getting your case ready…</div>;
 
   const start = async () => {
+    discardCapture();
+    const request = captureRequest.current;
+    let stream: MediaStream | undefined;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      if (!mounted.current || request !== captureRequest.current) {
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
+      streamRef.current = stream;
       const mime = pickMime();
       const rec = new MediaRecorder(stream, mime ? { mimeType: mime, audioBitsPerSecond: 32_000 } : { audioBitsPerSecond: 32_000 });
+      const recordingStream = stream;
       chunks.current = [];
-      rec.ondataavailable = e => e.data.size && chunks.current.push(e.data);
+      rec.ondataavailable = e => {
+        if (mounted.current && request === captureRequest.current && e.data.size) chunks.current.push(e.data);
+      };
       rec.onstop = () => {
-        stream.getTracks().forEach(t => t.stop());
+        recordingStream.getTracks().forEach(track => track.stop());
+        if (streamRef.current === recordingStream) streamRef.current = null;
+        if (recRef.current === rec) recRef.current = null;
+        if (!mounted.current || request !== captureRequest.current) return;
         const blob = new Blob(chunks.current, { type: rec.mimeType || mime || 'audio/webm' });
         blobRef.current = blob;
         setPreviewUrl(URL.createObjectURL(blob));
@@ -94,6 +139,7 @@ export function Recorder() {
       const sr = makeRecognizer();
       if (sr) {
         sr.onresult = e => {
+          if (!mounted.current || request !== captureRequest.current) return;
           let text = '';
           for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
           setCaptions(text.trim());
@@ -107,14 +153,18 @@ export function Recorder() {
         }
       }
     } catch {
+      stream?.getTracks().forEach(track => track.stop());
+      if (!mounted.current || request !== captureRequest.current) return;
+      discardCapture();
       toast('No microphone access. Type your pitch instead.');
+      setState('idle');
       setTyping(true);
     }
   };
 
   function stop() {
     durationRef.current = Math.min(MAX_MS, Date.now() - startedAt.current);
-    speech.current?.stop();
+    try { speech.current?.stop(); } catch { /* Already stopped. */ }
     speech.current = null;
     if (recRef.current?.state === 'recording') recRef.current.stop();
   }
@@ -124,10 +174,11 @@ export function Recorder() {
     if (!blob) return;
     setState('sending');
     const bytes = new Uint8Array(await blob.arrayBuffer());
+    if (!mounted.current) return;
     const ok = await call(c =>
       c.reducers.uploadPitchAudio({ pitchId: mine.id, mime: blob.type.split(';')[0] || 'audio/webm', bytes, durationMs: durationRef.current, browserTranscript: captions })
     );
-    if (!ok) setState('review');
+    if (!ok && mounted.current) setState('review');
   };
 
   const sendTyped = async (text: string) => {
@@ -146,7 +197,7 @@ export function Recorder() {
             <div className="text-6xl"><IconText text={mine.status === 'ready' ? '✅' : '📝'} /></div>
             <div className="font-display text-2xl font-black">{mine.status === 'ready' ? 'Pitch submitted!' : 'Transcribing…'}</div>
             {mine.transcript && <div className="text-cream/80 italic">“{mine.transcript}”</div>}
-            <div className="text-sm text-muted">Get ready to hear everyone out on the TV.</div>
+            <div className="text-sm text-muted">{isMatchedRoom(room) ? 'Everyone’s pitch will play here on your phone.' : 'Get ready to hear everyone out on the TV.'}</div>
           </div>
         )}
       </div>
@@ -218,7 +269,11 @@ export function Recorder() {
             </div>
           </div>
         )}
-        <button className="text-sm font-bold text-muted underline" onClick={() => setTyping(true)}>
+        <button className="text-sm font-bold text-muted underline" onClick={() => {
+          discardCapture();
+          if (state === 'recording') setState('idle');
+          setTyping(true);
+        }}>
           No mic? Type your pitch instead
         </button>
         {room.fastMode && <div className="text-xs text-muted">fast mode</div>}
@@ -230,6 +285,11 @@ export function Recorder() {
 function TypeBox({ initial, onSend, title }: { initial: string; onSend: (text: string) => Promise<void>; title: string }) {
   const [text, setText] = useState(initial);
   const [busy, setBusy] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
   return (
     <form
       className="card space-y-3 p-5"
@@ -237,7 +297,7 @@ function TypeBox({ initial, onSend, title }: { initial: string; onSend: (text: s
         e.preventDefault();
         setBusy(true);
         await onSend(text);
-        setBusy(false);
+        if (mounted.current) setBusy(false);
       }}
     >
       <div className="font-bold">{title}</div>

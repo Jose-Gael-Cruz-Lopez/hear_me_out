@@ -52,7 +52,7 @@ A party game that turns "where do we go?" into a plan. A TV runs the show, playe
 ## Rules
 
 - Every AI call needs a timeout and an offline fallback; the module also has a fallback per job kind.
-- Never present fixtures or offline content as live AI; label them. Exception (product decision, DECISIONS.md #40): the Muse connection, its connectors and the reservation are simulated and deliberately unlabeled in the UI; keep them marked in code (`apps/web/src/lib/muse.ts`).
+- Never present fixtures or offline content as live AI; label them. Muse profile samples, connector previews and reservation previews are explicitly identified as demos; they do not access accounts or make bookings (`apps/web/src/lib/muse.ts`).
 - Breaking schema changes are refused on publish: append columns with `.default(...)` or add tables.
 
 ## Workflow: STATUS.md + pre-push hook (required)

@@ -1,5 +1,6 @@
 import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
+import { Link } from 'wouter';
 import { ReactionLayer } from '../components/ReactionLayer';
 import { Avatar, Countdown, MuteButton } from '../components/ui';
 import { isMatchedRoom, useRoom } from '../lib/room';
@@ -22,7 +23,7 @@ import {
 } from './phases';
 
 export function PlayScreen() {
-  const { room, me } = useRoom();
+  const { room, me, pitches } = useRoom();
   if (room.mode === 'queue') {
     return (
       <>
@@ -54,7 +55,7 @@ export function PlayScreen() {
       case 'pitching':
         return <Recorder />;
       case 'playback':
-        return <PlayPlayback />;
+        return pitches.some(p => p.playerId === me.id && p.status === 'needs_text') ? <Recorder /> : <PlayPlayback />;
       case 'vote':
         return <PlayVote />;
       case 'results':
@@ -62,7 +63,7 @@ export function PlayScreen() {
       case 'plan':
         return <PlayPlan />;
       default:
-        return <PlayWaiting emoji="🔨" title="Court adjourned" />;
+        return <div className="flex flex-1 flex-col gap-6"><PlayWaiting emoji="🔨" title="Court adjourned" /><Link href="/" className="btn btn-sun">Back home</Link></div>;
     }
   })();
 

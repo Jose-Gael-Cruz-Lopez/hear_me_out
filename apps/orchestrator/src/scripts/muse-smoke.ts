@@ -5,6 +5,7 @@ import { loadConfig } from '../config';
 import * as prompts from '../prompts';
 import { toWav } from '../services/audio';
 import { createMuse } from '../services/muse';
+import { coverArtPrompt } from '../services/cover-art';
 
 const cfg = loadConfig({ demoMode: false });
 const muse = createMuse(cfg);
@@ -32,5 +33,5 @@ if (audioFile) {
 }
 
 const t2 = Date.now();
-const img = await muse.image('Vertical festive party invite poster, bold game-show style, big readable title "Pho Real" and the time "Tonight 7:30 PM", confetti.', room);
+const img = await muse.image(coverArtPrompt('Pho Real', 'Vietnamese restaurant'), room);
 console.log('image:', img ? `${img.mime} ${Math.round(img.bytes.length / 1024)} KB` : 'none', `${Date.now() - t2}ms`);
