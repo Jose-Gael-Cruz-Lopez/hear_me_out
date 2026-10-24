@@ -1,0 +1,28 @@
+{
+  "name": "pitch-fight-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3001 -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -p 3001 -H 0.0.0.0",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "generate": "spacetime generate --lang typescript --out-dir src/module_bindings --module-path ../spacetime"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "qrcode": "1.5.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "spacetimedb": "2.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
