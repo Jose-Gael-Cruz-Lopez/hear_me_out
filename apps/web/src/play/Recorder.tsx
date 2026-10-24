@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
 import { play } from '../lib/sound';
 import { toast } from '../lib/toast';
-import { BriefCard } from './phases';
+import { CaseToggle } from './phases';
+import { MScreen } from '../components/Mobile';
 
 const MAX_MS = 30_000;
 
@@ -188,29 +189,29 @@ export function Recorder() {
   // After upload: show status, and offer typing if transcription failed.
   if (mine.status !== 'waiting') {
     return (
-      <div className="flex flex-col gap-5">
-        <BriefCard />
+      <MScreen>
+        <CaseToggle />
         {mine.status === 'needs_text' ? (
           <TypeBox initial={mine.liveCaption} onSend={sendTyped} title="We couldn't transcribe that. Type your pitch instead:" />
         ) : (
-          <div className="card space-y-3 p-6 text-center">
-            <div className="text-6xl"><IconText text={mine.status === 'ready' ? '✅' : '📝'} /></div>
-            <div className="font-display text-2xl font-black">{mine.status === 'ready' ? 'Pitch submitted!' : 'Transcribing…'}</div>
-            {mine.transcript && <div className="text-cream/80 italic">“{mine.transcript}”</div>}
-            <div className="text-sm text-muted">{isMatchedRoom(room) ? 'Everyone’s pitch will play here on your phone.' : 'Get ready to hear everyone out on the TV.'}</div>
+          <div className="m-card m-card-pad m-done">
+            <div className="m-done-icon"><IconText text={mine.status === 'ready' ? '✅' : '📝'} size={44} /></div>
+            <div className="m-h1">{mine.status === 'ready' ? 'Pitch submitted!' : 'Transcribing…'}</div>
+            {mine.transcript && <div className="m-review-caption">“{mine.transcript}”</div>}
+            <div className="m-sub">{isMatchedRoom(room) ? 'Everyone’s pitch will play here on your phone.' : 'Get ready to hear everyone out on the TV.'}</div>
           </div>
         )}
-      </div>
+      </MScreen>
     );
   }
 
   if (typing) {
     return (
-      <div className="flex flex-col gap-5">
-        <BriefCard />
+      <MScreen>
+        <CaseToggle />
         <TypeBox initial={captions} onSend={sendTyped} title="Type your pitch (everyone can follow it during playback):" />
-        <button className="btn btn-ghost text-base" onClick={() => setTyping(false)}><IconText text={" 🎙️ Record instead "} /></button>
-      </div>
+        <button className="m-link" onClick={() => setTyping(false)}><IconText text={" 🎙️ Record instead "} /></button>
+      </MScreen>
     );
   }
 
@@ -218,10 +219,31 @@ export function Recorder() {
   const R = 88;
   const C = 2 * Math.PI * R;
 
+  const reviewing = state === 'review' || state === 'sending';
   return (
-    <div className="flex flex-col gap-5">
-      <BriefCard />
-      <div className="flex flex-col items-center gap-4">
+    <MScreen
+      action={
+        reviewing && (
+          <>
+            <button className="m-btn m-btn-ok" disabled={state === 'sending'} onClick={() => void send()}>
+              {state === 'sending' ? 'Sending…' : 'Send it'}
+            </button>
+            <button
+              className="m-btn m-btn-alt"
+              disabled={redosLeft === 0 || state === 'sending'}
+              onClick={() => {
+                setRedosLeft(r => r - 1);
+                setState('idle');
+              }}
+            >
+              Redo ({redosLeft})
+            </button>
+          </>
+        )
+      }
+    >
+      <CaseToggle />
+      <div className="m-rec">
         {state !== 'review' && state !== 'sending' && (
           <button
             onClick={() => (state === 'recording' ? stop() : void start())}
@@ -229,47 +251,33 @@ export function Recorder() {
             aria-label={state === 'recording' ? 'Stop recording' : 'Start recording'}
           >
             <svg width={200} height={200} className="absolute -rotate-90">
-              <circle cx={100} cy={100} r={R} stroke="rgb(255 255 255 / 0.12)" strokeWidth={10} fill="none" />
-              <circle cx={100} cy={100} r={R} stroke="#ff3e8a" strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - frac)} />
+              <circle cx={100} cy={100} r={R} stroke="#d7d6ce" strokeWidth={10} fill="none" />
+              <circle cx={100} cy={100} r={R} stroke="#b42c24" strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - frac)} />
             </svg>
             <motion.div
               animate={state === 'recording' ? { scale: [1, 1.06, 1] } : { scale: 1 }}
               transition={{ repeat: Infinity, duration: 1 }}
-              className={`grid h-36 w-36 place-items-center rounded-full font-display text-xl font-black shadow-[0_8px_0_rgb(0_0_0/0.35)] ${state === 'recording' ? 'bg-sustain text-white' : 'bg-pop text-white'}`}
+              className={`m-rec-btn ${state === 'recording' ? 'on' : ''}`}
             >
               <IconText text={state === 'recording' ? `${Math.ceil((MAX_MS - elapsed) / 1000)}s · stop` : '🎙️ Record'} />
             </motion.div>
           </button>
         )}
+        {state === 'idle' && <div className="m-rec-hint">Tap to record up to {Math.round(MAX_MS / 1000)} seconds</div>}
         {state === 'recording' && captions && (
-          <div className="card w-full p-4 text-cream/85">
-            <div className="text-xs font-bold text-muted">Live captions by your browser</div>
-            {captions}
+          <div className="m-card m-card-pad m-full">
+            <div className="m-label m-dim">LIVE CAPTIONS</div>
+            <div className="m-caption">{captions}</div>
           </div>
         )}
-        {(state === 'review' || state === 'sending') && (
-          <div className="card w-full space-y-4 p-5">
-            <div className="font-display text-xl font-black">How did that sound?</div>
+        {reviewing && (
+          <div className="m-card m-card-pad m-full m-stack-sm">
+            <div className="m-card-title m-big">How did that sound?</div>
             {previewUrl && <audio src={previewUrl} controls className="w-full" />}
-            {captions && <div className="text-sm text-cream/70 italic">“{captions}”</div>}
-            <div className="flex gap-3">
-              <button className="btn btn-lime flex-1" disabled={state === 'sending'} onClick={() => void send()}>
-                {state === 'sending' ? 'Sending…' : 'Send it'}
-              </button>
-              <button
-                className="btn btn-ghost text-base"
-                disabled={redosLeft === 0 || state === 'sending'}
-                onClick={() => {
-                  setRedosLeft(r => r - 1);
-                  setState('idle');
-                }}
-              >
-                Redo ({redosLeft})
-              </button>
-            </div>
+            {captions && <div className="m-review-caption">“{captions}”</div>}
           </div>
         )}
-        <button className="text-sm font-bold text-muted underline" onClick={() => {
+        <button className="m-link" onClick={() => {
           discardCapture();
           if (state === 'recording') setState('idle');
           setTyping(true);
@@ -278,7 +286,7 @@ export function Recorder() {
         </button>
         {room.fastMode && <div className="text-xs text-muted">fast mode</div>}
       </div>
-    </div>
+    </MScreen>
   );
 }
 
@@ -292,7 +300,7 @@ function TypeBox({ initial, onSend, title }: { initial: string; onSend: (text: s
   }, []);
   return (
     <form
-      className="card space-y-3 p-5"
+      className="m-card m-card-pad m-stack-sm"
       onSubmit={async e => {
         e.preventDefault();
         setBusy(true);
@@ -300,9 +308,9 @@ function TypeBox({ initial, onSend, title }: { initial: string; onSend: (text: s
         if (mounted.current) setBusy(false);
       }}
     >
-      <div className="font-bold">{title}</div>
-      <textarea value={text} onChange={e => setText(e.target.value.slice(0, 800))} rows={6} className="w-full rounded-2xl bg-ink p-3 text-lg ring-2 ring-white/10 outline-none focus:ring-sky" placeholder="Ladies and gentlemen of the jury…" />
-      <button className="btn btn-lime w-full" disabled={busy || text.trim().length < 3}>
+      <div className="m-card-title">{title}</div>
+      <textarea value={text} onChange={e => setText(e.target.value.slice(0, 800))} rows={6} className="m-textarea m-type" placeholder="Ladies and gentlemen of the jury…" />
+      <button className="m-btn m-btn-ok" disabled={busy || text.trim().length < 3}>
         Submit pitch
       </button>
     </form>

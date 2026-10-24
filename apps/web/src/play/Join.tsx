@@ -20,7 +20,7 @@ export function JoinForm() {
   const open = room.phase === 'lobby' || room.phase === 'profiles';
 
   return (
-    <div className="mx-auto flex min-h-full max-w-md flex-col justify-center gap-6 px-4 py-8">
+    <div className="m-join mx-auto flex min-h-full max-w-md flex-col justify-center gap-6 px-4 py-8">
       <Logo />
       <div className="font-display text-2xl font-black">
         Room <span className="tracking-widest text-sun">{room.code}</span>

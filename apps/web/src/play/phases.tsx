@@ -1,15 +1,18 @@
 import { IconText } from '../components/Ink';
+import { DoodleIcon } from '../components/DoodleIcon';
 import { motion } from 'motion/react';
 import { useRef, useState } from 'react';
 import { PITCH_REACTIONS } from '../lib/reactions';
 import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
+import type { Option } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
 import { SafetyList } from '../components/Safety';
 import { WhatsAppGroup } from '../components/WhatsAppGroup';
-import { Avatar, Poster, seatColor, useObjectUrl, VenueCard, VenueImage } from '../components/ui';
+import { Avatar, Poster, seatColor, useObjectUrl, VenueImage } from '../components/ui';
+import { MHead, MScreen, MStatus } from '../components/Mobile';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
-import { LeanPicker, SwayMeter } from '../components/SwayMeter';
+import { SwayLeanCard } from '../components/SwayMeter';
 import { MenuProof } from '../components/MenuProof';
 import { BusyChart } from '../components/BusyChart';
 import { HostPlayback } from '../host/Playback';
@@ -19,29 +22,44 @@ import { toast } from '../lib/toast';
 
 export function PlayWaiting({ emoji, title, sub }: { emoji: string; title: string; sub?: string }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-      <motion.div className="text-8xl" animate={{ y: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 1.4 }}>
-        <IconText text={emoji} size={96} />
+    <MScreen center>
+      <motion.div className="m-bob" animate={{ y: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 1.4 }}>
+        <IconText text={emoji} size={64} />
       </motion.div>
-      <div className="font-display text-3xl font-black">{title}</div>
-      {sub && <div className="text-cream/70">{sub}</div>}
-    </div>
+      <h1 className="m-h1 m-center-text">{title}</h1>
+      {sub && <p className="m-sub m-center-text">{sub}</p>}
+    </MScreen>
   );
 }
 
 export function PlayLobby() {
-  const { me, players, room } = useRoom();
+  const { me, players } = useRoom();
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-      {me && <Avatar player={me} size={140} />}
-      <div className="font-display text-3xl font-black">You're in!</div>
-      <div className="text-lg text-cream/75">
-        {players.length} player{players.length === 1 ? '' : 's'} in room {room.code}. Watch the TV, the host starts the game.
+    <MScreen center action={<MStatus live>Waiting for the host to start</MStatus>}>
+      {me && (
+        <div className="m-hero-avatar">
+          <Avatar player={me} size={104} label={false} />
+        </div>
+      )}
+      <div className="m-center-text">
+        <h1 className="m-h1 m-h1-xl">You're in!</h1>
+        <p className="m-sub">Watch the TV. The host starts the game.</p>
       </div>
-      <div className="w-full">
+      <div className="m-card m-card-pad m-full">
+        <div className="m-label">IN THE ROOM · {players.length}</div>
+        <div className="m-people">
+          {players.map(p => (
+            <div key={String(p.id)} className="m-person">
+              <Avatar player={p} size={52} label={false} />
+              <span>{p.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="m-full">
         <SafetyList />
       </div>
-    </div>
+    </MScreen>
   );
 }
 
@@ -51,10 +69,14 @@ export function PlayWarmup() {
   const w = warmups.find(x => x.playerId === me?.id);
   if (!w) return <PlayWaiting emoji="🔥" title="Hot take incoming…" />;
   return (
-    <div className="flex flex-1 flex-col justify-center gap-6">
-      <div className="text-center font-display text-sm font-black tracking-[0.25em] text-sun">HOT TAKE</div>
-      <div className="text-center font-display text-4xl leading-tight font-black">{w.question}</div>
-      <div className="grid gap-4">
+    <MScreen center action={<MStatus>{w.answer ? 'Locked in. Change it any time.' : 'Pick one. No wrong answers.'}</MStatus>}>
+      <div className="m-center-text">
+        <div className="m-kicker m-kicker-center">
+          <IconText text="🔥" /> HOT TAKE
+        </div>
+        <h1 className="m-h1 m-h1-balance">{w.question}</h1>
+      </div>
+      <div className="m-stack m-full">
         {(['a', 'b'] as const).map(k => (
           <button
             key={k}
@@ -62,61 +84,123 @@ export function PlayWarmup() {
               play('pop');
               void call(c => c.reducers.answerWarmup({ warmupId: w.id, answer: k }));
             }}
-            className={`btn py-6 text-2xl ${w.answer === k ? 'btn-sun' : w.answer ? 'btn-ghost opacity-60' : k === 'a' ? 'btn-pop' : 'btn-sky'}`}
+            className={`m-take ${w.answer === k ? 'on' : w.answer ? 'off' : k === 'a' ? 'a' : 'b'}`}
           >
             {k === 'a' ? w.choiceA : w.choiceB}
           </button>
         ))}
+      </div>
+    </MScreen>
+  );
+}
+
+function priceParts(level: number) {
+  const on = Math.max(0, Math.min(4, level));
+  return { on: '$'.repeat(on), off: '$'.repeat(on ? 4 - on : 0) };
+}
+
+/** A finalist as a swipeable card (photo, facts, fit line, stretch note, menu proof). */
+function FinalistCard({ o }: { o: Option }) {
+  const price = priceParts(o.priceLevel);
+  return (
+    <div className="m-fin">
+      <VenueImage option={o} className="m-fin-photo" />
+      <div className="m-fin-body">
+        <div className="m-fin-title">{o.title}</div>
+        <div className="m-meta">
+          <span className="m-cat">{o.category}</span>
+          {o.rating > 0 && (
+            <span>
+              ★ {o.rating.toFixed(1)} <span className="m-dim">({o.reviewCount})</span>
+            </span>
+          )}
+          {o.priceLevel > 0 && (
+            <span>
+              <span className="m-price-on">{price.on}</span>
+              <span className="m-price-off">{price.off}</span>
+            </span>
+          )}
+          <span>~{o.travelMin} min</span>
+        </div>
+        {o.hoursKnown && o.hoursText && <div className="m-hours">{o.hoursText}</div>}
+        {o.fitSummary && (
+          <div className="m-fit">
+            <DoodleIcon name="heart" size={16} />
+            {o.fitSummary}
+          </div>
+        )}
+        {o.stretchNote && <div className="m-stretch">{o.stretchNote}</div>}
+        <MenuProof optionId={o.id} />
       </div>
     </div>
   );
 }
 
 export function PlayFinalists() {
-  const { options, players } = useRoom();
+  const { options } = useRoom();
+  const [idx, setIdx] = useState(0);
   return (
-    <div className="flex flex-col gap-4">
-      <div className="font-display text-3xl font-black">Tonight's contestants</div>
-      {options.map(o => (
-        <VenueCard key={String(o.id)} option={o} players={players} compact>
-          <MenuProof optionId={o.id} />
-        </VenueCard>
-      ))}
-    </div>
+    <MScreen action={<MStatus>Your secret ballot opens in a moment</MStatus>}>
+      <MHead kicker={`FINALISTS · ${options.length} REAL PLACES`} title="Tonight's contestants" />
+      <div
+        className="m-swipe"
+        onScroll={e => {
+          const el = e.currentTarget;
+          const card = el.firstElementChild as HTMLElement | null;
+          if (card) setIdx(Math.round(el.scrollLeft / (card.offsetWidth + 14)));
+        }}
+      >
+        {options.map(o => (
+          <FinalistCard key={String(o.id)} o={o} />
+        ))}
+      </div>
+      <div className="m-dots">
+        {options.map((o, i) => (
+          <span key={String(o.id)} className={i === idx ? 'on' : ''} />
+        ))}
+      </div>
+    </MScreen>
+  );
+}
+
+/** One compact choice row for the secret ballot and the final vote. */
+function PickRow({ o, on, onPick }: { o: Option; on: boolean; onPick: () => void }) {
+  return (
+    <button className={`m-pick ${on ? 'on' : ''}`} onClick={onPick} aria-pressed={on}>
+      <VenueImage option={o} className="m-pick-photo" />
+      <span className="m-pick-text">
+        <span className="m-pick-title">{o.title}</span>
+        <span className="m-pick-meta">
+          {o.category}
+          {o.rating > 0 && ` · ★ ${o.rating.toFixed(1)}`} · {o.travelMin} min
+        </span>
+      </span>
+      <span className="m-pick-dot">{on && <DoodleIcon name="check" size={14} />}</span>
+    </button>
   );
 }
 
 export function PlayPrevote() {
-  const { options, room, myPrevoteOptionId } = useRoom();
+  const { options, room, myPrevoteOptionId, optionById } = useRoom();
   const call = useCall();
+  const picked = myPrevoteOptionId !== undefined ? optionById(myPrevoteOptionId) : undefined;
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <div className="font-display text-sm font-black tracking-[0.25em] text-sun">SECRET BALLOT</div>
-        <div className="font-display text-3xl font-black">Your favorite, honestly?</div>
-        <div className="text-cream/70">Nobody else sees this.</div>
+    <MScreen action={<MStatus>{picked ? `🤫 Your secret pick: ${picked.title}. Switch any time.` : 'Tap your secret favorite.'}</MStatus>}>
+      <MHead kicker="SECRET BALLOT" icon={<DoodleIcon name="lock" size={14} />} title="Your favorite, honestly?" sub="Nobody else sees this." />
+      <div className="m-stack">
+        {options.map(o => (
+          <PickRow
+            key={String(o.id)}
+            o={o}
+            on={myPrevoteOptionId === o.id}
+            onPick={() => {
+              play('pop');
+              void call(c => c.reducers.castPrevote({ roomId: room.id, optionId: o.id }));
+            }}
+          />
+        ))}
       </div>
-      {options.map(o => (
-        <button
-          key={String(o.id)}
-          onClick={() => {
-            play('pop');
-            void call(c => c.reducers.castPrevote({ roomId: room.id, optionId: o.id }));
-          }}
-          className="block w-full text-left transition active:scale-[0.99]"
-        >
-          <VenueCard option={o} highlight={myPrevoteOptionId === o.id ? 'var(--color-pop)' : undefined}>
-            <MenuProof optionId={o.id} linked={false} />
-            {myPrevoteOptionId === o.id && (
-              <div className="chip bg-sun text-cream">
-                <IconText text="🤫 " />
-                Your secret pick
-              </div>
-            )}
-          </VenueCard>
-        </button>
-      ))}
-    </div>
+    </MScreen>
   );
 }
 
@@ -127,33 +211,57 @@ export function BriefCard() {
   if (!a || !o) return null;
   const partners = assignments.filter(x => x.optionId === a.optionId && x.playerId !== a.playerId).map(x => players.find(p => p.id === x.playerId)?.name);
   return (
-    <div className="card overflow-hidden">
-      <div className="bg-gradient-to-r from-pop to-grape px-5 py-3 font-display text-sm font-black tracking-[0.25em]">YOUR CASE</div>
-      <VenueImage option={o} className="h-44 w-full" />
-      <div className="space-y-3 p-5">
-        <div className="font-display text-3xl leading-tight font-black">Defend {o.title}</div>
-        <div className="text-lg text-sun italic">“{a.stylePrompt}”</div>
-        <ul className="space-y-1">
-          {a.hints.map(h => (
-            <li key={h} className="flex gap-2 text-cream/85">
-              <span><IconText text={"🧾"} /></span>
-              <span>{h}</span>
-            </li>
-          ))}
-        </ul>
-        {partners.length > 0 && <div className="chip bg-ink-3 text-cream/80">Co-counsel with {partners.join(', ')}</div>}
+    <div className="m-case">
+      <div className="m-case-head">YOUR CASE</div>
+      <VenueImage option={o} className="m-case-photo" />
+      <div className="m-case-body">
+        <div className="m-case-title">Defend {o.title}</div>
+        <div className="m-sticky">“{a.stylePrompt}”</div>
+        <div className="m-label m-dim">{a.hints.length} FACTS TO USE</div>
+        {a.hints.map(h => (
+          <div key={h} className="m-fact">
+            <IconText text="🧾" size={18} />
+            <span>{h}</span>
+          </div>
+        ))}
+        {partners.length > 0 && <div className="m-chip">Co-counsel with {partners.join(', ')}</div>}
       </div>
     </div>
   );
 }
 
+/** Record screen: your case as one tappable row that opens to the style prompt and facts. */
+export function CaseToggle() {
+  const { me, assignments, optionById } = useRoom();
+  const a = assignments.find(x => x.playerId === me?.id);
+  const o = a && optionById(a.optionId);
+  if (!a || !o) return null;
+  return (
+    <details className="m-case-toggle">
+      <summary>
+        <span className="m-case-tag">CASE</span>
+        <span className="m-case-name">Defend {o.title}</span>
+        <span className="m-case-sign" aria-hidden="true" />
+      </summary>
+      <div className="m-case-more">
+        <div className="m-case-style">“{a.stylePrompt}”</div>
+        {a.hints.map(h => (
+          <div key={h}>· {h}</div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 export function PlayAssignment() {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="text-center font-display text-2xl font-black">Plot twist!</div>
-      <BriefCard />
-      <div className="text-center text-cream/70">Recording starts in a moment. Get your persona ready.</div>
-    </div>
+    <MScreen center action={<MStatus>Recording starts in a moment. Get your persona ready.</MStatus>}>
+      <div className="m-twist">Plot twist!</div>
+      <div className="m-full">
+        <BriefCard />
+      </div>
+      <p className="m-sub m-center-text">You might be defending someone else's pick. Sell it anyway.</p>
+    </MScreen>
   );
 }
 
@@ -168,117 +276,134 @@ export function PlayPlayback() {
   const mine = pitch.playerId === me?.id;
   const objected = objections.some(o => o.pitchId === pitch.id && o.playerId === me?.id);
   const stage = isMatchedRoom(room);
+  const text = pitch.transcript || pitch.liveCaption;
+  const objection = !mine && (
+    <button
+      className="m-btn m-btn-danger"
+      disabled={objected}
+      onClick={() => {
+        play('objection');
+        void call(c => c.reducers.raiseObjection({ pitchId: pitch.id }));
+      }}
+    >
+      <IconText text={objected ? 'Objection noted ⚖️' : 'OBJECTION!'} />
+    </button>
+  );
   return (
-    <div className="flex flex-1 flex-col gap-5">
+    <MScreen action={objection || <MStatus>You're up! Watch the room swing.</MStatus>}>
       {stage && (
         <div key={String(pitch.id)} className="matched-playback flex flex-col">
           <HostPlayback />
         </div>
       )}
-      {!stage && <div className="card flex items-center gap-4 p-4">
-        {speaker && <Avatar player={speaker} size={64} label={false} />}
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold text-cream/60">{mine ? "You're up!" : `${speaker?.name} is defending`}</div>
-          <div className="font-display text-2xl font-black" style={{ color: speaker ? seatColor(speaker.seat) : undefined }}>
-            {option?.title}
+      {!stage && (
+        <div className="m-speaker">
+          {speaker && <Avatar player={speaker} size={56} label={false} />}
+          <div className="m-speaker-text">
+            <div className="m-dim m-small">
+              {mine ? "You're up!" : `${speaker?.name} is defending`} · {room.currentPitchIdx + 1} of {playable.length}
+            </div>
+            <div className="m-speaker-title" style={{ color: speaker ? seatColor(speaker.seat) : undefined }}>
+              {option?.title}
+            </div>
           </div>
+          {option && <VenueImage option={option} className="m-speaker-photo" />}
         </div>
-        {option && <VenueImage option={option} className="h-20 w-20 flex-none rounded-2xl border-2 border-ink" />}
-      </div>}
-      {!stage && <SwayMeter compact />}
-      <LeanPicker />
-      <div className="reaction-controls grid grid-cols-3 gap-2">
+      )}
+      {!stage && text && <div className="m-quote">“{text}”</div>}
+      <SwayLeanCard />
+      <div className="m-reactions">
         {PITCH_REACTIONS.map(({ emoji, label }) => (
           <button
             key={emoji}
             type="button"
-            className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-ink-3 px-1 py-2 text-xs font-black shadow-[0_5px_0_rgb(0_0_0/0.35)] active:translate-y-1 sm:flex-row sm:gap-2 sm:text-sm"
+            className="m-react"
             onClick={() => {
               if (Date.now() - last.current < 200) return;
               last.current = Date.now();
               void call(c => c.reducers.react({ pitchId: pitch.id, emoji }), { silent: true });
             }}
           >
-            <IconText text={emoji} size={24} />
+            <IconText text={emoji} size={22} />
             <span>{label}</span>
           </button>
         ))}
       </div>
-      {!mine && (
-        <button
-          className="btn mt-auto bg-sustain py-3 text-2xl text-white italic"
-          disabled={objected}
-          onClick={() => {
-            play('objection');
-            void call(c => c.reducers.raiseObjection({ pitchId: pitch.id }));
-          }}
-        >
-          <IconText text={objected ? 'Objection noted ⚖️' : 'OBJECTION!'} />
-        </button>
-      )}
-    </div>
+    </MScreen>
   );
 }
 
 export function PlayVote() {
-  const { options, room, votes, me } = useRoom();
+  const { options, room, votes, me, optionById } = useRoom();
   const call = useCall();
   const mine = votes.find(v => v.playerId === me?.id);
+  const picked = mine ? optionById(mine.optionId) : undefined;
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <div className="font-display text-sm font-black tracking-[0.25em] text-sun">FINAL VOTE</div>
-        <div className="font-display text-3xl font-black">Who convinced you?</div>
+    <MScreen action={<MStatus>{picked ? `🗳️ Voted for ${picked.title}. Change it until time's up.` : 'One vote each.'}</MStatus>}>
+      <MHead kicker="FINAL VOTE" title="Who convinced you?" sub="Vote for the place, not the person." />
+      <div className="m-stack">
+        {options.map(o => (
+          <PickRow
+            key={String(o.id)}
+            o={o}
+            on={mine?.optionId === o.id}
+            onPick={() => {
+              play('pop');
+              void call(c => c.reducers.castVote({ roomId: room.id, optionId: o.id }));
+            }}
+          />
+        ))}
       </div>
-      {options.map(o => (
-        <button
-          key={String(o.id)}
-          onClick={() => {
-            play('pop');
-            void call(c => c.reducers.castVote({ roomId: room.id, optionId: o.id }));
-          }}
-          className={`card p-5 text-left font-display text-2xl font-black transition ${mine?.optionId === o.id ? 'ring-4 ring-lime' : ''}`}
-        >
-          <IconText text={mine?.optionId === o.id ? '🗳️ ' : ''} />
-          {o.title}
-        </button>
-      ))}
-    </div>
+    </MScreen>
   );
 }
 
 export function PlayResults() {
-  const { room, optionById, awards, playerById } = useRoom();
+  const { room, optionById, awards, playerById, votes, players } = useRoom();
   const winner = optionById(room.winnerOptionId);
+  const winVotes = votes.filter(v => v.optionId === room.winnerOptionId).length;
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
-      <div className="font-display text-sm font-black tracking-[0.25em] text-sun">THE VERDICT</div>
-      {winner && (
-        <motion.div initial={{ scale: 0.6, rotate: -6, opacity: 0 }} animate={{ scale: 1, rotate: -2, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 14 }} className="w-full">
-          <VenueImage option={winner} className="h-52 w-full rounded-3xl border-2 border-ink shadow-[4px_5px_0_#14140f]" />
-        </motion.div>
-      )}
-      <motion.div initial={{ scale: 0.4 }} animate={{ scale: 1 }} className="font-display text-4xl leading-tight font-black">
-        {winner?.title}
-      </motion.div>
-      {room.tiebreakText && <div className="text-cream/75">{room.tiebreakText}</div>}
-      {winner && <div className="w-full text-left"><MenuProof optionId={winner.id} big /></div>}
+    <MScreen action={<MStatus>The plan is coming up…</MStatus>}>
+      <div className="m-verdict">
+        <div className="m-kicker m-kicker-center">THE VERDICT</div>
+        {winner && (
+          <motion.div initial={{ scale: 0.6, rotate: -6, opacity: 0 }} animate={{ scale: 1, rotate: -2, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 14 }} className="m-full">
+            <VenueImage option={winner} className="m-verdict-photo" />
+          </motion.div>
+        )}
+        <motion.h1 initial={{ scale: 0.4 }} animate={{ scale: 1 }} className="m-verdict-title">
+          {winner?.title}
+        </motion.h1>
+        <div className="m-sub">
+          {winVotes} of {players.length} votes{room.tiebreakText ? '' : ' · won without a tie-break'}
+        </div>
+        {room.tiebreakText && <div className="m-sub">{room.tiebreakText}</div>}
+      </div>
+      {winner && <MenuProof optionId={winner.id} />}
       {awards.map(a => (
-        <div key={String(a.id)} className="card w-full p-4 text-left">
-          <div className="text-xs font-black tracking-widest text-pop"><IconText text={a.kind === 'most_persuasive' ? '🏆 MOST PERSUASIVE' : '💬 BEST LINE'} /></div>
-          <div className="mt-1 font-bold">
-            {playerById(a.playerId)?.name}: {a.kind === 'best_line' ? `“${a.text}”` : a.text}
+        <div key={String(a.id)} className="m-award">
+          <span className={`m-award-icon ${a.kind === 'most_persuasive' ? 'gold' : 'sky'}`}>
+            <IconText text={a.kind === 'most_persuasive' ? '🏆' : '💬'} size={22} />
+          </span>
+          <div>
+            <div className="m-label">{a.kind === 'most_persuasive' ? 'MOST PERSUASIVE' : 'BEST LINE'}</div>
+            <div className="m-award-text">
+              {playerById(a.playerId)?.name}: {a.kind === 'best_line' ? `“${a.text}”` : a.text}
+            </div>
           </div>
         </div>
       ))}
-    </div>
+    </MScreen>
   );
 }
 
+type PlanTab = 'timing' | 'menu' | 'invite';
+
 export function PlayPlan() {
-  const { plan, optionById, players, rsvps, me, media, room } = useRoom();
+  const { plan, optionById, players, rsvps, me, media, room, menuProofs } = useRoom();
   const call = useCall();
   const [manualInvite, setManualInvite] = useState(false);
+  const [tabChoice, setTab] = useState<PlanTab | null>(null);
   const option = plan ? optionById(plan.optionId) : undefined;
   const posterMedia = plan?.posterMediaId ? media.get(plan.posterMediaId) : undefined;
   const posterUrl = useObjectUrl(posterMedia?.bytes, posterMedia?.mime);
@@ -319,19 +444,66 @@ export function PlayPlan() {
   // Public meetups: neighborhood only until you RSVP yes.
   const showAddress = !isPublic || mine?.status === 'yes';
   const myWhy = plan.whyForEach.find(w => w.playerId === me?.id)?.line;
+  const goingPlayers = players.filter(p => rsvps.some(r => r.playerId === p.id && r.status === 'yes'));
+  // Only offer tabs that have something to show.
+  const hasTiming = plan.weekday >= 0 && option.busyness.length === 168 && plan.busyPct >= 0;
+  const proof = menuProofs.get(option.id);
+  const hasMenu = proof?.status === 'confirmed' || proof?.status === 'not_found';
+  const tabs: { id: PlanTab; label: string }[] = [
+    ...(hasTiming ? [{ id: 'timing' as const, label: 'Timing' }] : []),
+    ...(hasMenu ? [{ id: 'menu' as const, label: 'Menu' }] : []),
+    { id: 'invite', label: 'Invite' },
+  ];
+  const tab = tabs.some(t => t.id === tabChoice) ? tabChoice! : tabs[0]!.id;
+
+  const actions = (
+    <div className="m-plan-actions">
+      <button className="m-act" disabled={!showAddress} onClick={downloadIcs}>
+        <DoodleIcon name="calendar" size={20} />
+        Calendar
+      </button>
+      {showAddress ? (
+        <a className="m-act" href={googleCalendarUrl(event)} target="_blank" rel="noreferrer">
+          <DoodleIcon name="calendar" size={20} />
+          Google
+        </a>
+      ) : (
+        <button className="m-act" disabled>
+          <DoodleIcon name="calendar" size={20} />
+          After RSVP
+        </button>
+      )}
+      {showAddress ? (
+        <a className="m-act" href={option.mapsUrl} target="_blank" rel="noreferrer">
+          <DoodleIcon name="map" size={20} />
+          Maps
+        </a>
+      ) : (
+        <button className="m-act" disabled>
+          <DoodleIcon name="map" size={20} />
+          After RSVP
+        </button>
+      )}
+      <button className="m-act" disabled={!showAddress} onClick={() => void share()}>
+        <DoodleIcon name="link" size={20} />
+        Share
+      </button>
+    </div>
+  );
+
   return (
-    <div className="flex flex-col gap-4">
+    <MScreen action={actions}>
       <MergeBanner asPlayer />
       {isPublic && (
-        <div className={`card p-5 ring-2 ${plan.meetupConfirmed ? 'ring-lime' : 'ring-sun/50'}`}>
-          <div className="font-display text-2xl font-black">
+        <div className={`m-card m-card-pad ${plan.meetupConfirmed ? 'm-ok' : ''}`}>
+          <div className="m-card-title">
             {going} {going === 1 ? 'person' : 'people'} · {option.category} · {plan.slotLabel.split('·').pop()?.trim()}
           </div>
-          <div className={plan.meetupConfirmed ? 'font-bold text-lime' : 'text-cream/75'}>
+          <div className="m-small">
             <IconText text={plan.meetupConfirmed ? '✅ Meetup confirmed!' : `Needs 3 RSVPs to confirm (${going}/3)`} />
           </div>
           {plan.icebreakers.length > 0 && (
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-cream/85">
+            <ul className="m-list">
               {plan.icebreakers.map(i => (
                 <li key={i}>{i}</li>
               ))}
@@ -348,60 +520,60 @@ export function PlayPlan() {
           <div className="ticket-addr">
             <IconText text={showAddress ? option.address : '📍 Exact address unlocks when you RSVP "I\'m in"'} />
           </div>
-          {cantMake && <div className="chip mt-2 bg-tang/20 text-tang">This slot doesn't fit your free time, sorry!</div>}
+          {cantMake && <div className="m-stretch">This slot doesn't fit your free time, sorry!</div>}
           {myWhy && <div className="ticket-why">{myWhy}</div>}
-          <div className="ticket-rsvp">
+          <div className="m-seg m-seg-rsvp">
             {(['yes', 'maybe', 'no'] as const).map(s => (
-              <button key={s} className={`btn ${mine?.status === s ? 'btn-lime' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.setRsvp({ planId: plan.id, status: s }))}>
+              <button key={s} className={mine?.status === s ? `on ${s}` : ''} onClick={() => call(c => c.reducers.setRsvp({ planId: plan.id, status: s }))}>
                 {s === 'yes' ? "I'm in" : s === 'maybe' ? 'Maybe' : "Can't"}
               </button>
             ))}
           </div>
+          <div className="m-going">
+            {goingPlayers.slice(0, 6).map(p => (
+              <Avatar key={String(p.id)} player={p} size={30} label={false} />
+            ))}
+            <span>{going ? `${going} going` : 'Nobody in yet'}</span>
+          </div>
         </div>
         <div className="ticket-section">
-          <BusyChart plan={plan} option={option} tzOffsetMin={room.tzOffsetMin} compact bare />
-        </div>
-        <div className="ticket-section">
-          <MenuProof optionId={option.id} />
+          <div className="m-tabs">
+            {tabs.map(t => (
+              <button key={t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="m-tab-body">
+            {tab === 'timing' && <BusyChart plan={plan} option={option} tzOffsetMin={room.tzOffsetMin} compact bare />}
+            {tab === 'menu' && <MenuProof optionId={option.id} />}
+            {tab === 'invite' && (
+              <>
+                <div className="ticket-invite">“{plan.inviteText}”</div>
+                <button className="m-mini" disabled={!showAddress} onClick={() => void share()}>
+                  <DoodleIcon name="copy" size={14} /> Copy invite
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
-      <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
-      <WhatsAppGroup />
-      <div className="ticket-actions">
-        <button className="btn btn-sun" disabled={!showAddress} onClick={downloadIcs}>
-          <IconText text={'📅 Calendar'} />
-        </button>
-        {showAddress ? (
-          <a className="btn btn-sky" href={googleCalendarUrl(event)} target="_blank" rel="noreferrer">
-            Google Cal
-          </a>
-        ) : (
-          <button className="btn btn-sky" disabled>
-            After RSVP
-          </button>
-        )}
-        {showAddress ? (
-          <a className="btn btn-ghost" href={option.mapsUrl} target="_blank" rel="noreferrer">
-            <IconText text={'🗺️ Maps'} />
-          </a>
-        ) : (
-          <button className="btn btn-ghost" disabled>
-            <IconText text={'🗺️ After RSVP'} />
-          </button>
-        )}
-        <button className="btn btn-ghost" disabled={!showAddress} onClick={() => void share()}>
-          <IconText text={'🔗 Share'} />
-        </button>
-      </div>
-      <details className="card p-4"><summary className="cursor-pointer font-black">Invitation poster</summary><div className="mt-4"><Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} /></div></details>
       {manualInvite && showAddress && (
-        <label className="card space-y-2 p-4 font-bold">
-          <span>Copy this invite</span>
-          <textarea aria-label="Invite to copy" readOnly value={`${plan.inviteText}\n${option.mapsUrl}`} onFocus={e => e.currentTarget.select()} className="block min-h-32 w-full rounded-xl bg-ink-3 p-3 text-sm font-normal text-ink" />
+        <label className="m-card m-card-pad m-stack-sm">
+          <span className="m-card-title">Copy this invite</span>
+          <textarea aria-label="Invite to copy" readOnly value={`${plan.inviteText}\n${option.mapsUrl}`} onFocus={e => e.currentTarget.select()} className="m-textarea" />
         </label>
       )}
+      <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
+      <WhatsAppGroup />
+      <details className="m-card m-card-pad">
+        <summary className="m-card-title">Invitation poster</summary>
+        <div className="mt-4">
+          <Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
+        </div>
+      </details>
       <SafetyList />
-      <div className="text-center text-xs text-muted">Room {room.code}</div>
-    </div>
+      <div className="m-room-code">Room {room.code}</div>
+    </MScreen>
   );
 }

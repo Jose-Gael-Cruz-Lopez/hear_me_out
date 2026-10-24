@@ -82,19 +82,19 @@ export function Countdown({ deadline, startedAt, size = 84, tick = false }: { de
   );
 }
 
-export function MuteButton() {
+export function MuteButton({ iconOnly = false }: { iconOnly?: boolean }) {
   const [m, setM] = useState(isMuted());
   useEffect(() => onMuteChange(setM), []);
   return (
     <button
-      className="chip bg-ink-3 text-cream ring-1 ring-white/10"
+      className={iconOnly ? 'm-round' : 'chip bg-ink-3 text-cream ring-1 ring-white/10'}
       onClick={() => {
         unlockAudio();
         setMuted(!m);
       }}
       aria-label={m ? 'Unmute' : 'Mute'}
     >
-      <IconText text={m ? '🔇 Muted' : '🔊 Sound on'} />
+      <IconText text={iconOnly ? (m ? '🔇' : '🔊') : m ? '🔇 Muted' : '🔊 Sound on'} size={iconOnly ? 20 : undefined} />
     </button>
   );
 }

@@ -105,3 +105,60 @@ export function LeanPicker() {
     </div>
   );
 }
+
+/**
+ * Phone (mobile design): the anonymous bar and your private lean in one card. Tap a place to lean
+ * toward it; nobody sees who leans where, only the totals.
+ */
+export function SwayLeanCard() {
+  const { options, room, myLeanOptionId, me, playerById } = useRoom();
+  const call = useCall();
+  const { standings, leaning, persuasive } = useSway();
+  if (options.length < 2 || standings.length === 0) return null;
+  const even = leaning === 0;
+  const winners = persuasive ? persuasive.advocateIds.map(id => playerById(id)?.name).filter(Boolean) : [];
+  return (
+    <div className="m-sway">
+      <div className="m-sway-head">
+        <span className="m-label">LIVE SWAY</span>
+        <span className="m-dim m-small">{me ? 'Tap where you’re leaning' : `${leaning} leaning`}</span>
+      </div>
+      <div className="m-sway-bar" role="img" aria-label={standings.map((s, i) => `${options[i]?.title}: ${Math.round(s.share * 100)}%`).join(', ')}>
+        {standings.map((s, i) => (
+          <div key={String(s.optionId)} style={{ flexGrow: even ? 1 : s.share, background: swayColor(i) }}>
+            {(even || s.share >= 0.15) && (even ? '–' : `${Math.round(s.share * 100)}%`)}
+          </div>
+        ))}
+      </div>
+      {me && (
+        <div className="m-lean-grid">
+          {options.map((o, i) => {
+            const on = myLeanOptionId === o.id;
+            return (
+              <button
+                key={String(o.id)}
+                type="button"
+                aria-pressed={on}
+                className={`m-lean ${on ? 'on' : ''}`}
+                style={{ ['--sway' as string]: swayColor(i) }}
+                onClick={() => {
+                  if (on) return;
+                  play('pop');
+                  void call(c => c.reducers.setLean({ roomId: room.id, optionId: o.id }), { silent: true });
+                }}
+              >
+                <VenueImage option={o} className="m-lean-photo" />
+                <span>{o.title}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {persuasive && winners.length > 0 && (
+        <div className="m-small m-sway-who">
+          <b>{winners.join(' & ')}</b> swung {persuasive.gain} {persuasive.gain === 1 ? 'person' : 'people'} so far
+        </div>
+      )}
+    </div>
+  );
+}

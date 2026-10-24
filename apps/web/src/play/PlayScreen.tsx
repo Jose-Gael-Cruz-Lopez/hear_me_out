@@ -83,29 +83,48 @@ function MatchedOn() {
   );
 }
 
+/** The 8-step phase rail and the phase name in the header (mobile design). */
+const RAIL: { name: string; phases: string[] }[] = [
+  { name: 'Lobby', phases: ['lobby'] },
+  { name: 'Your vibe', phases: ['profiles'] },
+  { name: 'Hot take', phases: ['warmup', 'scouting'] },
+  { name: 'Finalists', phases: ['finalists', 'prevote'] },
+  { name: 'Your case', phases: ['assigning', 'assignments', 'pitching'] },
+  { name: 'Pitches', phases: ['playback'] },
+  { name: 'Vote', phases: ['vote'] },
+  { name: 'The plan', phases: ['results', 'plan'] },
+];
+
 function Frame({ children }: { children: React.ReactNode }) {
   const { room, me } = useRoom();
   if (!me) return null;
+  const step = RAIL.findIndex(r => r.phases.includes(room.phase));
+  const phaseName = room.mode === 'queue' ? 'Finding your group' : room.phase === 'results' ? 'Verdict' : (RAIL[step]?.name ?? '');
   return (
-    <div className="relative isolate mx-auto flex min-h-full max-w-xl flex-col" onClick={unlockAudio}>
-      <header className="flex items-center justify-between gap-3 px-4 pt-4">
-        <div className="flex items-center gap-3">
-          <Avatar player={me} size={44} label={false} />
-          <div>
-            <div className="font-display text-lg leading-none font-black">{me.name}</div>
-            <div className="text-xs font-bold tracking-widest text-muted">ROOM {room.code}</div>
+    <div className="m-frame" onClick={unlockAudio}>
+      <header className="m-header">
+        <div className="m-header-row">
+          <span className="m-me"><Avatar player={me} size={40} label={false} /></span>
+          <div className="m-who">
+            <div className="m-name">{me.name}</div>
+            <div className="m-room">ROOM {room.code}{phaseName && ` · ${phaseName.toUpperCase()}`}</div>
           </div>
+          <MuteButton iconOnly />
+          <Countdown deadline={room.phaseDeadline} startedAt={room.phaseStartedAt} size={48} />
         </div>
-        <div className="flex items-center gap-2">
-          <MuteButton />
-          <Countdown deadline={room.phaseDeadline} startedAt={room.phaseStartedAt} size={52} />
-        </div>
+        {room.mode !== 'queue' && (
+          <div className="m-rail" aria-label={`Step ${step + 1} of ${RAIL.length}: ${phaseName}`}>
+            {RAIL.map((r, i) => (
+              <span key={r.name} className={i < step ? 'past' : i === step ? 'now' : ''} />
+            ))}
+          </div>
+        )}
       </header>
       <MatchedOn />
-      <main className="flex flex-1 flex-col px-4 py-5">
-                  <motion.div key={room.phase} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-1 flex-col">
-            {children}
-          </motion.div>
+      <main className="m-main">
+        <motion.div key={room.phase} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="m-phase">
+          {children}
+        </motion.div>
       </main>
       {room.phase === 'playback' && <ReactionLayer key={room.currentPitchIdx} viewport />}
     </div>
