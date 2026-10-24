@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
-import { useSpacetimeDB } from 'spacetimedb/react';
-import type { Option, Plan } from '@hmo/bindings';
+import { useSpacetimeDB, useTable } from 'spacetimedb/react';
+import { tables, type Option, type Plan } from '@hmo/bindings';
 import { DoodleIcon } from './DoodleIcon';
 import { MUSE_CONNECTORS, museMemoryCount, reservationCode, reservationWhat } from '../lib/muse';
 import { play } from '../lib/sound';
@@ -69,6 +69,9 @@ function previewStep(key: string): number {
 
 /** A local animation preview only: it never contacts a venue or makes a reservation. */
 export function MuseReservation({ plan, option, category, party, ready, big = false }: { plan: Plan; option: Option; category: string; party: number; ready: boolean; big?: boolean }) {
+  const mergedRoomId = plan.mergedWithRoomId;
+  const [mergedRsvps] = useTable(tables.rsvp.where(r => r.roomId.eq(mergedRoomId)), { enabled: !!mergedRoomId });
+  const totalParty = party + mergedRsvps.filter(r => r.status === 'yes').length;
   const key = `hmo-reservation-preview:${plan.roomId}:${plan.id}:${plan.startAt.microsSinceUnixEpoch}:${encodeURIComponent(option.placeId)}:${encodeURIComponent(plan.slotLabel)}`;
   const [progress, setProgress] = useState(() => ({ key, step: previewStep(key) }));
   const step = progress.key === key ? progress.step : previewStep(key);
@@ -88,7 +91,7 @@ export function MuseReservation({ plan, option, category, party, ready, big = fa
     return () => clearTimeout(t);
   }, [ready, step, key]);
 
-  const what = reservationWhat(category, party);
+  const what = reservationWhat(category, totalParty);
   const What = what[0].toUpperCase() + what.slice(1);
   const lines = [`Reviewing ${option.title}…`, `Preparing ${what} · ${plan.slotLabel}`, 'Putting the plan details together…'];
   const title = big ? 'font-display text-3xl font-black' : 'font-display text-2xl font-black';
