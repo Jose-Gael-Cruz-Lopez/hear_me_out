@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, seatColor, useObjectUrl, VenueImage } from '../components/ui';
 import { useRoom } from '../lib/room';
-import { audioContext, isMuted, play, speak } from '../lib/sound';
+import { audioContext, isMuted, onMuteChange, play, speak } from '../lib/sound';
 import { tsMs, useNow } from '../lib/time';
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -38,6 +38,7 @@ export function HostPlayback() {
     if (!audioUrl) return;
     const el = new Audio(audioUrl);
     el.muted = isMuted();
+    const stopWatchingMute = onMuteChange(muted => { el.muted = muted; });
     let raf = 0;
     let analyser: AnalyserNode | null = null;
     try {
@@ -63,6 +64,7 @@ export function HostPlayback() {
     void el.play().catch(() => setEnded(false));
     loop();
     return () => {
+      stopWatchingMute();
       cancelAnimationFrame(raf);
       el.pause();
       setLevel(0);

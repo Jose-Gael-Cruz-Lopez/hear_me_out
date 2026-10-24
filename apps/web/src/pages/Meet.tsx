@@ -68,7 +68,7 @@ export function Meet() {
           <label className="block"><span className="text-xs font-black tracking-widest">FIRST NAME (ONE WORD)</span><input required autoComplete="given-name" value={name} onChange={e=>setName(e.target.value.slice(0,20))} placeholder="Your name" className="mt-2 w-full rounded-2xl px-4 py-3 text-xl font-black" /></label>
           <fieldset><legend className="mb-2 text-xs font-black tracking-widest">PICK YOUR LITTLE PERSON</legend><div className="grid grid-cols-6 gap-2">{AVATARS.map((a,i)=><button key={a} type="button" className="avatar-choice grid aspect-square place-items-center" aria-label={`Avatar ${i+1}`} aria-pressed={avatar===a} onClick={()=>setAvatar(a)}><AvatarMark value={a} size={38} /></button>)}</div></fieldset>
           <div className="space-y-3 rounded-2xl bg-sky/15 p-4 text-sm">
-            <div className="flex items-start gap-2"><DoodleIcon name="shield" /><span>First names only. Public venues. Block &amp; report anytime. The exact address unlocks after your RSVP; three RSVPs confirm the meetup.</span></div>
+            <div className="flex items-start gap-2"><DoodleIcon name="shield" /><span>First names only. Public venues. Block &amp; report from the lobby or final plan. The exact address unlocks after your RSVP; three RSVPs confirm the meetup.</span></div>
             <label className="flex items-center gap-2 font-black"><input type="checkbox" checked={adult} onChange={e=>setAdult(e.target.checked)} className="h-5 w-5" />I'm 18 or older</label>
           </div>
           <button className="btn btn-pop w-full" disabled={!isActive || !name.trim() || !where.trim() || !adult || joining}>{joining ? 'Joining…' : 'Find my people'}<DoodleIcon name="arrow" /></button>

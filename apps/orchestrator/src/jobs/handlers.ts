@@ -446,7 +446,8 @@ const plan_copy: Handler = async (job, d) => {
     jobId: job.id,
     inviteText: out?.inviteText ?? plan.inviteText,
     whyForEach,
-    posterPrompt: out?.posterPrompt ?? offlinePosterPrompt(option.title, plan.slotLabel),
+    // Keep the 600-character field compatible while storing only controlled art direction.
+    posterPrompt: offlinePosterPrompt(option.title, plan.slotLabel, option.category),
     icebreakers: out?.icebreakers ?? offlineIcebreakers(shared),
   });
 };
@@ -455,13 +456,14 @@ const poster: Handler = async (job, d) => {
   const plan = d.conn.db.plan.id.find(job.refId);
   if (!plan) throw new Error('plan gone');
   const option = d.conn.db.option.id.find(plan.optionId);
-  const prompt = plan.posterPrompt || offlinePosterPrompt(option?.title ?? 'The Plan', plan.slotLabel);
+  // Rebuild even for existing plans: legacy prompts can ask the model to paint text.
+  const prompt = offlinePosterPrompt(option?.title ?? '', plan.slotLabel, option?.category ?? '');
   const img = await d.muse.image(prompt, job.roomId);
   if (img && img.bytes.length <= 1_400_000) {
     await d.conn.reducers.finishPoster({ jobId: job.id, posterUrl: '', mime: img.mime, bytes: new Uint8Array(img.bytes) });
     return;
   }
-  // No AI poster: the client renders a typographic poster from the plan instead (labeled as such).
+  // No AI art: the client composes its own cover and accurate plan details instead.
   await d.conn.reducers.finishPoster({ jobId: job.id, posterUrl: '', mime: '', bytes: new Uint8Array() });
 };
 

@@ -2,7 +2,7 @@ import { IconText, AvatarMark } from '../components/Ink';
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
@@ -359,5 +359,5 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
 }
 
 export function HostEnded() {
-  return <Waiting emoji="🔨" title="Court adjourned" sub="See you at the plan." />;
+  return <div className="flex flex-1 flex-col gap-6"><Waiting emoji="🔨" title="Court adjourned" sub="See you at the plan." /><Link href="/" className="btn btn-sun self-center">Back home</Link></div>;
 }

@@ -1,5 +1,6 @@
 // Offline content generators used when Muse is unavailable (DEMO_MODE, no key, timeouts).
 // They still personalize from real inputs (tags, venue data), they just aren't AI-written.
+import { coverArtPrompt } from './cover-art';
 
 const PERSONAS = [
   'a courtroom lawyer',
@@ -115,8 +116,9 @@ export function botBoldClaim(seed: number): string {
   return BOLD_CLAIMS[seed % BOLD_CLAIMS.length];
 }
 
-export function offlinePosterPrompt(title: string, slotLabel: string): string {
-  return `Vertical festive party invite poster, bold game-show style, confetti and spotlights, big readable title "${title}" and the time "${slotLabel}", playful illustration of friends celebrating, high contrast, no other text.`;
+export function offlinePosterPrompt(title: string, _slotLabel: string, category = ''): string {
+  // Retain the existing call shape, but keep time/venue typography out of the art.
+  return coverArtPrompt(title, category);
 }
 
 export function offlineIcebreakers(tags: readonly string[]): string[] {

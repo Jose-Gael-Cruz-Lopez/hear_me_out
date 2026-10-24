@@ -90,9 +90,11 @@ export const awards = {
 export const planCopy = {
   name: 'plan_copy',
   instructions: [
-    'The group picked a winner. Write: inviteText (<= 40 words, festive, includes venue and time);',
+    'The group picked a winner. Write: inviteText (<= 40 words, warm and simple, uses only the supplied venue name and time);',
+    'Do not invent venue history, family ownership, slogans, guarantees, special offers or reservation claims.',
     'whyForEach: one line per player naming them and why this plan works for them (from their tags and the fit lines);',
-    'posterPrompt: an image prompt for a vertical festive invite poster with the venue name and time as big readable text;',
+    'posterPrompt: a text-free contemporary editorial event-cover brief, at most 600 characters: one strong focal object grounded in the venue category, a limited considered palette, clean negative space.',
+    'No text, letters, numerals, logos, ornate borders, confetti, collage, cuisine stereotypes or invented venue details/claims. The app composes the accurate venue name and time outside the art.',
     'icebreakers: 3 short conversation starters from the group\'s shared tags.',
   ].join('\n'),
   schema: z.object({

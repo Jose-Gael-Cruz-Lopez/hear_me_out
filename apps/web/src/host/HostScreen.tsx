@@ -75,7 +75,7 @@ export function HostScreen() {
       case 'pitching':
         return <HostPitching />;
       case 'playback':
-        return <HostPlayback />;
+        return <HostPlayback key={room.currentPitchIdx} />;
       case 'vote':
         return <HostVote />;
       case 'results':
