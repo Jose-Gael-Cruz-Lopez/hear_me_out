@@ -30,7 +30,7 @@ const lobby = table(
     locationLabel: t.string(),
     lat: t.f64(),
     lng: t.f64(),
-    // Index into the pitch running order during SHOWTIME.
+    // Which option (by slot) is on stage during SHOWTIME.
     showtimeIndex: t.u32(),
     winnerOptionId: t.u64(),
     tieBreak: t.bool(),
@@ -81,6 +81,8 @@ const option = table(
     mapsUrl: t.string(),
     blurb: t.string(),
     posterUrl: t.string(),
+    // The AI host's own pitch, used when nobody was assigned to defend this option.
+    hostLine: t.string(),
   }
 );
 
@@ -343,6 +345,7 @@ export const setOptions = spacetimedb.reducer(
           mapsUrl: o.mapsUrl.slice(0, 500),
           blurb: clean(o.blurb, 200),
           posterUrl: '',
+          hostLine: '',
         }).id
     );
     assignments.forEach((a, order) =>
@@ -364,6 +367,13 @@ export const setPoster = spacetimedb.reducer({ optionId: t.u64(), posterUrl: t.s
   requireHost(ctx, o.lobbyCode);
   if (posterUrl.length > 2000) throw new SenderError('Poster URL too long');
   ctx.db.option.id.update({ ...o, posterUrl });
+});
+
+export const setHostLine = spacetimedb.reducer({ optionId: t.u64(), line: t.string() }, (ctx, { optionId, line }) => {
+  const o = ctx.db.option.id.find(optionId);
+  if (!o) throw new SenderError('No such option');
+  requireHost(ctx, o.lobbyCode);
+  ctx.db.option.id.update({ ...o, hostLine: clean(line, 400) });
 });
 
 export const startPitching = spacetimedb.reducer({ code: t.string() }, (ctx, { code }) => {
@@ -413,7 +423,7 @@ export const setReaction = spacetimedb.reducer(
 export const nextPitch = spacetimedb.reducer({ code: t.string(), delta: t.i32() }, (ctx, { code, delta }) => {
   const l = requireHost(ctx, code);
   requirePhase(l, 'SHOWTIME');
-  const count = [...ctx.db.assignment.lobbyCode.filter(l.code)].length;
+  const count = [...ctx.db.option.lobbyCode.filter(l.code)].length;
   // showtimeIndex === count means "that's everyone" (the curtain-call screen).
   const next = Math.min(Math.max(l.showtimeIndex + delta, 0), count);
   ctx.db.lobby.code.update({ ...l, showtimeIndex: next });

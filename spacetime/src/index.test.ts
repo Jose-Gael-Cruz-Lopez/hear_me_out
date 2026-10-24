@@ -177,6 +177,38 @@ describe('pitch + vote', () => {
   });
 });
 
+describe('showtime', () => {
+  it('steps through options (not pitches) and clamps at the curtain call', () => {
+    const s = setup();
+    const { test, as } = s;
+    as('alice', ctx => m.joinLobby(ctx, { code: CODE, name: 'Alice' }));
+    as('bob', ctx => m.joinLobby(ctx, { code: CODE, name: 'Bob' }));
+    as(HOST, ctx => m.startProfiles(ctx, { code: CODE }));
+    const [alice, bob] = [playerId(test, 'Alice'), playerId(test, 'Bob')];
+    as(HOST, ctx =>
+      m.setOptions(ctx, {
+        code: CODE,
+        options: [opt('A'), opt('B'), opt('C'), opt('D')],
+        assignments: [
+          { playerId: alice, optionIndex: 0, prompt: '' },
+          { playerId: bob, optionIndex: 1, prompt: '' },
+        ],
+        notice: '',
+      })
+    );
+    const orphan = [...test.db.option.iter()].find(o => o.name === 'D')!;
+    expect(() => as('alice', ctx => m.setHostLine(ctx, { optionId: orphan.id, line: 'hi' }))).toThrow('Only the host');
+    as(HOST, ctx => m.setHostLine(ctx, { optionId: orphan.id, line: 'The AI defends D!' }));
+    expect(test.db.option.id.find(orphan.id)!.hostLine).toBe('The AI defends D!');
+    as(HOST, ctx => m.startPitching(ctx, { code: CODE }));
+    as(HOST, ctx => m.startShowtime(ctx, { code: CODE }));
+    for (let i = 0; i < 10; i++) as(HOST, ctx => m.nextPitch(ctx, { code: CODE, delta: 1 }));
+    expect(test.db.lobby.code.find(CODE)!.showtimeIndex).toBe(4);
+    as(HOST, ctx => m.nextPitch(ctx, { code: CODE, delta: -1 }));
+    expect(test.db.lobby.code.find(CODE)!.showtimeIndex).toBe(3);
+  });
+});
+
 describe('plan', () => {
   it('sets the plan, takes RSVPs, and play-again clears the round', () => {
     const { test, as, options } = toVote();
