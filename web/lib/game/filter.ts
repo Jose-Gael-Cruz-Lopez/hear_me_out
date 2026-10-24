@@ -73,7 +73,9 @@ export function filterPlaces(
     const score =
       vibeVotes * 1.5 +
       (p.rating ?? 3.8) +
-      Math.log10(p.reviews + 1) * 0.3 -
+      Math.log10(p.reviews + 1) * 0.3 +
+      // Hidden gems (scripts/fetch-gems.ts) float up: a 90 gem is worth about one extra vibe vote.
+      ((p.gem?.score ?? 0) / 100) * 1.5 -
       (distanceM / 1000) * 0.2 -
       (openAtPlanTime === null ? 0.5 : 0);
     return { ...p, distanceM, vibes, openAtPlanTime, score };

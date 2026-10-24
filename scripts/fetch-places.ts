@@ -3,15 +3,14 @@
 //
 //   node scripts/fetch-places.ts                       # Palace of Fine Arts (Cal Hacks venue)
 //   node scripts/fetch-places.ts --label "Berkeley, CA" --lat 37.8716 --lng -122.2727 --slug berkeley
+//   --reviews 5   also keep up to 5 recent review texts per place (read by scripts/fetch-gems.ts; slower)
 //
 // Needs APIFY_TOKEN in the environment or in .env / web/.env.local. Node >= 22.18 (runs .ts directly).
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+// Then run scripts/fetch-gems.ts to score hidden gems from Reddit, Instagram, TikTok and food press.
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { normalizeApifyItem, type Place, type PlacesFile } from '../web/lib/places/normalize.ts';
-
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-for (const f of ['.env', 'web/.env.local']) if (existsSync(join(ROOT, f))) process.loadEnvFile(join(ROOT, f));
+import { arg, ROOT, runActor } from './apify.ts';
 
 const ACTOR = 'compass~crawler-google-places';
 const QUERIES = [
@@ -19,31 +18,13 @@ const QUERIES = [
   'dessert', 'boba', 'coffee shop', 'cocktail bar', 'bowling', 'arcade', 'karaoke', 'museum', 'park',
 ];
 
-function arg(name: string, fallback: string) {
-  const i = process.argv.indexOf(`--${name}`);
-  return i >= 0 && process.argv[i + 1] ? process.argv[i + 1]! : fallback;
-}
-
 const label = arg('label', 'Palace of Fine Arts, San Francisco');
 const lat = Number(arg('lat', '37.8029'));
 const lng = Number(arg('lng', '-122.4484'));
 const slug = arg('slug', 'palace-of-fine-arts');
 const radiusKm = Number(arg('radius-km', '5'));
 const perSearch = Number(arg('per-search', '10'));
-const token = process.env.APIFY_TOKEN;
-if (!token) {
-  console.error('APIFY_TOKEN is not set (see .env.example).');
-  process.exit(1);
-}
-
-async function api(path: string, init?: RequestInit) {
-  const res = await fetch(`https://api.apify.com/v2${path}`, {
-    ...init,
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...init?.headers },
-  });
-  if (!res.ok) throw new Error(`Apify ${path} -> ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  return res.json();
-}
+const reviews = Number(arg('reviews', '0'));
 
 const input = {
   searchStringsArray: QUERIES,
@@ -51,22 +32,14 @@ const input = {
   maxCrawledPlacesPerSearch: perSearch,
   language: 'en',
   skipClosedPlaces: true,
-  scrapePlaceDetailPage: false,
+  scrapePlaceDetailPage: reviews > 0,
+  maxReviews: reviews,
+  reviewsSort: 'newest',
 };
 
-console.log(`Starting ${ACTOR} for "${label}" (${QUERIES.length} searches × ${perSearch}) …`);
-const run = (await api(`/acts/${ACTOR}/runs`, { method: 'POST', body: JSON.stringify(input) })).data;
-console.log(`Run ${run.id} started. Polling (this usually takes 2–6 minutes)…`);
-
-let status = run.status as string;
-while (!['SUCCEEDED', 'FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) {
-  await new Promise(r => setTimeout(r, 10_000));
-  status = (await api(`/actor-runs/${run.id}`)).data.status;
-  process.stdout.write(`  ${status}\n`);
-}
-if (status !== 'SUCCEEDED') throw new Error(`Apify run ended with ${status}`);
-
-const items = (await api(`/datasets/${run.defaultDatasetId}/items?clean=true&format=json`)) as Record<string, unknown>[];
+console.log(`Starting ${ACTOR} for "${label}" (${QUERIES.length} searches × ${perSearch}, ${reviews} reviews each) …`);
+console.log('This usually takes 2–6 minutes (longer with --reviews).');
+const { runId, items } = await runActor(ACTOR, input, 'maps', 30);
 const byId = new Map<string, Place>();
 for (const item of items) {
   const p = normalizeApifyItem(item);
@@ -74,7 +47,7 @@ for (const item of items) {
 }
 
 const file: PlacesFile = {
-  source: `Apify ${ACTOR} (Google Maps), run ${run.id}`,
+  source: `Apify ${ACTOR} (Google Maps), run ${runId}`,
   location: { label, lat, lng },
   fetchedAt: new Date().toISOString(),
   places: [...byId.values()],

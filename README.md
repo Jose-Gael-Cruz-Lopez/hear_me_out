@@ -63,13 +63,41 @@ The big screen shows which mode is active.
 
 > Status: the live Muse endpoints are stubbed until we have the Muse API docs. The interface and fallbacks are in place.
 
-### Apify: real places
+### Apify: real places, and the hidden gems locals actually love
 `scripts/fetch-places.ts` runs the `compass/crawler-google-places` actor (Google Maps) around a location
 (17 searches: tacos, pizza, vegan, halal, boba, bowling, arcade, museum, …), normalizes the results
 (price level, rating, diet tags from "offerings", **parsed opening hours**), and writes
 `web/data/places/<slug>.json`. Scraping takes minutes, so it runs **before** the game; the game picks the cached
 file nearest the lobby. If there's no cache, it falls back to `sample-palace-of-fine-arts.json`, which is
 **hand-written sample data (details approximate)** and is labeled as such on screen.
+
+**Hidden gems (`scripts/fetch-gems.ts`).** Google Maps alone surfaces the same popular places everyone knows.
+So we ask the rest of the internet, in parallel, with Apify:
+
+| Source | Actor (override with env vars) | What it tells us |
+|---|---|---|
+| Google Maps reviews | `compass~crawler-google-places` (`fetch-places.ts --reviews 5`) | Hangout signals: "quiet enough to talk", "open late", "great for groups" |
+| Reddit | `trudax~reddit-scraper-lite` | Local "hidden gem / underrated / hole in the wall" threads and comments |
+| Instagram | `apify~instagram-hashtag-scraper` | What's being posted *now* (#sfhiddengems, #sffoodie, #sfpopup…) |
+| TikTok | `clockworks~tiktok-scraper` | Same hashtags, for what's blowing up this month |
+| Food press | `apify~google-search-scraper` → `apify~website-content-crawler` | The big "best of" lists, so famous places are marked *known*, not hidden |
+| Events (optional) | any actor via `APIFY_EVENTS_ACTOR` | Upcoming events at a place |
+
+Every post is matched to a Google Maps place by name (normalized, whole-phrase, never on generic words like
+"Pizza" or "The Bar"; `web/lib/gems/match.ts`), then `web/lib/gems/score.ts` computes a **Gem Score (0–100)**,
+deterministically, no AI:
+
+- loved but not mainstream: 4.5★+ with 10–400 reviews
+- recommended by locals on Reddit (extra credit for "underrated", "hidden gem", "locals"…)
+- posted about on Instagram/TikTok in the last 2 months
+- **minus** points if it's already on the big "best of" lists
+- hangout signals from reviews and posts
+
+Each gem keeps **plain-language reasons** and up to 3 **quotes with links back to the source**. In the game:
+gems rank higher when the options are picked, the big screen shows a 💎 badge with the top reason, and each player's
+phone shows the evidence for the place they have to defend ("use this in your pitch"). Pop-ups and night markets
+people are posting about that aren't on Google Maps are saved as `happenings`. One source failing (renamed actor,
+no credits) never sinks the others; the file records which sources contributed.
 
 ## Setup
 
@@ -102,11 +130,19 @@ To fake extra human phones on one computer, open `/play/CODE?seat=2`, `?seat=3`,
 (below), or tunnel both ports (e.g. `cloudflared tunnel --url http://localhost:3001` and one for `:3000`, then set
 `NEXT_PUBLIC_SPACETIMEDB_HOST=wss://<spacetime-tunnel>`). Typed pitches work everywhere.
 
-### Refresh real places (Apify)
+### Refresh real places + hidden gems (Apify)
 ```bash
-APIFY_TOKEN=... node scripts/fetch-places.ts            # Palace of Fine Arts (default)
-node scripts/fetch-places.ts --label "Berkeley, CA" --lat 37.8716 --lng -122.2727 --slug berkeley
+APIFY_TOKEN=... node scripts/fetch-places.ts --reviews 5   # Palace of Fine Arts (default), with review text
+node scripts/fetch-gems.ts                                 # Reddit + Instagram + TikTok + food press → gem scores
+node scripts/fetch-gems.ts --from-raw                      # re-score from saved raw data, no scraping
+
+# Another area
+node scripts/fetch-places.ts --label "Berkeley, CA" --lat 37.8716 --lng -122.2727 --slug berkeley --reviews 5
+node scripts/fetch-gems.ts --slug berkeley --city Berkeley --tag berkeley --hood Southside
 ```
+Actor input fields differ between actor versions. If a source logs `skipped`, open that actor in the Apify Store,
+check its input schema, and adjust the matching `*Input()` builder in `web/lib/gems/sources.ts` (or point the env var
+at a different actor).
 
 ### Deploy
 - **SpacetimeDB → Maincloud:** `spacetime login` then
@@ -130,7 +166,8 @@ node scripts/e2e.cjs --solo   # big screen + 1 phone + 2 test bots
 |---|---|---|
 | `MUSE_API_KEY` | live AI host | empty → mock host |
 | `MUSE_API_BASE_URL`, `MUSE_TEXT_MODEL`, `MUSE_TRANSCRIBE_MODEL`, `MUSE_IMAGE_MODEL` | live AI host | from the Muse docs |
-| `APIFY_TOKEN` | `scripts/fetch-places.ts` | not used at game time |
+| `APIFY_TOKEN` | `scripts/fetch-places.ts`, `scripts/fetch-gems.ts` | not used at game time |
+| `APIFY_*_ACTOR`, `APIFY_EVENTS_INPUT` | `scripts/fetch-gems.ts` | optional actor overrides; events off unless set |
 | `NEXT_PUBLIC_SPACETIMEDB_HOST` | non-local SpacetimeDB | default `ws(s)://<page host>:3000` |
 | `NEXT_PUBLIC_SPACETIMEDB_DB_NAME` | | default `pitch-fight` |
 
@@ -160,7 +197,11 @@ Backup: if the network dies, the mock AI host + cached places keep the full loop
   pitch and vote timers still advance the game on the server, but AI steps wait until the host screen is reopened.
 - Opening hours are evaluated in the venue's local time using the host browser's clock; places with unknown hours are allowed but ranked lower.
 - Diet tags come from Google "offerings", which are incomplete; diet is never relaxed unless nothing else is left, and the screen says so when it is.
-- Sample places data is hand-written and approximate; run the Apify script for real data.
+- Sample places data is hand-written and approximate, and has no gem data (we don't invent quotes); run the Apify scripts for real data.
+- Gem matching is by name, so a place with a very generic name ("Pizza Place") can't be matched to posts, and a post
+  naming a different business with the same name could be counted. Scores are a heuristic, and every reason is shown.
+- The default actors' input/output fields were written against their public docs and normalized defensively, but
+  weren't run end to end from our build environment; check the first real run's `Sources:` line.
 - Countdowns are rendered against each device's clock, so a phone with a skewed clock shows a slightly off timer (the server deadline is what counts).
 - Phones joining by new tab/device get a new identity (tokens are per browser), so rejoining from another device creates a new player.
 - Not built yet: strangers mode (QR → match queue → auto lobby), Instagram Story share card.
@@ -174,7 +215,8 @@ web/                Next.js 16 app (App Router)
   lib/ai/muse.ts    every Muse call + mock host
   lib/game/         questions, hard filters, time slots, assignments, .ics
   lib/places/       Apify normalization + cache loader
+  lib/gems/         hidden gems: source normalizers, name matching, Gem Score
   data/places/      cached places JSON (sample + Apify output)
   src/module_bindings/  generated SpacetimeDB client bindings
-scripts/            fetch-places.ts (Apify), dev-spacetime.sh, e2e.cjs (browser smoke test)
+scripts/            fetch-places.ts + fetch-gems.ts (Apify), dev-spacetime.sh, e2e.cjs (browser smoke test)
 ```

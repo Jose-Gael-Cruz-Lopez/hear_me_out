@@ -7,6 +7,7 @@ import { BUDGETS, DIETS, DISTANCES, FREE_SLOTS, label, VIBES } from '@/lib/game/
 import { Countdown, ErrorBox, OptionMeta, playerStyle, posterSrc, price, ReconnectBanner, Spinner } from '../ui';
 import { PlanCard } from '../PlanCard';
 import { Recorder } from './Recorder';
+import { GemBadge, GemEvidence } from '../Gem';
 
 export function PlayerScreen({ code }: { code: string }) {
   const g = useGame(code);
@@ -322,10 +323,16 @@ function AssignmentCard({ g }: { g: Game }) {
           <div className="small" style={{ marginTop: 4 }}>
             {o.blurb}
           </div>
+          <GemBadge g={g} o={o} />
         </div>
       </div>
     </div>
   );
+}
+
+function MyEvidence({ g }: { g: Game }) {
+  const { o } = useMyAssignment(g);
+  return o ? <GemEvidence g={g} o={o} /> : null;
 }
 
 function Assignment({ g }: { g: Game }) {
@@ -333,6 +340,7 @@ function Assignment({ g }: { g: Game }) {
     <div className="stack">
       <h1 className="display">You must defend…</h1>
       <AssignmentCard g={g} />
+      {g.me && <MyEvidence g={g} />}
       <p className="muted center">Start planning your argument. Pitching opens in a moment.</p>
     </div>
   );
@@ -381,6 +389,7 @@ function Pitch({ g }: { g: Game }) {
   return (
     <div className="stack">
       <AssignmentCard g={g} />
+      <MyEvidence g={g} />
       <div className="row">
         <button className={`chip ${mode === 'voice' ? 'on' : ''}`} onClick={() => setMode('voice')}>
           🎙️ Voice
