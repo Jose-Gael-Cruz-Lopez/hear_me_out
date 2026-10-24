@@ -29,6 +29,7 @@ export async function POST(req: Request) {
   const briefs = shortlist.map(c => ({
     id: c.id, name: c.name, category: c.category, priceLevel: c.priceLevel, rating: c.rating,
     reviews: c.reviews, distanceM: c.distanceM, vibes: c.vibes,
+    ...(c.gem ? { gem: { score: c.gem.score, reasons: c.gem.reasons.slice(0, 3), hangout: c.gem.hangout } } : {}),
   }));
   const chosen = await withFallback('chooseOptions', ai => ai.chooseOptions({ groupSummary, candidates: briefs, count }));
 

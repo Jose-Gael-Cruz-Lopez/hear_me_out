@@ -7,6 +7,7 @@
 // When MUSE_API_KEY is missing we run a deterministic MOCK host, so the whole game works offline.
 // When a live call fails or times out, the routes fall back to the mock for that one call (see withFallback).
 import { hash, PERSONAS } from '../game/assign';
+import { GEM_THRESHOLD } from '../gems/types';
 
 export type AiMode = 'mock' | 'muse';
 
@@ -19,6 +20,8 @@ export interface CandidateBrief {
   reviews: number;
   distanceM: number;
   vibes: string[];
+  /** Hidden-gem score and the top reasons, when Apify gem data exists for this area. */
+  gem?: { score: number; reasons: string[]; hangout: string[] };
 }
 
 export interface ChooseOptionsInput {
@@ -143,7 +146,12 @@ const mock: AiHost = {
     return {
       ids: chosen.map(c => c.id),
       blurbs: Object.fromEntries(
-        chosen.map(c => [c.id, `${stars(c.rating)} ${c.category.toLowerCase()}, ${walk(c.distanceM)} away — ${pick(CATEGORY_JOKES, c.id)}.`])
+        chosen.map(c => [
+          c.id,
+          c.gem && c.gem.score >= GEM_THRESHOLD && c.gem.reasons[0]
+            ? `💎 Hidden gem: ${c.gem.reasons[0]}. ${walk(c.distanceM)} away.`
+            : `${stars(c.rating)} ${c.category.toLowerCase()}, ${walk(c.distanceM)} away — ${pick(CATEGORY_JOKES, c.id)}.`,
+        ])
       ),
     };
   },

@@ -1,5 +1,6 @@
 // Request/response shapes shared by the API routes and the clients that call them.
 import type { GroupMember } from './game/filter';
+import type { GemInfo, GemSource } from './gems/types';
 
 export interface OptionsRequest {
   code: string;
@@ -47,4 +48,11 @@ export interface PlanResponse {
   startIso: string;
   blurb: string;
   ai: string;
+}
+
+export interface GemResponse {
+  gem: GemInfo | null;
+  /** Which Apify sources actually contributed to this area's gem scores. */
+  sources: GemSource[];
+  gemsAt: string | null;
 }

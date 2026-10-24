@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAction, useGame, useLoadedOnce, type Game } from '@/lib/stdb';
 import { BUDGETS, DIETS, DISTANCES, FREE_SLOTS, label, VIBES } from '@/lib/game/questions';
 import { Countdown, Dot, ErrorBox, OptionMeta, PhaseTrack, playerStyle, posterSrc, price, ReconnectBanner, Spinner, useScores, useToast } from '../shared/ui';
+import { GemBadge, GemEvidence } from '../shared/Gem';
 import { PlanCard } from '../shared/PlanCard';
 import { Recorder } from './Recorder';
 
@@ -428,10 +429,17 @@ function AssignmentCard({ g, compact }: { g: Game; compact?: boolean }) {
           <div className="small" style={{ marginTop: 4, fontWeight: 700 }}>
             {o.blurb}
           </div>
+          <GemBadge g={g} o={o} />
         </div>
       </div>
     </div>
   );
+}
+
+/** Why this place is a hidden gem (social mentions, press), as ammo for the pitch. Renders nothing for ordinary spots. */
+function MyEvidence({ g }: { g: Game }) {
+  const { o } = useMyAssignment(g);
+  return o ? <GemEvidence g={g} o={o} /> : null;
 }
 
 function Assignment({ g }: { g: Game }) {
@@ -439,6 +447,7 @@ function Assignment({ g }: { g: Game }) {
     <div className="stack" style={{ flex: 1 }}>
       <div className="eyebrow">Your mission has arrived</div>
       <AssignmentCard g={g} />
+      <MyEvidence g={g} />
       <div className="eyebrow" style={{ marginTop: 6 }}>
         Ways to score
       </div>
@@ -514,6 +523,7 @@ function Pitch({ g, toast }: { g: Game; toast: (t: string) => void }) {
   return (
     <div className="stack" style={{ flex: 1 }}>
       <AssignmentCard g={g} compact />
+      <MyEvidence g={g} />
       <div className="segmented">
         <button className={mode === 'voice' ? 'on' : ''} onClick={() => setMode('voice')}>
           🎙️ Voice <span className="small">+50</span>

@@ -1,5 +1,6 @@
 // Normalizes Apify "Google Maps Scraper" (compass/crawler-google-places) items into our Place shape.
-// Kept free of imports so scripts/fetch-places.ts can run it directly with Node's type stripping.
+// Kept free of runtime imports so scripts/fetch-places.ts can run it directly with Node's type stripping.
+import type { GemInfo, GemSource } from '../gems/types';
 
 /** Minutes since midnight, [start, end). end may exceed 1440 for places open past midnight. */
 export type Range = [number, number];
@@ -21,6 +22,10 @@ export interface Place {
   dietTags: string[];
   /** Index 0 = Sunday … 6 = Saturday. null = hours unknown. */
   hours: Range[][] | null;
+  /** A few recent Google review texts (only when fetched with --reviews). Read for hangout signals. */
+  reviewTexts?: string[];
+  /** Added by scripts/fetch-gems.ts from Reddit, Instagram, TikTok and food-press sources. */
+  gem?: GemInfo;
 }
 
 export interface PlacesFile {
@@ -29,6 +34,11 @@ export interface PlacesFile {
   fetchedAt: string;
   sample?: boolean;
   places: Place[];
+  /** Which Apify sources fed the gem scores (scripts/fetch-gems.ts). */
+  gemSources?: { source: GemSource; actor: string; items: number; error?: string }[];
+  gemsAt?: string;
+  /** Pop-ups, night markets and supper clubs people are posting about that aren't on Google Maps. */
+  happenings?: { source: GemSource; text: string; url: string; date: string | null }[];
 }
 
 const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -149,5 +159,15 @@ export function normalizeApifyItem(item: Record<string, any>): Place | null {
     mapsUrl: String(item.url ?? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.title)}`),
     dietTags: dietTagsFrom(item.additionalInfo, `${item.title} ${catText}`),
     hours: parseWeek(item.openingHours),
+    ...(reviewTexts(item.reviews).length ? { reviewTexts: reviewTexts(item.reviews) } : {}),
   };
+}
+
+function reviewTexts(reviews: unknown): string[] {
+  if (!Array.isArray(reviews)) return [];
+  return reviews
+    .map(r => String((r as { text?: unknown; textTranslated?: unknown })?.textTranslated ?? (r as { text?: unknown })?.text ?? '').trim())
+    .filter(t => t.length > 20)
+    .slice(0, 8)
+    .map(t => (t.length > 500 ? `${t.slice(0, 500)}…` : t));
 }

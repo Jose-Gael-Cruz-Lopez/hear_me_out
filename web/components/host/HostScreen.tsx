@@ -10,6 +10,7 @@ import { DIETS, DISTANCES, FREE_SLOTS, label, VIBES } from '@/lib/game/questions
 import type { OptionsResponse, PlanResponse } from '@/lib/api-types';
 import type { Option } from '@/src/module_bindings/types';
 import { Confetti, Countdown, Dot, ErrorBox, OptionMeta, PhaseTrack, posterSrc, price, ReconnectBanner, RemoveButton, Ring, Spinner, useScores, useSecondsLeft } from '../shared/ui';
+import { GemBadge } from '../shared/Gem';
 import { PlanCard } from '../shared/PlanCard';
 import { HostVoiceProvider, useHostVoice } from './HostVoice';
 
@@ -380,6 +381,7 @@ function OptionGrid({ g, render }: { g: Game; render?: (o: Option) => React.Reac
           <div className="body">
             <b style={{ fontSize: '1.15rem' }}>{o.name}</b>
             <OptionMeta o={o} />
+            <GemBadge g={g} o={o} />
             {render?.(o)}
           </div>
         </div>
