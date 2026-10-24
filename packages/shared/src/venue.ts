@@ -16,6 +16,10 @@ export interface Venue {
   openingHours: { day: string; hours: string }[];
   mapsUrl: string;
   imageUrl: string;
+  /** The venue's own website (for the menu check); '' when Google has none. Older fixtures lack it. */
+  website?: string;
+  /** Google "popular times": 168 values (weekday 0=Sunday × 24 + hour), 0–100; [] when Google has none. */
+  busyness?: number[];
   reviewSnippets: string[];
   /** Flattened "additionalInfo" facts that are true, e.g. "Vegan options", "Good for groups". */
   offerings: string[];
@@ -39,6 +43,27 @@ export function priceLevelFrom(price: unknown): { level: number; text: string } 
   const mid = text.includes('+') ? Math.max(...nums) * 1.5 : (Math.min(...nums) + Math.max(...nums)) / 2;
   const level = mid <= 15 ? 1 : mid <= 30 ? 2 : mid <= 60 ? 3 : 4;
   return { level, text };
+}
+
+const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+/** Flatten the scraper's `popularTimesHistogram` ({ Mo: [{ hour, occupancyPercent }] }) into 168 hourly values. */
+export function busynessFrom(histogram: unknown): number[] {
+  if (!histogram || typeof histogram !== 'object') return [];
+  const out = new Array<number>(168).fill(0);
+  let any = false;
+  WEEKDAYS.forEach((day, d) => {
+    const hours = (histogram as Record<string, unknown>)[day];
+    if (!Array.isArray(hours)) return;
+    for (const h of hours as { hour?: unknown; occupancyPercent?: unknown }[]) {
+      const hour = typeof h.hour === 'number' ? h.hour : -1;
+      const pct = typeof h.occupancyPercent === 'number' ? h.occupancyPercent : -1;
+      if (hour < 0 || hour > 23 || pct < 0) continue;
+      out[d * 24 + hour] = Math.min(100, Math.round(pct));
+      any = true;
+    }
+  });
+  return any ? out : [];
 }
 
 function asString(v: unknown): string {
@@ -102,6 +127,8 @@ export function normalizeGoogleMapsItem(raw: Record<string, unknown>): Venue | n
     openingHours: hours,
     mapsUrl: asString(raw.url),
     imageUrl: asString(raw.imageUrl),
+    website: asString(raw.website),
+    busyness: busynessFrom(raw.popularTimesHistogram),
     reviewSnippets,
     offerings: [...new Set(offerings)].slice(0, 40),
   };

@@ -93,6 +93,14 @@ export const JanitorTimer = __t.object("JanitorTimer", {
 });
 export type JanitorTimer = __Infer<typeof JanitorTimer>;
 
+export const Lean = __t.object("Lean", {
+  playerId: __t.u64(),
+  roomId: __t.u64(),
+  optionId: __t.u64(),
+  updatedAt: __t.timestamp(),
+});
+export type Lean = __Infer<typeof Lean>;
+
 export const LobbyMatch = __t.object("LobbyMatch", {
   id: __t.u64(),
   identity: __t.identity(),
@@ -114,6 +122,35 @@ export const Media = __t.object("Media", {
   createdAt: __t.timestamp(),
 });
 export type Media = __Infer<typeof Media>;
+
+export const MenuDish = __t.object("MenuDish", {
+  diet: __t.string(),
+  dish: __t.string(),
+});
+export type MenuDish = __Infer<typeof MenuDish>;
+
+export const MenuProof = __t.object("MenuProof", {
+  optionId: __t.u64(),
+  roomId: __t.u64(),
+  diets: __t.array(__t.string()),
+  status: __t.string(),
+  get dishes() {
+    return __t.array(MenuDish);
+  },
+  sourceUrl: __t.string(),
+  checkedAt: __t.timestamp(),
+});
+export type MenuProof = __Infer<typeof MenuProof>;
+
+export const MenuProofInput = __t.object("MenuProofInput", {
+  optionId: __t.u64(),
+  status: __t.string(),
+  get dishes() {
+    return __t.array(MenuDish);
+  },
+  sourceUrl: __t.string(),
+});
+export type MenuProofInput = __Infer<typeof MenuProofInput>;
 
 export const MergeOffer = __t.object("MergeOffer", {
   id: __t.u64(),
@@ -137,6 +174,9 @@ export type MergeVote = __Infer<typeof MergeVote>;
 
 export const MyGroupChat = __t.object("MyGroupChat", {});
 export type MyGroupChat = __Infer<typeof MyGroupChat>;
+
+export const MyLean = __t.object("MyLean", {});
+export type MyLean = __Infer<typeof MyLean>;
 
 export const MyLobbyMatches = __t.object("MyLobbyMatches", {});
 export type MyLobbyMatches = __Infer<typeof MyLobbyMatches>;
@@ -187,6 +227,7 @@ export const Option = __t.object("Option", {
   stretchNote: __t.string(),
   posterUrl: __t.string(),
   posterMediaId: __t.u64(),
+  busyness: __t.byteArray(),
 });
 export type Option = __Infer<typeof Option>;
 
@@ -217,6 +258,7 @@ export const OptionInput = __t.object("OptionInput", {
   },
   groupFitScore: __t.u8(),
   stretchNote: __t.string(),
+  busyness: __t.byteArray(),
 });
 export type OptionInput = __Infer<typeof OptionInput>;
 
@@ -266,6 +308,10 @@ export const Plan = __t.object("Plan", {
   status: __t.string(),
   meetupConfirmed: __t.bool(),
   mergedWithRoomId: __t.u64(),
+  weekday: __t.i32(),
+  naiveStartMin: __t.i32(),
+  naiveBusyPct: __t.i32(),
+  busyPct: __t.i32(),
 });
 export type Plan = __Infer<typeof Plan>;
 
@@ -376,6 +422,9 @@ export const Room = __t.object("Room", {
 });
 export type Room = __Infer<typeof Room>;
 
+export const RoomSway = __t.object("RoomSway", {});
+export type RoomSway = __Infer<typeof RoomSway>;
+
 export const Rsvp = __t.object("Rsvp", {
   playerId: __t.u64(),
   planId: __t.u64(),
@@ -389,6 +438,14 @@ export const SocialLink = __t.object("SocialLink", {
   handle: __t.string(),
 });
 export type SocialLink = __Infer<typeof SocialLink>;
+
+export const SwayRow = __t.object("SwayRow", {
+  roomId: __t.u64(),
+  optionId: __t.u64(),
+  leaning: __t.u32(),
+  prevoted: __t.u32(),
+});
+export type SwayRow = __Infer<typeof SwayRow>;
 
 export const TagReason = __t.object("TagReason", {
   tag: __t.string(),

@@ -6,6 +6,7 @@ import {
   type Award,
   type DbConnection,
   type Media,
+  type MenuProof,
   type MergeOffer,
   type MergeVote,
   type Objection,
@@ -16,6 +17,7 @@ import {
   type ProfileDraft,
   type ProfilePublic,
   type Room,
+  type SwayRow,
   type Rsvp,
   type Vote,
   type Warmup,
@@ -50,6 +52,11 @@ export interface RoomData {
   me: Player | undefined;
   myDraft: ProfileDraft | undefined;
   myPrevoteOptionId: bigint | undefined;
+  /** Live Sway Meter: anonymous per-finalist totals (only during playback) and your own private lean. */
+  sway: SwayRow[];
+  myLeanOptionId: bigint | undefined;
+  /** Menu check results per finalist (only food rounds where someone has a diet). */
+  menuProofs: Map<bigint, MenuProof>;
   mergeOffers: MergeOffer[];
   mergeVotes: MergeVote[];
   playerById: (id: bigint) => Player | undefined;
@@ -89,6 +96,9 @@ export function RoomDataProvider({ room, withMedia, children }: { room: Room; wi
   const [mergeVotes] = useTable(tables.mergeVote);
   const [drafts] = useTable(tables.myProfileDraft);
   const [prevotes] = useTable(tables.myPrevote);
+  const [swayRows] = useTable(tables.roomSway);
+  const [leans] = useTable(tables.myLean);
+  const [menuRows] = useTable(tables.menuProof.where(m => m.roomId.eq(id)));
 
   const value = useMemo<RoomData>(() => {
     const sortedPlayers = [...players].sort((a, b) => a.seat - b.seat);
@@ -113,12 +123,15 @@ export function RoomDataProvider({ room, withMedia, children }: { room: Room; wi
       me,
       myDraft: me ? drafts.find(d => d.playerId === me.id) : undefined,
       myPrevoteOptionId: me ? prevotes.find(p => p.playerId === me.id)?.optionId : undefined,
+      sway: swayRows.filter(r => r.roomId === room.id),
+      myLeanOptionId: me ? leans.find(l => l.playerId === me.id)?.optionId : undefined,
+      menuProofs: new Map(menuRows.map(m => [m.optionId, m])),
       mergeOffers: [...mergeOffers].sort((a, b) => Number(b.id - a.id)),
       mergeVotes: mergeVotes.filter(v => mergeOffers.some(o => o.id === v.offerId)),
       playerById: (pid: bigint) => sortedPlayers.find(p => p.id === pid),
       optionById: (oid: bigint) => sortedOptions.find(o => o.id === oid),
     };
-  }, [room, players, profiles, options, assignments, pitches, warmups, votes, awards, plans, rsvps, objections, media, drafts, prevotes, mergeOffers, mergeVotes, identity]);
+  }, [room, players, profiles, options, assignments, pitches, warmups, votes, awards, plans, rsvps, objections, media, drafts, prevotes, swayRows, leans, menuRows, mergeOffers, mergeVotes, identity]);
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
 }

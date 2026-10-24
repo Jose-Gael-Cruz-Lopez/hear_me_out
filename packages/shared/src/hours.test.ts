@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { openIntervalsForDay, parseDayHours } from './hours';
-import { priceLevelFrom } from './venue';
+import { busynessFrom, priceLevelFrom } from './venue';
 import { buildIcs, googleCalendarUrl } from './ics';
 
 const nb = ' '; // Google uses narrow no-break spaces before AM/PM
@@ -68,5 +68,23 @@ describe('calendar', () => {
   });
   it('builds a Google Calendar link', () => {
     expect(googleCalendarUrl(e)).toContain('dates=20261025T023000Z%2F20261025T040000Z');
+  });
+});
+
+
+describe('popular times', () => {
+  it('flattens the scraper histogram into 168 hourly values (Sunday first)', () => {
+    const b = busynessFrom({ Su: [{ hour: 19, occupancyPercent: 80 }], Fr: [{ hour: 18, occupancyPercent: 70 }, { hour: 20, occupancyPercent: 40.4 }] });
+    expect(b).toHaveLength(168);
+    expect(b[19]).toBe(80);
+    expect(b[5 * 24 + 18]).toBe(70);
+    expect(b[5 * 24 + 20]).toBe(40);
+    expect(b[5 * 24 + 19]).toBe(0);
+  });
+
+  it('returns nothing when Google has no popular times', () => {
+    expect(busynessFrom({})).toEqual([]);
+    expect(busynessFrom(undefined)).toEqual([]);
+    expect(busynessFrom({ Mo: [{ hour: 99, occupancyPercent: 10 }] })).toEqual([]);
   });
 });

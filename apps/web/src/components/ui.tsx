@@ -166,7 +166,7 @@ export function VenueCard({ option, players, compact = false, children, highligh
 }
 
 /** Muse Image poster when we have one; otherwise a typographic poster built from the plan (labeled). */
-export function Poster({ plan, option, imageUrl, players }: { plan: Plan; option: Option | undefined; imageUrl?: string; players: Player[] }) {
+export function Poster({ plan, option, imageUrl, players, compact = false }: { plan: Plan; option: Option | undefined; imageUrl?: string; players: Player[]; compact?: boolean }) {
   const going = players.filter(p => !plan.cantMake.includes(p.id));
   if (imageUrl) {
     return (
@@ -177,16 +177,16 @@ export function Poster({ plan, option, imageUrl, players }: { plan: Plan; option
     );
   }
   return (
-    <div className="ink-poster card relative aspect-[2/3] w-full overflow-hidden p-6" style={{ background: 'linear-gradient(160deg,#ff3e8a 0%,#9b5cff 45%,#150a2b 100%)' }}>
+    <div className={`ink-poster card relative aspect-[2/3] w-full overflow-hidden ${compact ? 'p-4' : 'p-6'}`} style={{ background: 'linear-gradient(160deg,#ff3e8a 0%,#9b5cff 45%,#150a2b 100%)' }}>
       <div className="absolute -top-10 -right-10 h-48 w-48 rounded-full bg-sun/40 blur-2xl" />
       <div className="relative flex h-full flex-col">
         <div className="font-display text-sm font-black tracking-[0.3em] text-sun">YOU'RE INVITED</div>
-        <div className="mt-3 font-display text-5xl leading-[0.95] font-black text-cream text-outline">{option?.title ?? 'The Plan'}</div>
-        <div className="mt-4 font-display text-2xl font-extrabold text-sky">{plan.slotLabel}</div>
+        <div className={`mt-3 font-display leading-[0.95] font-black text-cream text-outline ${compact ? 'text-3xl' : 'text-5xl'}`}>{option?.title ?? 'The Plan'}</div>
+        <div className={`mt-4 font-display font-extrabold text-sky ${compact ? 'text-lg' : 'text-2xl'}`}>{plan.slotLabel}</div>
         <div className="mt-auto flex flex-wrap gap-2">
           {going.map(p => (
             <span key={String(p.id)} className="text-3xl">
-              <AvatarMark value={p.avatar} size={36} />
+              <AvatarMark value={p.avatar} size={compact ? 26 : 36} />
             </span>
           ))}
         </div>

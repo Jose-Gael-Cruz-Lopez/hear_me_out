@@ -4,6 +4,7 @@ import spacetimedb, {
   aiJob,
   BotPitchInput,
   BriefInput,
+  MenuProofInput,
   OptionInput,
   PlayerLine,
   TagReason,
@@ -156,14 +157,59 @@ export const finishCurate = spacetimedb.reducer({ jobId: t.u64(), options: t.arr
       roomId: r.id,
       sortOrder: i,
       groupFitScore: Math.max(0, Math.min(100, o.groupFitScore)),
+      busyness: o.busyness.length === 168 ? o.busyness.map(v => Math.min(100, v)) : [],
       posterUrl: '',
       posterMediaId: 0n,
     });
   });
+  startMenuCheck(ctx, r.id, r.category);
   if (r.phase === 'scouting') enterFinalists(ctx, r);
   else {
     setAiStatus(ctx, r.id, '');
     checkEarly(ctx, r.id);
+  }
+});
+
+// ---------- Menu check ----------
+
+/** Diets anyone in the room asked for, from their approved public profiles. */
+function roomDiets(ctx: Ctx, roomId: bigint): string[] {
+  const diets = new Set<string>();
+  for (const p of ctx.db.profilePublic.roomId.filter(roomId)) for (const d of p.dietary) diets.add(d);
+  return [...diets].sort();
+}
+
+/** When food finalists appear and someone has a diet, mark each finalist "checking" and queue the crawl. */
+function startMenuCheck(ctx: Ctx, roomId: bigint, category: string): void {
+  for (const m of [...ctx.db.menuProof.roomId.filter(roomId)]) ctx.db.menuProof.optionId.delete(m.optionId);
+  const diets = roomDiets(ctx, roomId);
+  if (category !== 'food' || diets.length === 0) return;
+  for (const o of ctx.db.option.roomId.filter(roomId)) {
+    ctx.db.menuProof.insert({ optionId: o.id, roomId, diets, status: 'checking', dishes: [], sourceUrl: '', checkedAt: ctx.timestamp });
+  }
+  enqueueJob(ctx, roomId, 'menu_check', 0n, { diets });
+}
+
+const MENU_STATUSES = ['confirmed', 'not_found', 'no_website', 'unavailable'];
+
+export const finishMenuCheck = spacetimedb.reducer({ jobId: t.u64(), results: t.array(MenuProofInput) }, (ctx, { jobId, results }) => {
+  const job = finish(ctx, jobId, { count: results.length });
+  if (!job) return;
+  for (const res of results) {
+    const row = ctx.db.menuProof.optionId.find(res.optionId);
+    if (!row || row.roomId !== job.roomId) continue;
+    if (!MENU_STATUSES.includes(res.status)) throw new SenderError('Bad menu status.');
+    const dishes = res.dishes
+      .filter(d => row.diets.includes(d.diet))
+      .map(d => ({ diet: d.diet, dish: clampText(d.dish, 80) }))
+      .filter(d => d.dish)
+      .slice(0, 6);
+    const sourceUrl = /^https?:\/\//.test(res.sourceUrl) ? res.sourceUrl.slice(0, 500) : '';
+    ctx.db.menuProof.optionId.update({ ...row, status: res.status === 'confirmed' && dishes.length === 0 ? 'not_found' : res.status, dishes, sourceUrl, checkedAt: ctx.timestamp });
+  }
+  // Anything the crawler didn't report on stays honest instead of spinning forever.
+  for (const row of [...ctx.db.menuProof.roomId.filter(job.roomId)]) {
+    if (row.status === 'checking') ctx.db.menuProof.optionId.update({ ...row, status: 'unavailable', checkedAt: ctx.timestamp });
   }
 });
 

@@ -53,6 +53,7 @@ import FinishCurateReducer from "./finish_curate_reducer";
 import FinishDistillReducer from "./finish_distill_reducer";
 import FinishFactcheckReducer from "./finish_factcheck_reducer";
 import FinishMatchBlurbReducer from "./finish_match_blurb_reducer";
+import FinishMenuCheckReducer from "./finish_menu_check_reducer";
 import FinishMergeIntroReducer from "./finish_merge_intro_reducer";
 import FinishPlanCopyReducer from "./finish_plan_copy_reducer";
 import FinishPosterReducer from "./finish_poster_reducer";
@@ -68,6 +69,7 @@ import RaiseObjectionReducer from "./raise_objection_reducer";
 import ReactReducer from "./react_reducer";
 import ReportPlayerReducer from "./report_player_reducer";
 import SetGroupChatLinkReducer from "./set_group_chat_link_reducer";
+import SetLeanReducer from "./set_lean_reducer";
 import SetMeetupDetailsReducer from "./set_meetup_details_reducer";
 import SetRoomSetupReducer from "./set_room_setup_reducer";
 import SetRsvpReducer from "./set_rsvp_reducer";
@@ -88,9 +90,11 @@ import AdminVenueCacheRow from "./admin_venue_cache_table";
 import AssignmentRow from "./assignment_table";
 import AwardRow from "./award_table";
 import MediaRow from "./media_table";
+import MenuProofRow from "./menu_proof_table";
 import MergeOfferRow from "./merge_offer_table";
 import MergeVoteRow from "./merge_vote_table";
 import MyGroupChatRow from "./my_group_chat_table";
+import MyLeanRow from "./my_lean_table";
 import MyLobbyMatchesRow from "./my_lobby_matches_table";
 import MyPrevoteRow from "./my_prevote_table";
 import MyProfileDraftRow from "./my_profile_draft_table";
@@ -102,6 +106,7 @@ import PlayerRow from "./player_table";
 import ProfilePublicRow from "./profile_public_table";
 import ReactionRow from "./reaction_table";
 import RoomRow from "./room_table";
+import RoomSwayRow from "./room_sway_table";
 import RsvpRow from "./rsvp_table";
 import VoteRow from "./vote_table";
 import WarmupRow from "./warmup_table";
@@ -152,6 +157,20 @@ const tablesSchema = __schema({
       { name: 'media_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, MediaRow),
+  menuProof: __table({
+    name: 'menu_proof',
+    indexes: [
+      { accessor: 'optionId', name: 'menu_proof_option_id_idx_btree', algorithm: 'btree', columns: [
+        'optionId',
+      ] },
+      { accessor: 'roomId', name: 'menu_proof_room_id_idx_btree', algorithm: 'btree', columns: [
+        'roomId',
+      ] },
+    ],
+    constraints: [
+      { name: 'menu_proof_option_id_key', constraint: 'unique', columns: ['optionId'] },
+    ],
+  }, MenuProofRow),
   mergeOffer: __table({
     name: 'merge_offer',
     indexes: [
@@ -357,6 +376,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyGroupChatRow),
+  myLean: __table({
+    name: 'my_lean',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyLeanRow),
   myLobbyMatches: __table({
     name: 'my_lobby_matches',
     indexes: [
@@ -378,6 +404,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, MyProfileDraftRow),
+  roomSway: __table({
+    name: 'room_sway',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, RoomSwayRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
@@ -401,6 +434,7 @@ const reducersSchema = __reducers(
   __reducerSchema("finish_distill", FinishDistillReducer),
   __reducerSchema("finish_factcheck", FinishFactcheckReducer),
   __reducerSchema("finish_match_blurb", FinishMatchBlurbReducer),
+  __reducerSchema("finish_menu_check", FinishMenuCheckReducer),
   __reducerSchema("finish_merge_intro", FinishMergeIntroReducer),
   __reducerSchema("finish_plan_copy", FinishPlanCopyReducer),
   __reducerSchema("finish_poster", FinishPosterReducer),
@@ -416,6 +450,7 @@ const reducersSchema = __reducers(
   __reducerSchema("react", ReactReducer),
   __reducerSchema("report_player", ReportPlayerReducer),
   __reducerSchema("set_group_chat_link", SetGroupChatLinkReducer),
+  __reducerSchema("set_lean", SetLeanReducer),
   __reducerSchema("set_meetup_details", SetMeetupDetailsReducer),
   __reducerSchema("set_room_setup", SetRoomSetupReducer),
   __reducerSchema("set_rsvp", SetRsvpReducer),

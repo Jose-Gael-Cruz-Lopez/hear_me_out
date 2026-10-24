@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { assignDefenders } from './assign';
-import { formatSlotLabel, localMidnightMicros, localMinutes, pickSlot } from './slot';
+import { busyFromWeek, formatSlotLabel, localMidnightMicros, localMinutes, localWeekday, pickSlot, slotBusyness } from './slot';
 import { mostPersuasive, tallyVotes } from './tally';
 import { sanitizeTag, sanitizeTags, topTags } from './text';
 import { makeRoomCode } from './codes';
@@ -115,5 +115,44 @@ describe('text', () => {
   it('picks a punchy best line', () => {
     const b = bestLineFallback([{ playerId: 1n, text: 'This place is fine. It has the best broth in the entire city!' }]);
     expect(b?.quote).toBe('It has the best broth in the entire city!');
+  });
+});
+
+describe('busyness-aware timing', () => {
+  // Friday (weekday 5): packed at 7pm, quieter by 8pm.
+  const week = new Array<number>(168).fill(0);
+  Object.assign(week, { [5 * 24 + 18]: 60, [5 * 24 + 19]: 85, [5 * 24 + 20]: 45, [5 * 24 + 21]: 30 });
+  const busyAt = busyFromWeek(week, 5)!;
+  const players = [{ id: 1n, windows: [{ startMin: 19 * 60, endMin: 23 * 60 }] }];
+  const venue = { hoursKnown: true, open: [{ startMin: 17 * 60, endMin: 23 * 60 }] };
+
+  it('goes a bit later when the earliest free slot is packed, and says what it avoided', () => {
+    const s = pickSlot({ nowMin: 12 * 60, players, venue, slotLen: 90, busyAt });
+    expect(s.naiveStartMin).toBe(19 * 60);
+    expect(s.naiveBusyPct).toBe(85);
+    expect(s.startMin).toBeGreaterThan(19 * 60);
+    expect(s.busyPct!).toBeLessThan(60);
+    expect(s.cantMake).toEqual([]);
+  });
+
+  it("doesn't make people wait for a tiny gain, and keeps the earliest slot without popular times", () => {
+    const flat = busyFromWeek(new Array<number>(168).fill(40), 5)!;
+    expect(pickSlot({ nowMin: 12 * 60, players, venue, slotLen: 90, busyAt: flat }).startMin).toBe(19 * 60);
+    expect(pickSlot({ nowMin: 12 * 60, players, venue, slotLen: 90 }).startMin).toBe(19 * 60);
+    expect(busyFromWeek([], 5)).toBeUndefined();
+  });
+
+  it('never picks a 0% hour: Google shows 0 when the place is closed', () => {
+    const closing = new Array<number>(168).fill(0);
+    Object.assign(closing, { [5 * 24 + 18]: 70, [5 * 24 + 19]: 90 }); // closes at 8pm
+    const s = pickSlot({ nowMin: 12 * 60, players, venue: { hoursKnown: false, open: [] }, slotLen: 90, busyAt: busyFromWeek(closing, 5) });
+    expect(s.startMin).toBe(19 * 60);
+    expect(slotBusyness(busyFromWeek(closing, 5)!, 20 * 60)).toBeNull();
+  });
+
+  it('blends the hours a slot spans and wraps weekdays', () => {
+    expect(slotBusyness(busyAt, 19 * 60 + 30)).toBe(65);
+    expect(localWeekday(0n, 0)).toBe(4); // 1970-01-01, Thursday
+    expect(busyFromWeek(week, 4)!(1440 + 19 * 60)).toBe(85); // Thursday + 1 day = Friday 7pm
   });
 });

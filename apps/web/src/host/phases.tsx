@@ -7,6 +7,8 @@ import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
 import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
+import { MenuProof } from '../components/MenuProof';
+import { BusyChart } from '../components/BusyChart';
 import { useRoom } from '../lib/room';
 import { play } from '../lib/sound';
 
@@ -120,7 +122,9 @@ export function HostFinalists() {
       <div className={`grid gap-5 ${options.length >= 4 ? 'lg:grid-cols-4' : options.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} md:grid-cols-2`}>
         {options.map((o, i) => (
           <motion.div key={String(o.id)} initial={{ opacity: 0, y: 60, rotate: i % 2 ? 4 : -4 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ delay: 0.3 + i * 0.7, type: 'spring', stiffness: 200, damping: 16 }}>
-            <VenueCard option={o} players={players} />
+            <VenueCard option={o} players={players}>
+              <MenuProof optionId={o.id} />
+            </VenueCard>
           </motion.div>
         ))}
       </div>
@@ -253,6 +257,7 @@ export function HostResults() {
         <PhaseTitle kicker="The verdict is in" title={<span className="text-sun">{winner?.title ?? '…'}</span>} sub={`${votes.filter(v => v.optionId === room.winnerOptionId).length} of ${players.length} votes`} />
       </motion.div>
       {room.tiebreakText && <div className="chip bg-grape/30 px-5 py-2 text-lg ring-1 ring-grape/60"><IconText text={"⚖️ "} />{room.tiebreakText}</div>}
+      {winner && <div className="w-full max-w-3xl"><MenuProof optionId={winner.id} big /></div>}
       <div className="grid w-full max-w-5xl gap-6 md:grid-cols-2">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="card p-6">
           <div className="font-display text-lg font-black tracking-widest text-pop"><IconText text={"🏆 MOST PERSUASIVE"} /></div>
@@ -291,78 +296,92 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
   const posterUrl = useObjectUrl(posterMedia?.bytes, posterMedia?.mime);
   if (!plan) return <Waiting emoji="🗓️" title="Booking the plan…" />;
   const cantMake = plan.cantMake.map(id => playerById(id)?.name).filter(Boolean);
+  const going = rsvps.filter(r => r.status === 'yes').length;
   return (
-    <div className="grid flex-1 gap-8 lg:grid-cols-[minmax(0,380px)_1fr]">
-      <motion.div initial={{ rotate: -6, scale: 0.8, opacity: 0 }} animate={{ rotate: -2, scale: 1, opacity: 1 }} transition={{ type: 'spring' }}>
-        <Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
-      </motion.div>
-      <div className="flex flex-col gap-5">
-        <div>
-          <div className="font-display text-lg font-black tracking-[0.25em] text-sun">IT'S A PLAN</div>
-          <div className="font-display text-6xl leading-none font-black">{option?.title}</div>
-          <div className="mt-2 font-display text-3xl font-extrabold text-sky">{plan.slotLabel}</div>
-          <div className="mt-1 text-lg text-cream/70">{option?.address}</div>
-          {cantMake.length > 0 && <div className="mt-2 chip bg-tang/20 text-tang">Can't make this slot: {cantMake.join(', ')}</div>}
-        </div>
-        <MergeBanner asPlayer={false} />
-        {room.mode === 'strangers' && (
-          <div className={`chip self-start px-4 py-2 text-lg ${plan.meetupConfirmed ? 'bg-lime/20 text-lime' : 'bg-sun/15 text-sun'}`}>
-            <IconText text={plan.meetupConfirmed ? '✅ Meetup confirmed' : `Meetup needs 3 RSVPs (${rsvps.filter(r => r.status === 'yes').length}/3)`} />
+    <div className="plan-dash">
+      <div className="plan-left">
+        <motion.div initial={{ rotate: -6, scale: 0.85, opacity: 0 }} animate={{ rotate: -2, scale: 1, opacity: 1 }} transition={{ type: 'spring' }}>
+          <Poster compact plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
+        </motion.div>
+        <div className="plan-panel">
+          <div className="plan-label">
+            Who's going · {going}/{players.length}
           </div>
-        )}
-        {option && (
-          <MuseReservation
-            big
-            plan={plan}
-            option={option}
-            category={room.category}
-            party={room.mode === 'strangers' ? rsvps.filter(r => r.status === 'yes').length : players.length - plan.cantMake.length}
-            ready={room.mode !== 'strangers' || plan.meetupConfirmed}
-          />
-        )}
-        <div className="card p-5 text-xl">{plan.inviteText}</div>
-        <div className="card p-5">
-          <div className="mb-3 font-display text-xl font-black text-lime">Why this works for everyone</div>
-          <ul className="space-y-2">
-            {plan.whyForEach.map(w => {
-              const p = playerById(w.playerId);
-              return (
-                <li key={String(w.playerId)} className="flex items-start gap-3 text-lg">
-                  <span className="text-2xl"><AvatarMark value={p?.avatar} size={28} /></span>
-                  <span>{w.line}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-        <div className="card p-5">
-          <div className="mb-3 font-display text-xl font-black">RSVPs</div>
-          <div className="flex flex-wrap gap-5">
+          <div className="plan-rsvps">
             {players.map(p => {
               const r = rsvps.find(x => x.playerId === p.id);
               return (
-                <div key={String(p.id)} className="flex flex-col items-center">
-                  <Avatar player={p} size={56} done={r?.status === 'yes'} dim={!r} />
-                  <span className="text-sm font-bold text-cream/70">{r ? (r.status === 'yes' ? 'going' : r.status) : '…'}</span>
+                <div key={String(p.id)} className="plan-rsvp">
+                  <Avatar player={p} size={44} done={r?.status === 'yes'} dim={!r} />
+                  <span>{r ? (r.status === 'yes' ? 'going' : r.status) : '…'}</span>
                 </div>
               );
             })}
           </div>
         </div>
+        {isHost && (
+          <button className="btn btn-ghost self-start" onClick={() => navigate('/')}>
+            New game
+          </button>
+        )}
+      </div>
+
+      <div className="plan-main">
+        <header className="plan-hero">
+          <div className="plan-kicker">It's a plan</div>
+          <h1 className="plan-title">{option?.title}</h1>
+          <div className="plan-meta">
+            <span className="plan-time">{plan.slotLabel}</span>
+            {option?.address && <span className="plan-addr">{option.address}</span>}
+          </div>
+          {cantMake.length > 0 && <div className="mt-2 chip bg-tang/20 text-tang">Can't make this slot: {cantMake.join(', ')}</div>}
+          {room.mode === 'strangers' && (
+            <div className={`mt-2 chip self-start px-4 py-2 ${plan.meetupConfirmed ? 'bg-lime/20 text-lime' : 'bg-sun/15 text-sun'}`}>
+              <IconText text={plan.meetupConfirmed ? '✅ Meetup confirmed' : `Meetup needs 3 RSVPs (${going}/3)`} />
+            </div>
+          )}
+        </header>
+        <MergeBanner asPlayer={false} />
+        {option && <BusyChart plan={plan} option={option} tzOffsetMin={room.tzOffsetMin} />}
+        {option && <MenuProof optionId={option.id} />}
+        {plan.whyForEach.length > 0 && (
+          <div className="plan-panel">
+            <div className="plan-label">Why it works for everyone</div>
+            <ul className="plan-why">
+              {plan.whyForEach.map(w => {
+                const p = playerById(w.playerId);
+                return (
+                  <li key={String(w.playerId)}>
+                    <AvatarMark value={p?.avatar} size={22} />
+                    <span>{w.line}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <div className="plan-side">
+        {option && (
+          <MuseReservation
+            plan={plan}
+            option={option}
+            category={room.category}
+            party={room.mode === 'strangers' ? going : players.length - plan.cantMake.length}
+            ready={room.mode !== 'strangers' || plan.meetupConfirmed}
+          />
+        )}
+        <blockquote className="plan-invite">{plan.inviteText}</blockquote>
         {plan.icebreakers.length > 0 && (
-          <div className="card p-5">
-            <div className="mb-2 font-display text-xl font-black text-pop">Icebreakers for the table</div>
-            <ul className="list-disc space-y-1 pl-6 text-lg">
+          <div className="plan-panel">
+            <div className="plan-label">Icebreakers for the table</div>
+            <ul className="plan-ice">
               {plan.icebreakers.map(i => (
                 <li key={i}>{i}</li>
               ))}
             </ul>
           </div>
-        )}
-        {isHost && (
-          <button className="btn btn-ghost self-start" onClick={() => navigate('/')}>
-            New game
-          </button>
         )}
       </div>
     </div>

@@ -51,7 +51,21 @@ const venueFields = {
   stretchNote: t.string(),
 };
 
-export const OptionInput = t.object('OptionInput', venueFields);
+export const OptionInput = t.object('OptionInput', {
+  ...venueFields,
+  /** Google popular times: 168 values (weekday 0=Sunday × 24 + hour), 0–100; [] when unknown. */
+  busyness: t.array(t.u8()),
+});
+
+/** A real dish from a venue's own menu that fits a diet ("vegan", "Tofu Larb (V)"). */
+export const MenuDish = t.object('MenuDish', { diet: t.string(), dish: t.string() });
+
+export const MenuProofInput = t.object('MenuProofInput', {
+  optionId: t.u64(),
+  status: t.string(),
+  dishes: t.array(MenuDish),
+  sourceUrl: t.string(),
+});
 
 export const BriefInput = t.object('BriefInput', {
   playerId: t.u64(),
@@ -195,6 +209,8 @@ const option = table(
     ...venueFields,
     posterUrl: t.string(),
     posterMediaId: t.u64(),
+    /** Google popular times: 168 values (weekday 0=Sunday × 24 + hour), 0–100; [] when unknown. */
+    busyness: t.array(t.u8()).default([]),
   }
 );
 
@@ -279,6 +295,20 @@ const prevote = table(
   }
 );
 
+/**
+ * Private: each player's live lean while the pitches play, seeded from their pre-vote. Nobody can read
+ * another player's row; only anonymous per-option totals leave the module (the `room_sway` view).
+ */
+const lean = table(
+  { name: 'lean' },
+  {
+    playerId: t.u64().primaryKey(),
+    roomId: t.u64().index('btree'),
+    optionId: t.u64(),
+    updatedAt: t.timestamp(),
+  }
+);
+
 const vote = table(
   { name: 'vote', public: true },
   {
@@ -297,6 +327,24 @@ const award = table(
     kind: t.string(),
     playerId: t.u64(),
     text: t.string(),
+  }
+);
+
+/**
+ * Menu check: proof from each food finalist's own website that it serves the diets someone in the room
+ * asked for (Apify Website Content Crawler). Google's "vegan options" flags are often missing.
+ */
+const menuProof = table(
+  { name: 'menu_proof', public: true },
+  {
+    optionId: t.u64().primaryKey(),
+    roomId: t.u64().index('btree'),
+    diets: t.array(t.string()),
+    /** checking | confirmed | not_found | no_website | unavailable */
+    status: t.string(),
+    dishes: t.array(MenuDish),
+    sourceUrl: t.string(),
+    checkedAt: t.timestamp(),
   }
 );
 
@@ -321,6 +369,13 @@ const plan = table(
     meetupConfirmed: t.bool(),
     /** Set on both plans when a merge offer is accepted. */
     mergedWithRoomId: t.u64().default(0n),
+    /** Busyness-aware timing: local weekday of the plan (0 = Sunday), -1 when no popular times. */
+    weekday: t.i32().default(-1),
+    /** The earliest slot everyone could make (minutes from local midnight) and how packed it usually is. */
+    naiveStartMin: t.i32().default(-1),
+    naiveBusyPct: t.i32().default(-1),
+    /** How packed the venue usually is at the chosen start. */
+    busyPct: t.i32().default(-1),
   }
 );
 
@@ -469,8 +524,10 @@ const spacetimedb = schema({
   objection,
   warmup,
   prevote,
+  lean,
   vote,
   award,
+  menuProof,
   plan,
   rsvp,
   mergeOffer,
@@ -499,8 +556,10 @@ export {
   objection,
   warmup,
   prevote,
+  lean,
   vote,
   award,
+  menuProof,
   plan,
   rsvp,
   mergeOffer,

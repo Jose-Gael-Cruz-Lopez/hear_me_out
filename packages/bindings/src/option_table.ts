@@ -47,4 +47,5 @@ export default __t.row({
   stretchNote: __t.string().name("stretch_note"),
   posterUrl: __t.string().name("poster_url"),
   posterMediaId: __t.u64().name("poster_media_id"),
+  busyness: __t.byteArray(),
 });

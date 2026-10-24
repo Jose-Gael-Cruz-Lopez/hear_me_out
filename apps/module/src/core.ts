@@ -4,7 +4,7 @@ import spacetimedb, { option, pitch, player, room } from './schema';
 import { assignDefenders } from './logic/assign';
 import { botPitchText, defaultBrief, defaultInvite, type VenueFacts } from './logic/fallbacks';
 import { mergeIntroFallback } from './logic/match';
-import { formatSlotLabel, localMidnightMicros, localMinutes, pickSlot } from './logic/slot';
+import { busyFromWeek, formatSlotLabel, localMidnightMicros, localMinutes, localWeekday, pickSlot } from './logic/slot';
 import { mostPersuasive, tallyVotes } from './logic/tally';
 import { topTags } from './logic/text';
 import { phaseSeconds, pitchSeconds, type Phase } from './logic/timing';
@@ -29,7 +29,8 @@ export type JobKind =
   | 'poster'
   | 'icebreakers'
   | 'match_blurb'
-  | 'merge_intro';
+  | 'merge_intro'
+  | 'menu_check';
 
 // ---------- Auth ----------
 
@@ -306,6 +307,7 @@ function endPrevote(ctx: Ctx, r: RoomRow): void {
   }
   const prevotes = new Map<bigint, bigint>();
   for (const pv of ctx.db.prevote.roomId.filter(r.id)) prevotes.set(pv.playerId, pv.optionId);
+  seedLeans(ctx, r.id, prevotes);
 
   const mapping = assignDefenders(
     players.map(p => ({ id: p.id, prevote: prevotes.get(p.id) ?? null })),
@@ -385,6 +387,26 @@ function startPitch(ctx: Ctx, r: RoomRow, idx: number): void {
   setPhase(ctx, r, 'playback', pitchSeconds({ durationMs: p.durationMs, transcript: p.transcript, fast: r.fastMode }), {
     currentPitchIdx: idx,
   });
+  swayBots(ctx, r.id, p.optionId);
+}
+
+/** Live Sway Meter: everyone's private lean starts at their secret pre-vote (no pre-vote, no lean). */
+function seedLeans(ctx: Ctx, roomId: bigint, prevotes: Map<bigint, bigint>): void {
+  for (const l of [...ctx.db.lean.roomId.filter(roomId)]) ctx.db.lean.playerId.delete(l.playerId);
+  for (const [playerId, optionId] of prevotes) ctx.db.lean.insert({ playerId, roomId, optionId, updatedAt: ctx.timestamp });
+}
+
+export function writeLean(ctx: Ctx, roomId: bigint, playerId: bigint, optionId: bigint): void {
+  const row = { playerId, roomId, optionId, updatedAt: ctx.timestamp };
+  if (ctx.db.lean.playerId.find(playerId)) ctx.db.lean.playerId.update(row);
+  else ctx.db.lean.insert(row);
+}
+
+/** Some bots get won over by the pitch on screen, so a solo game's sway meter still moves. */
+function swayBots(ctx: Ctx, roomId: bigint, optionId: bigint): void {
+  for (const p of playersIn(ctx, roomId)) {
+    if (p.isBot && ctx.random() < 0.4) writeLean(ctx, roomId, p.id, optionId);
+  }
 }
 
 function enterVote(ctx: Ctx, r: RoomRow): void {
@@ -504,11 +526,15 @@ function createPlan(ctx: Ctx, r: RoomRow, winner: OptionRow, players: PlayerRow[
   const slotLen = r.category === 'activity' ? 120 : r.category === 'movie' ? 150 : 90;
   // Public meetups advertise a start time; never plan earlier than that.
   const fromMin = r.targetStartMin >= 0 ? Math.max(nowMin, r.targetStartMin - 30) : nowMin;
+  // Busyness-aware: with Google popular times, skip the rush ("go at 8:15, not 7").
+  const weekday = localWeekday(now, r.tzOffsetMin);
+  const busyAt = busyFromWeek(winner.busyness, weekday);
   const slot = pickSlot({
     nowMin: fromMin,
     players: slotPlayers,
     venue: { hoursKnown: winner.hoursKnown, open: winner.openIntervals },
     slotLen,
+    busyAt,
   });
   const midnight = localMidnightMicros(now, r.tzOffsetMin);
   const slotLabel = formatSlotLabel(slot.startMin, slot.endMin, nowMin);
@@ -533,6 +559,10 @@ function createPlan(ctx: Ctx, r: RoomRow, winner: OptionRow, players: PlayerRow[
     status: 'drafting',
     meetupConfirmed: false,
     mergedWithRoomId: 0n,
+    weekday: busyAt ? weekday : -1,
+    naiveStartMin: slot.naiveStartMin ?? -1,
+    naiveBusyPct: slot.naiveBusyPct ?? -1,
+    busyPct: slot.busyPct ?? -1,
   });
   for (const p of players) {
     if (p.isBot) {

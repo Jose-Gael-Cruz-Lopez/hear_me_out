@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, seatColor, useObjectUrl, VenueImage } from '../components/ui';
 import { useRoom } from '../lib/room';
+import { SwayMeter } from '../components/SwayMeter';
 import { audioContext, isMuted, play, speak } from '../lib/sound';
 import { tsMs, useNow } from '../lib/time';
 
@@ -170,6 +171,7 @@ export function HostPlayback() {
             {objectionCount} objection{objectionCount === 1 ? '' : 's'} from the jury
           </div>
         )}
+        <SwayMeter />
       </div>
     </div>
   );

@@ -33,4 +33,8 @@ export default __t.row({
   status: __t.string(),
   meetupConfirmed: __t.bool().name("meetup_confirmed"),
   mergedWithRoomId: __t.u64().name("merged_with_room_id"),
+  weekday: __t.i32(),
+  naiveStartMin: __t.i32().name("naive_start_min"),
+  naiveBusyPct: __t.i32().name("naive_busy_pct"),
+  busyPct: __t.i32().name("busy_pct"),
 });

@@ -1,5 +1,5 @@
 import { SenderError, t } from 'spacetimedb/server';
-import spacetimedb, { prevote } from '../schema';
+import spacetimedb, { lean, prevote } from '../schema';
 import {
   checkEarly,
   enqueueFactcheck,
@@ -9,6 +9,7 @@ import {
   playableIn,
   requireMyPlayer,
   requirePhase,
+  writeLean,
 } from '../core';
 import { clampText } from '../logic/text';
 
@@ -49,6 +50,63 @@ export const myPrevote = spacetimedb.view({ name: 'my_prevote', public: true }, 
     if (p.isBot) continue;
     const pv = ctx.db.prevote.playerId.find(p.id);
     if (pv) out.push(pv);
+  }
+  return out;
+});
+
+// ---------- Live Sway Meter ----------
+
+/** Change your private lean while someone pitches. Nobody sees who leans where, only the totals. */
+export const setLean = spacetimedb.reducer({ roomId: t.u64(), optionId: t.u64() }, (ctx, { roomId, optionId }) => {
+  const r = getRoom(ctx, roomId);
+  requirePhase(r, 'playback');
+  const me = requireMyPlayer(ctx, roomId);
+  requireOption(ctx, roomId, optionId);
+  writeLean(ctx, roomId, me.id, optionId);
+});
+
+/** Your own lean. Nobody else can read it. */
+export const myLean = spacetimedb.view({ name: 'my_lean', public: true }, t.array(lean.rowType), ctx => {
+  const out = [];
+  for (const p of ctx.db.player.identity.filter(ctx.sender)) {
+    if (p.isBot) continue;
+    const l = ctx.db.lean.playerId.find(p.id);
+    if (l) out.push(l);
+  }
+  return out;
+});
+
+const SwayRow = t.object('SwayRow', {
+  roomId: t.u64(),
+  optionId: t.u64(),
+  leaning: t.u32(),
+  prevoted: t.u32(),
+});
+
+/**
+ * Anonymous totals for the Live Sway Meter: per finalist, how many lean toward it now and how many
+ * picked it in the pre-vote. Only during playback, and only to the room's players and its TV.
+ */
+export const roomSway = spacetimedb.view({ name: 'room_sway', public: true }, t.array(SwayRow), ctx => {
+  const rooms = new Map<bigint, ReturnType<typeof getRoom>>();
+  for (const p of ctx.db.player.identity.filter(ctx.sender)) {
+    const r = ctx.db.room.id.find(p.roomId);
+    if (r?.phase === 'playback') rooms.set(r.id, r);
+  }
+  for (const r of ctx.db.room.iter()) if (r.phase === 'playback' && r.hostIdentity.equals(ctx.sender)) rooms.set(r.id, r);
+  const out = [];
+  for (const r of rooms.values()) {
+    const rows = new Map<bigint, { leaning: number; prevoted: number }>();
+    for (const o of ctx.db.option.roomId.filter(r.id)) rows.set(o.id, { leaning: 0, prevoted: 0 });
+    for (const l of ctx.db.lean.roomId.filter(r.id)) {
+      const row = rows.get(l.optionId);
+      if (row) row.leaning++;
+    }
+    for (const pv of ctx.db.prevote.roomId.filter(r.id)) {
+      const row = rows.get(pv.optionId);
+      if (row) row.prevoted++;
+    }
+    for (const [optionId, row] of rows) out.push({ roomId: r.id, optionId, ...row });
   }
   return out;
 });

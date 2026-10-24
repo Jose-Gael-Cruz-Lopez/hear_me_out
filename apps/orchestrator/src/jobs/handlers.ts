@@ -1,5 +1,5 @@
 import type { AiJob, Option, OptionInput, Player } from '@hmo/bindings';
-import { localNow, type LatLng, type Venue } from '@hmo/shared';
+import { appearsIn, localNow, menuEvidence, MENU_DIETS, type LatLng, type MenuPage, type Venue } from '@hmo/shared';
 import { bestLineFallback, botPitchText, chipsToTags, defaultHints, defaultWarmup, type VenueFacts } from '@hmo/module/logic/fallbacks';
 import { finalistCount } from '@hmo/module/logic/timing';
 import * as prompts from '../prompts';
@@ -7,6 +7,7 @@ import { toWav } from '../services/audio';
 import { evaluate, pickVaried, shortlist, type Candidate, type Member } from '../services/curation';
 import { factcheckLocal, type VenueRecord } from '../services/factcheck';
 import { geocode } from '../services/geocode';
+import { crawlMenus, siteUrl } from '../services/menu';
 import { profileSocial } from '../services/social';
 import { botBoldClaim, offlineIcebreakers, offlinePosterPrompt, offlineStylePrompt, offlineTags } from '../services/offline';
 import { DEFAULT_QUERIES, nearestFixture, saveRawScrape, scrapeVenues, venueKey } from '../services/venues';
@@ -201,6 +202,7 @@ function toOptionInput(c: Candidate, fitSummary: string, lines: { playerId: bigi
     perPlayerFit: lines,
     groupFitScore: Math.max(0, Math.min(100, Math.round(score))),
     stretchNote: c.stretchNote,
+    busyness: Uint8Array.from(v.busyness?.length === 168 ? v.busyness : []),
   };
 }
 
@@ -282,6 +284,57 @@ const curate: Handler = async (job, d) => {
   }
   options ??= pickVaried(short, n).map(c => toOptionInput(c, deterministicSummary(c, members), c.fitLines, c.score));
   await d.conn.reducers.finishCurate({ jobId: job.id, options });
+};
+
+// ---------- Menu check ----------
+
+/**
+ * Proof from each finalist's own website that it serves the group's diets: crawl the sites with Apify's
+ * Website Content Crawler and pull real dishes ("Tofu Larb (VG)") from the menu text.
+ */
+const menu_check: Handler = async (job, d) => {
+  const room = roomOf(d.conn, job.roomId);
+  if (!room) throw new Error('room gone');
+  const diets = (payload<{ diets?: string[] }>(job).diets ?? []).filter(x => MENU_DIETS.includes(x));
+  if (!d.cfg.apifyEnabled) throw new SkipJob('menu check needs live Apify');
+  if (diets.length === 0) throw new SkipJob('no diet the menu check can read');
+  const options = optionsOf(d.conn, room.id);
+  const set = loadVenueSet(d, room.venueKey);
+  const venueOf = (o: Option) => set?.venues.find(v => v.placeId === o.placeId);
+  const sites = options.map(o => ({ key: String(o.id), url: siteUrl(venueOf(o)?.website) })).filter(s => s.url);
+  const pages = sites.length ? await crawlMenus(d.cfg, sites, 75_000) : new Map();
+  if (!pages) throw new Error('menu crawl failed');
+  const results = await Promise.all(
+    options.map(async o => {
+      const site = sites.find(s => s.key === String(o.id));
+      // Venue data recorded before websites were kept has no field at all: that's "not checked", not "no website".
+      if (!site) return { optionId: o.id, status: venueOf(o)?.website === undefined ? 'unavailable' : 'no_website', dishes: [], sourceUrl: '' };
+      const got: MenuPage[] = [...(pages.get(site.key) ?? [])].sort((a, b) => Number(/menu/i.test(b.url)) - Number(/menu/i.test(a.url)));
+      const menuUrl = got.find(p => /menu/i.test(p.url))?.url ?? site.url;
+      // Muse reads the menu when it's connected; every dish it names must really be on the page.
+      const ai = got.length
+        ? await d.muse.json({
+            ...prompts.menuDiet,
+            input: { restaurant: o.title, diets, pages: got.slice(0, 6).map(p => ({ url: p.url, text: p.text.slice(0, 2500) })) },
+            timeoutMs: 20_000,
+            roomId: room.id,
+          })
+        : null;
+      const dishes: { diet: string; dish: string }[] = [];
+      let sourceUrl = '';
+      for (const diet of diets) {
+        const fromAi = (ai?.diets.find(x => x.diet === diet)?.dishes ?? []).filter(x => appearsIn(got, x));
+        const fromMarks = menuEvidence(got, diet);
+        // A vegan dish already listed also proves vegetarian; don't repeat it under each diet.
+        const fresh = (fromAi.length ? fromAi : fromMarks.dishes).filter(x => !dishes.some(y => y.dish === x));
+        for (const dish of fresh.slice(0, 3)) dishes.push({ diet, dish });
+        if (!sourceUrl) sourceUrl = fromAi.length ? menuUrl : fromMarks.url;
+      }
+      return { optionId: o.id, status: dishes.length ? 'confirmed' : 'not_found', dishes, sourceUrl: sourceUrl || site.url };
+    })
+  );
+  log.info('menu check', { room: room.code, confirmed: results.filter(r => r.status === 'confirmed').length, of: results.length });
+  await d.conn.reducers.finishMenuCheck({ jobId: job.id, results });
 };
 
 // ---------- Assignments ----------
@@ -497,6 +550,7 @@ export const handlers: Record<string, Handler> = {
   warmup,
   scout,
   curate,
+  menu_check,
   assign,
   transcribe,
   bot_pitch,

@@ -8,6 +8,9 @@ import { MuseReservation } from '../components/Muse';
 import { SafetyList } from '../components/Safety';
 import { Avatar, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
+import { LeanPicker, SwayMeter } from '../components/SwayMeter';
+import { MenuProof } from '../components/MenuProof';
+import { BusyChart } from '../components/BusyChart';
 import { HostPlayback } from '../host/Playback';
 import { play } from '../lib/sound';
 import { tsMs } from '../lib/time';
@@ -74,7 +77,9 @@ export function PlayFinalists() {
     <div className="flex flex-col gap-4">
       <div className="font-display text-3xl font-black">Tonight's contestants</div>
       {options.map(o => (
-        <VenueCard key={String(o.id)} option={o} players={players} compact />
+        <VenueCard key={String(o.id)} option={o} players={players} compact>
+          <MenuProof optionId={o.id} />
+        </VenueCard>
       ))}
     </div>
   );
@@ -100,6 +105,7 @@ export function PlayPrevote() {
           className="block w-full text-left transition active:scale-[0.99]"
         >
           <VenueCard option={o} highlight={myPrevoteOptionId === o.id ? 'var(--color-pop)' : undefined}>
+            <MenuProof optionId={o.id} linked={false} />
             {myPrevoteOptionId === o.id && (
               <div className="chip bg-sun text-cream">
                 <IconText text="🤫 " />
@@ -176,6 +182,8 @@ export function PlayPlayback() {
           </div>
         </div>
       </div>}
+      {!stage && <SwayMeter compact />}
+      <LeanPicker />
       <div className="reaction-controls grid grid-cols-3 gap-2">
         {PITCH_REACTIONS.map(({ emoji, label }) => (
           <button
@@ -246,6 +254,7 @@ export function PlayResults() {
         {winner?.title}
       </motion.div>
       {room.tiebreakText && <div className="text-cream/75">{room.tiebreakText}</div>}
+      {winner && <div className="w-full text-left"><MenuProof optionId={winner.id} big /></div>}
       {awards.map(a => (
         <div key={String(a.id)} className="card w-full p-4 text-left">
           <div className="text-xs font-black tracking-widest text-pop"><IconText text={a.kind === 'most_persuasive' ? '🏆 MOST PERSUASIVE' : '💬 BEST LINE'} /></div>
@@ -297,8 +306,9 @@ export function PlayPlan() {
   const going = rsvps.filter(r => r.status === 'yes').length;
   // Public meetups: neighborhood only until you RSVP yes.
   const showAddress = !isPublic || mine?.status === 'yes';
+  const myWhy = plan.whyForEach.find(w => w.playerId === me?.id)?.line;
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <MergeBanner asPlayer />
       {isPublic && (
         <div className={`card p-5 ring-2 ${plan.meetupConfirmed ? 'ring-lime' : 'ring-sun/50'}`}>
@@ -317,33 +327,65 @@ export function PlayPlan() {
           )}
         </div>
       )}
-      <div className="card space-y-2 p-5">
-        <div className="font-display text-3xl font-black">{option.title}</div>
-        <div className="font-display text-xl font-extrabold text-sky">{plan.slotLabel}</div>
-        <div className="text-sm text-cream/70"><IconText text={showAddress ? option.address : '📍 Exact address unlocks when you RSVP "I\'m in"'} /></div>
-        {cantMake && <div className="chip bg-tang/20 text-tang">This slot doesn't fit your free time, sorry!</div>}
-        <div className="text-cream/80">{plan.inviteText}</div>
-        {plan.whyForEach.find(w => w.playerId === me?.id) && <div className="text-lime"><IconText text={"💚 "} />{plan.whyForEach.find(w => w.playerId === me?.id)!.line}</div>}
+      <div className="ticket">
+        <div className="ticket-hero">
+          <div className="plan-kicker">It's a plan</div>
+          <div className="ticket-title">{option.title}</div>
+          <div className="ticket-time">{plan.slotLabel}</div>
+          <div className="ticket-addr">
+            <IconText text={showAddress ? option.address : '📍 Exact address unlocks when you RSVP "I\'m in"'} />
+          </div>
+          {cantMake && <div className="chip mt-2 bg-tang/20 text-tang">This slot doesn't fit your free time, sorry!</div>}
+          {myWhy && <div className="ticket-why">{myWhy}</div>}
+          <div className="ticket-rsvp">
+            {(['yes', 'maybe', 'no'] as const).map(s => (
+              <button key={s} className={`btn ${mine?.status === s ? 'btn-lime' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.setRsvp({ planId: plan.id, status: s }))}>
+                {s === 'yes' ? "I'm in" : s === 'maybe' ? 'Maybe' : "Can't"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="ticket-section">
+          <BusyChart plan={plan} option={option} tzOffsetMin={room.tzOffsetMin} compact bare />
+        </div>
+        <div className="ticket-section">
+          <MenuProof optionId={option.id} />
+        </div>
+        <div className="ticket-section ticket-invite">“{plan.inviteText}”</div>
       </div>
       <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
-      <div className="grid grid-cols-3 gap-3">
-        {(['yes', 'maybe', 'no'] as const).map(s => (
-          <button key={s} className={`btn text-lg ${mine?.status === s ? 'btn-lime' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.setRsvp({ planId: plan.id, status: s }))}>
-            {s === 'yes' ? "I'm in" : s === 'maybe' ? 'Maybe' : "Can't"}
-          </button>
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <button className="btn btn-sun text-lg" disabled={!showAddress} onClick={downloadIcs}><IconText text={" 📅 Add to calendar "} /></button>
-        {showAddress ? <a className="btn btn-sky text-lg" href={googleCalendarUrl(event)} target="_blank" rel="noreferrer">Google Calendar</a> : <button className="btn btn-sky text-lg" disabled>Calendar after RSVP</button>}
+      <div className="ticket-actions">
+        <button className="btn btn-sun" disabled={!showAddress} onClick={downloadIcs}>
+          <IconText text={'📅 Calendar'} />
+        </button>
         {showAddress ? (
-          <a className="btn btn-ghost text-lg" href={option.mapsUrl} target="_blank" rel="noreferrer"><IconText text={" 🗺️ Maps "} /></a>
+          <a className="btn btn-sky" href={googleCalendarUrl(event)} target="_blank" rel="noreferrer">
+            Google Cal
+          </a>
         ) : (
-          <button className="btn btn-ghost text-lg" disabled><IconText text={" 🗺️ After RSVP "} /></button>
+          <button className="btn btn-sky" disabled>
+            After RSVP
+          </button>
         )}
-        <button className="btn btn-ghost text-lg" disabled={!showAddress} onClick={() => void share()}><IconText text={" 🔗 Share "} /></button>
+        {showAddress ? (
+          <a className="btn btn-ghost" href={option.mapsUrl} target="_blank" rel="noreferrer">
+            <IconText text={'🗺️ Maps'} />
+          </a>
+        ) : (
+          <button className="btn btn-ghost" disabled>
+            <IconText text={'🗺️ After RSVP'} />
+          </button>
+        )}
+        <button className="btn btn-ghost" disabled={!showAddress} onClick={() => void share()}>
+          <IconText text={'🔗 Share'} />
+        </button>
       </div>
-      <details className="card p-4"><summary className="cursor-pointer font-black">Invitation poster</summary><div className="mt-4"><Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} /></div></details>
+      <details className="card p-4">
+        <summary className="cursor-pointer font-black">Invitation poster</summary>
+        <div className="mt-4">
+          <Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
+        </div>
+      </details>
       <SafetyList />
       <div className="text-center text-xs text-muted">Room {room.code}</div>
     </div>

@@ -1,9 +1,9 @@
 // pnpm sim — drives a Friends room from lobby to plan against the local SpacetimeDB server.
 // Two scripted "human" connections + three bots; the orchestrator runs in-process on fixtures
 // (DEMO_MODE) unless --live is passed. Exits non-zero if any acceptance check fails.
-import type { Room } from '@hmo/bindings';
+import { tables, type Room } from '@hmo/bindings';
 import { startOrchestrator } from '@hmo/orchestrator';
-import { check, checks, connect, DB, quiet, sineWav, t, URI, VERBOSE, waitFor } from './simlib';
+import { check, checks, connect, DB, quiet, rejects, sineWav, t, URI, VERBOSE, waitFor } from './simlib';
 
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync } from 'node:fs';
@@ -58,6 +58,8 @@ async function main(): Promise<void> {
     void quiet(fn());
   };
 
+  // Live Sway Meter observations, sampled during playback.
+  const sway = { tvRows: 0, tvFields: '', maxLeaning: 0, prevoted: 0, alexLeaned: 0n, alexSaw: 0n, tvSawAlexMove: false, samSawOthers: false };
   const tick = setInterval(() => {
     const r = host.db.room.id.find(room.id);
     if (!r) return;
@@ -120,7 +122,22 @@ async function main(): Promise<void> {
           once(`${k}:obj`, () => h.conn.reducers.raiseObjection({ pitchId: current.id }));
           once(`${k}:react`, () => h.conn.reducers.react({ pitchId: current.id, emoji: '🔥' }));
         }
+        // Live Sway Meter: Alex leans toward whatever is being pitched; the TV only ever sees totals.
+        if (current) {
+          once(`${k}:lean`, () => h.conn.reducers.setLean({ roomId: r.id, optionId: current.optionId }).then(() => (sway.alexLeaned = current.optionId)));
+          const tv = [...host.db.roomSway.iter()].filter(x => x.roomId === r.id);
+          if (tv.length) {
+            sway.tvRows = Math.max(sway.tvRows, tv.length);
+            sway.tvFields = Object.keys(tv[0]!).sort().join(',');
+            sway.maxLeaning = Math.max(sway.maxLeaning, tv.reduce((n, x) => n + x.leaning, 0));
+            sway.prevoted = tv.reduce((n, x) => n + x.prevoted, 0);
+            if (sway.alexLeaned && tv.some(x => x.optionId === sway.alexLeaned && x.leaning > 0)) sway.tvSawAlexMove = true;
+          }
+          const mine = [...h.conn.db.myLean.iter()];
+          if (mine[0]) sway.alexSaw = mine[0].optionId;
+        }
       }
+      if (r.phase === 'playback' && h.name === 'Sam' && [...h.conn.db.myLean.iter()].some(l => l.playerId !== me.id)) sway.samSawOthers = true;
       if (r.phase === 'vote' && opts.length) once(k, () => h.conn.reducers.castVote({ roomId: r.id, optionId: opts[opts.length - 1].id }));
       if (r.phase === 'plan') {
         const plan = [...h.conn.db.plan.iter()].find(p => p.roomId === r.id);
@@ -173,6 +190,28 @@ async function main(): Promise<void> {
   check(pitches.every(p => p.rulingKind !== 'pending'), 'no ruling left pending');
   check([...host.db.objection.iter()].some(o => o.roomId === rid), 'an OBJECTION! was raised');
 
+  // Menu check (Sam is vegetarian, so every food finalist gets one; DEMO_MODE can't crawl, and says so)
+  // A live crawl takes ~40 s; the fast simulated game can finish first, so wait for it here.
+  await waitFor('menu check', () => [...host.db.menuProof.iter()].filter(m => m.roomId === rid).every(m => m.status !== 'checking'), LIVE ? 120_000 : 10_000).catch(() => undefined);
+  const proofs = [...host.db.menuProof.iter()].filter(m => m.roomId === rid);
+  for (const m of proofs) {
+    const o = options.find(x => x.id === m.optionId);
+    console.log(`${t()}  menu  ${o?.title}: ${m.status}${m.dishes.length ? ` → ${m.dishes.map(x => `[${x.diet}] ${x.dish}`).join(' | ')}` : ''}${m.sourceUrl ? `  (${m.sourceUrl})` : ''}`);
+  }
+  check(proofs.length === options.length && proofs.every(m => m.diets.includes('vegetarian')), `menu check queued for all ${options.length} finalists (diets: ${proofs[0]?.diets.join(', ')})`);
+  check(proofs.every(m => m.status !== 'checking'), `no menu check left spinning (${[...new Set(proofs.map(m => m.status))].join(', ')})`);
+  if (!LIVE) check(proofs.every(m => m.status === 'unavailable' && m.dishes.length === 0), 'offline mode labels the menu as not checked instead of inventing dishes');
+
+  // Live Sway Meter
+  check(sway.tvRows === options.length, `the TV saw live sway totals for all ${options.length} finalists during playback`);
+  check(sway.tvFields === 'leaning,optionId,prevoted,roomId', `sway rows are anonymous totals only (fields: ${sway.tvFields})`);
+  check(sway.prevoted === all.length && sway.maxLeaning <= all.length, `sway totals add up: ${sway.prevoted} pre-votes, at most ${sway.maxLeaning} leaning`);
+  check(sway.alexLeaned !== 0n && sway.alexSaw === sway.alexLeaned && sway.tvSawAlexMove, "Alex's lean changed live, Alex can see it, and the TV totals moved");
+  check(!sway.samSawOthers, "my_lean never shows anyone else's lean");
+  check(!('lean' in tables), 'the raw lean table is private (no client accessor)');
+  check([...host.db.roomSway.iter()].filter(x => x.roomId === rid).length === 0, 'the sway meter is hidden outside playback');
+  check(!!(await rejects(alex.reducers.setLean({ roomId: rid, optionId: options[0]!.id }))), 'leaning is only allowed during playback');
+
   const votes = [...host.db.vote.iter()].filter(v => v.roomId === rid);
   check(votes.length === all.length, `${votes.length} votes tallied`);
   const finalRoom = host.db.room.id.find(rid)!;
@@ -183,6 +222,18 @@ async function main(): Promise<void> {
   check(awards.some(a => a.kind === 'best_line'), `Best line: "${awards.find(a => a.kind === 'best_line')?.text}"`);
 
   const plan = [...host.db.plan.iter()].find(p => p.roomId === rid)!;
+  // Busyness-aware timing: only with real Google popular times for the winner, never invented.
+  const winnerOpt = options.find(o => o.id === plan.optionId);
+  const hasBusy = winnerOpt?.busyness.length === 168;
+  if (hasBusy) console.log(`${t()}  timing  ${winnerOpt?.title}: earliest free ${plan.naiveStartMin} min (${plan.naiveBusyPct}% busy) → chose ${plan.slotLabel} (${plan.busyPct}% busy)`);
+  check(
+    hasBusy ? plan.weekday >= 0 && plan.busyPct >= 0 && plan.naiveStartMin >= 0 && plan.busyPct <= plan.naiveBusyPct : plan.weekday === -1 && plan.busyPct === -1,
+    !hasBusy
+      ? 'no popular times for the winner, so the plan claims no busyness'
+      : plan.busyPct < plan.naiveBusyPct
+        ? `plan avoids the rush: ${plan.naiveBusyPct}% → ${plan.busyPct}% busy`
+        : `the earliest free slot was already the best trade-off (${plan.busyPct}% busy)`
+  );
   const start = new Date(Number(plan.startAt.microsSinceUnixEpoch / 1000n));
   check(plan.startAt.microsSinceUnixEpoch > 0n && plan.endAt.microsSinceUnixEpoch > plan.startAt.microsSinceUnixEpoch, `plan: ${plan.slotLabel} (${start.toString().slice(0, 21)}), can't make it: ${plan.cantMake.length}`);
   check(plan.inviteText.length > 0 && plan.whyForEach.length > 0, `invite: "${plan.inviteText.slice(0, 90)}…"`);

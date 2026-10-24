@@ -32,6 +32,18 @@ export const warmup = {
   }),
 };
 
+export const menuDiet = {
+  name: 'menu_diet',
+  instructions: [
+    "You read text crawled from one restaurant's own website, menu pages first.",
+    'For each diet given, list up to 3 dishes from THIS text that clearly fit it: marked (V), (VG), (GF) and the like, named vegan/vegetarian/gluten-free, or whose listed ingredients plainly fit (no meat or fish for vegetarian).',
+    'Copy each dish name exactly as written on the page. Never invent or reword dishes.',
+    'If the site only makes a general promise ("vegan dishes are always included"), return that sentence, copied exactly, as the only entry.',
+    'If nothing on the page fits a diet, return an empty list for it.',
+  ].join('\n'),
+  schema: z.object({ diets: z.array(z.object({ diet: z.string(), dishes: z.array(z.string().max(120)).max(3) })) }),
+};
+
 export const scoutQueries = {
   name: 'scout_queries',
   instructions: 'Given the group tags and category, return 2-4 Google Maps search strings that would find places this group would enjoy nearby.',

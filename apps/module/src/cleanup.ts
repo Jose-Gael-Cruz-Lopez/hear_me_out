@@ -117,6 +117,13 @@ export function applyFallback(ctx: Ctx, job: JobRow, error: string): void {
       if (best) ctx.db.award.insert({ id: 0n, roomId: r.id, kind: 'best_line', playerId: best.playerId, text: best.quote });
       return;
     }
+    case 'menu_check': {
+      // No crawl: say so on each card rather than leaving a spinner.
+      for (const row of [...ctx.db.menuProof.roomId.filter(r.id)]) {
+        if (row.status === 'checking') ctx.db.menuProof.optionId.update({ ...row, status: 'unavailable', checkedAt: ctx.timestamp });
+      }
+      return;
+    }
     case 'plan_copy': {
       const plan = ctx.db.plan.id.find(job.refId);
       if (plan && plan.status === 'drafting') ctx.db.plan.id.update({ ...plan, status: 'ready' });
@@ -134,12 +141,14 @@ export function deleteRoomData(ctx: Ctx, roomId: bigint): void {
     ctx.db.profileDraft.playerId.delete(p.id);
     ctx.db.assignment.playerId.delete(p.id);
     ctx.db.prevote.playerId.delete(p.id);
+    ctx.db.lean.playerId.delete(p.id);
     ctx.db.vote.playerId.delete(p.id);
     ctx.db.rsvp.playerId.delete(p.id);
     ctx.db.mergeVote.playerId.delete(p.id);
     ctx.db.player.id.delete(p.id);
   }
   for (const o of optionsIn(ctx, roomId)) ctx.db.option.id.delete(o.id);
+  for (const x of [...ctx.db.menuProof.roomId.filter(roomId)]) ctx.db.menuProof.optionId.delete(x.optionId);
   for (const p of pitchesIn(ctx, roomId)) ctx.db.pitch.id.delete(p.id);
   for (const x of [...ctx.db.objection.roomId.filter(roomId)]) ctx.db.objection.id.delete(x.id);
   for (const x of [...ctx.db.warmup.roomId.filter(roomId)]) ctx.db.warmup.id.delete(x.id);
