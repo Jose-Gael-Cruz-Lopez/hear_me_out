@@ -21,6 +21,8 @@ const venue: VenueRecord = {
 describe('factcheckLocal', () => {
   it('sustains a wrong closing time', () => {
     expect(factcheckLocal('Trust me, it is open until midnight!', venue)).toEqual({ kind: 'sustained', text: 'OBJECTION SUSTAINED: it closes at 9:00 PM, not midnight.' });
+    expect(factcheckLocal('Five stars and open until 2am. Trust me!', venue).text).toBe('OBJECTION SUSTAINED: it closes at 9:00 PM, not 2am.');
+    expect(factcheckLocal('It is open until 2 a.m. tonight', venue).text).toBe('OBJECTION SUSTAINED: it closes at 9:00 PM, not 2 a.m.');
   });
   it('verifies a true rating', () => {
     expect(factcheckLocal('It has 4.4 stars, people.', venue).kind).toBe('verified');

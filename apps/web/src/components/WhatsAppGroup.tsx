@@ -8,15 +8,26 @@ import { useCall, useRoom } from '../lib/room';
 import { toast } from '../lib/toast';
 
 /**
- * Public meetups, once confirmed: the WhatsApp group for the people going. The server only sends
- * my_group_chat to people who RSVP'd yes, so everyone else gets nothing here. Someone going creates
- * the group and pastes its invite; then everyone going sees a QR code, a join button and a share link.
+ * The WhatsApp group for the people going (friends games, and public meetups once confirmed). The
+ * server only sends my_group_chat to people who RSVP'd yes (and the host), so everyone else gets a
+ * hint at most. Someone going creates the group and pastes its invite; then everyone going sees a QR
+ * code, a join button and a share link. `onTv`: the friends-game TV, which shows the QR once it exists.
  */
-export function WhatsAppGroup() {
-  const { room } = useRoom();
+export function WhatsAppGroup({ onTv = false }: { onTv?: boolean }) {
+  const { room, plan, rsvps, me } = useRoom();
   const [rows] = useTable(tables.myGroupChat);
   const chat = rows.find(r => r.roomId === room.id);
-  if (room.mode !== 'strangers' || !chat) return null;
+  if (room.mode === 'queue') return null;
+  if (!chat) {
+    if (onTv || !plan) return null;
+    const going = rsvps.find(r => r.playerId === me?.id)?.status === 'yes';
+    const hint = !going
+      ? 'RSVP "I\'m in" to get the WhatsApp group.'
+      : room.mode === 'strangers' && !plan.meetupConfirmed
+        ? 'The WhatsApp group unlocks once 3 people are going.'
+        : '';
+    return hint ? <div className="text-center text-sm text-muted">{hint}</div> : null;
+  }
   return (
     <div className="card space-y-3 p-5">
       <div className="text-sm font-bold text-muted">WHATSAPP GROUP</div>

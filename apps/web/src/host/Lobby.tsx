@@ -126,7 +126,7 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
             <button className="chip bg-ink-3 px-4 py-2 text-cream ring-1 ring-white/10" disabled={!isHost || locating} onClick={useMyLocation}><IconText text={" 📍 "} />{locating ? 'Locating…' : "Use this computer's location"}
             </button>
             {DEMO_LOCATION && (
-              <button className="chip bg-ink-3 px-4 py-2 text-cream ring-1 ring-white/10" disabled={!isHost} onClick={() => (setWhere(DEMO_LOCATION), void saveSetup(category, DEMO_LOCATION))}><IconText text={" 🏛️ Demo spot "} /></button>
+              <button className="chip bg-ink-3 px-4 py-2 text-cream ring-1 ring-white/10" disabled={!isHost} onClick={() => (setWhere(DEMO_LOCATION), void saveSetup(category, DEMO_LOCATION))}><IconText text={` 🏛️ ${DEMO_LOCATION.split(',')[0]} `} /></button>
             )}
           </div>
         </div>

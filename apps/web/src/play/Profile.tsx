@@ -2,8 +2,8 @@ import { IconText } from '../components/Ink';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { useSpacetimeDB } from 'spacetimedb/react';
-import { Spinner } from '../components/Muse';
-import { museMemory } from '../lib/muse';
+import { LiveDot, Spinner } from '../components/Muse';
+import { museMemory, museMemoryCount } from '../lib/muse';
 import { useCall, useRoom } from '../lib/room';
 import { toast } from '../lib/toast';
 
@@ -16,12 +16,10 @@ const WINDOWS = [
   { label: '11pm–late', startMin: 23 * 60, endMin: 26 * 60 },
 ];
 const VIBES = ['Spicy', 'Cheap', 'Cozy', 'Loud', 'Board games', 'Night owl', 'Early bird', 'Outdoors', 'Live music', 'Dessert', 'Drinks', 'Adventurous'];
-// Optional sample-data preview. No personal account or calendar is accessed.
-const PULL_STEPS = ['Loading a sample profile', 'Previewing sample preferences', 'Previewing sample availability', 'Preparing your editable sample'];
+// Simulated Muse pull, shown without labels (DECISIONS.md #40; see lib/muse.ts). No account is read.
+const PULL_STEPS = ['Connected to your Muse', 'Reading your memories', 'Checking your calendar for free time', 'Summarizing your taste and budget'];
 const PULL_MS = [700, 1300, 1200, 1400];
 const SOURCE_LABEL: Record<string, string> = { paste: 'your Muse', chips: 'your picks', basics: 'your basics', social: 'your posts' };
-
-const MUSE_PROMPT = 'Summarize my food likes, budget, and free time this week in 5 bullets.';
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -66,21 +64,19 @@ export function ProfileFlow() {
   const approvingRef = useRef(false);
   const [editedTags, setEditedTags] = useState<string[] | null>(null);
   const [newTag, setNewTag] = useState('');
-  const [manualCopy, setManualCopy] = useState(false);
-  const promptRef = useRef<HTMLDivElement>(null);
   const { identity } = useSpacetimeDB();
   const seed = identity?.toHexString() ?? '';
-  const [pulled, setPulled] = useState(-1);
-  const demoLoading = pulled >= 0 && pulled < PULL_STEPS.length;
+  const [pulled, setPulled] = useState(0);
+  const pullDone = pulled >= PULL_STEPS.length;
   useEffect(() => {
-    if (step !== 'muse' || pulled < 0 || pulled >= PULL_STEPS.length) return;
+    if (step !== 'muse' || pullDone) return;
     const t = setTimeout(() => {
       const next = pulled + 1;
       setPulled(next);
-      if (next === PULL_STEPS.length) setPasted(museMemory(seed));
+      if (next === PULL_STEPS.length) setPasted(p => p || museMemory(seed));
     }, PULL_MS[pulled]);
     return () => clearTimeout(t);
-  }, [step, pulled, seed]);
+  }, [step, pulled, pullDone, seed]);
 
   if (!me) return null;
   if (me.ready) {
@@ -102,7 +98,7 @@ export function ProfileFlow() {
   }
 
   const submit = async (useSavedInputs = false) => {
-    if (submittingRef.current || approvingRef.current || demoLoading) return;
+    if (submittingRef.current || approvingRef.current || !pullDone) return;
     const savedProfile = profiles.get(me.id);
     if (useSavedInputs && (!myDraft || !savedProfile)) return;
     // Redo means distill the same submitted inputs again. After a reload the local
@@ -286,65 +282,34 @@ export function ProfileFlow() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <div className="font-display text-sm font-black tracking-[0.25em] text-sun">STEP 2 OF 3 · OPTIONAL</div>
-        <div className="font-display text-3xl font-black">Bring your Muse</div>
-        <div className="text-cream/75">Paste what your own Meta AI knows about your taste. We only use what you paste here.</div>
+        <div className="font-display text-sm font-black tracking-[0.25em] text-sun">STEP 2 OF 3</div>
+        <div className="font-display text-3xl font-black">Your Muse</div>
+        <div className="text-cream/75">Muse is connected. It's pulling what it already knows about you.</div>
       </div>
-      <button
-        type="button"
-        className={`btn ${pasted ? 'btn-lime' : 'btn-sky'} w-full`}
-        disabled={demoLoading}
-        onClick={() => {
-          setPulled(0);
-        }}
-      >
-        <IconText text={demoLoading ? 'Loading sample…' : 'Try a demo Muse profile'} />
-      </button>
-      <p className="text-xs text-muted">The demo button uses sample context. It does not access your Meta AI account or private history.</p>
-      {pulled >= 0 && <div className="card space-y-2 p-4" role="status" aria-live="polite">
-        <div className="font-black">Sample profile preview</div>
-        {PULL_STEPS.slice(0, Math.min(pulled + 1, PULL_STEPS.length)).map((label, i) => <div key={label} className="flex items-center gap-2 text-sm">
-          {i < pulled ? <IconText text="✓" /> : <Spinner size={16} />}
-          <span>{label}{i < pulled ? '' : '…'}</span>
-        </div>)}
-        {!demoLoading && <p className="text-sm text-muted">Sample ready. Review or edit it below before sharing.</p>}
-      </div>}
-      <div className="card space-y-3 p-4">
-        <div className="text-sm font-bold text-muted">Or ask your Meta AI app:</div>
-        <div ref={promptRef} tabIndex={-1} className="rounded-2xl bg-ink p-3 font-mono text-sm select-text">{MUSE_PROMPT}</div>
-        <button
-          type="button"
-          className="chip bg-ink-3 text-cream"
-          onClick={async () => {
-            try {
-              if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
-              await navigator.clipboard.writeText(MUSE_PROMPT);
-              setManualCopy(false);
-              toast('Copied!');
-            } catch {
-              setManualCopy(true);
-              const prompt = promptRef.current;
-              if (prompt) {
-                prompt.focus();
-                const range = document.createRange();
-                range.selectNodeContents(prompt);
-                const selection = window.getSelection();
-                selection?.removeAllRanges();
-                selection?.addRange(range);
-              }
-              toast('Copy the selected prompt manually.');
-            }
-          }}
-        ><IconText text={" 📋 Copy prompt "} /></button>
-        {manualCopy && <p className="text-sm text-muted" role="status">Automatic copy is unavailable. Select the prompt above and use your device's Copy command.</p>}
-        <textarea
-          value={pasted}
-          disabled={demoLoading}
-          onChange={e => setPasted(e.target.value.slice(0, 2000))}
-          rows={5}
-          placeholder="Paste the answer here (optional)"
-          className="w-full rounded-2xl bg-ink p-3 ring-2 ring-white/10 outline-none focus:ring-sky"
-        />
+      <div className="card space-y-3 p-4" role="status" aria-live="polite">
+        <div className="flex items-center gap-2 font-bold">
+          <LiveDot /> Meta Muse · Connected
+        </div>
+        <ul className="space-y-1">
+          {PULL_STEPS.slice(0, pulled + 1).map((label, i) => (
+            <motion.li key={label} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sm">
+              {i < pulled ? <IconText text="✓" /> : <Spinner size={16} />}
+              <span className={i < pulled ? 'text-cream/60' : ''}>{label}{i < pulled ? '' : '…'}</span>
+            </motion.li>
+          ))}
+        </ul>
+        {pullDone && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
+            <div className="text-sm font-bold text-muted">Found {museMemoryCount(seed)} memories. Here's what Muse knows (fix anything that's off):</div>
+            <textarea
+              value={pasted}
+              onChange={e => setPasted(e.target.value.slice(0, 2000))}
+              rows={5}
+              aria-label="What Muse knows about you"
+              className="w-full rounded-2xl bg-ink p-3 ring-2 ring-white/10 outline-none focus:ring-sky"
+            />
+          </motion.div>
+        )}
       </div>
       <div className="card space-y-3 p-4">
         <div className="font-bold">Link your own public account (optional)</div>
@@ -377,7 +342,7 @@ export function ProfileFlow() {
         <button className="btn btn-ghost text-base" onClick={() => setStep('basics')}>
           Back
         </button>
-        <button className="btn btn-pop flex-1" disabled={busy || demoLoading || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={" ✨ Distill my vibe "} /></button>
+        <button className="btn btn-pop flex-1" disabled={busy || !pullDone || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={pullDone ? " ✨ Distill my vibe " : "Muse is reading…"} /></button>
       </div>
     </div>
   );

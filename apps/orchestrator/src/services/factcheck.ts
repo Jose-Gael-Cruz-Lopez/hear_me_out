@@ -62,7 +62,10 @@ const checkHours: Check = (t, v) => {
   for (const m of t.matchAll(re)) {
     const claimed = parseClaimTime(m[1]);
     if (claimed === null) continue;
-    if (claimed > close + 15) return { kind: 'sustained', text: `OBJECTION SUSTAINED: it closes at ${closeText}, not ${m[1].trim()}.` };
+    if (claimed > close + 15) {
+      const said = m[1].trim(); // "2am." or "2 a.m." already ends the sentence
+      return { kind: 'sustained', text: `OBJECTION SUSTAINED: it closes at ${closeText}, not ${said}${said.endsWith('.') ? '' : '.'}` };
+    }
     verified ??= { kind: 'verified', text: `Claim verified: open until ${closeText} tonight.` };
   }
   return verified;

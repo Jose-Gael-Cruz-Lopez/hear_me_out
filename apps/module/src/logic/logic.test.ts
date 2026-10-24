@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { assignDefenders } from './assign';
 import { formatSlotLabel, localMidnightMicros, localMinutes, pickSlot } from './slot';
 import { mostPersuasive, tallyVotes } from './tally';
-import { sanitizeTag, sanitizeTags, topTags } from './text';
+import { sanitizeTag, sanitizeTags, topTags, uniqueName } from './text';
 import { makeRoomCode } from './codes';
 import { bestLineFallback } from './fallbacks';
 
@@ -103,6 +103,10 @@ describe('tally', () => {
 });
 
 describe('text', () => {
+  it('numbers a name someone already has', () => {
+    expect(uniqueName('Sam', ['Leo'])).toBe('Sam');
+    expect(uniqueName('sam', ['Sam', 'Sam 2'])).toBe('sam 3');
+  });
   it('sanitizes tags', () => {
     expect(sanitizeTag('  Spicy Food!! ')).toBe('spicy-food');
     expect(sanitizeTags(['A', 'a', 'B c', ''], 8)).toEqual(['a', 'b-c']);

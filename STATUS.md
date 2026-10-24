@@ -9,12 +9,14 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Up next / on hold
 
-- Muse labels: Jose's commits label the Muse connection, connectors and reservation as demos (DECISIONS #40 rewritten); main had them unlabeled. `deploy-combined` keeps the labels. Needs a team decision.
+- Muse labels: Anish decided Muse shows as connected with no demo labels (DECISIONS #40); `deploy-combined` now does that. Jose's labeled version is superseded, so check before re-adding labels.
+- Maincloud needs `pnpm db:maincloud` for the duplicate-name fix (no schema change).
 - Rest of the WhatsApp UI is on hold by request (the public-meetup QR is done). Not planned: showing it on the TV, which is a shared screen in the room.
 - Trov: the repo was connected but the dashboard still lists no repos for the org (`repos: []`, branches "not connected"). A Trov admin needs to run **Sync GitHub** / give Trov's GitHub app access to jacky_boxie in the web app.
 
 ## Done recently
 
+- Duplicate names no longer block joining; friends can rejoin under their name; WhatsApp group in friends games (phones + TV); Muse shown as connected again; Judge's double period fixed; new README screenshots. · Anish (Claude Code)
 - Text-free event cover art instead of generated flyers, hardened game controls, labeled Muse demo, merged-attendee counts, Figma/UI verification (`b2532ea`…`dd46dd1`). · Jose
 - WhatsApp QR on the public-meetup plan screen (phones), with a paste box for the invite. · diyab (Claude Code)
 - Agent workflow: `AGENTS.md` router, full `CLAUDE.md` guide, this file, `pre-push` hook, Trov entry per push. · diyab (Claude Code)
@@ -39,6 +41,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Verified:**
 - **Not done / unverified:**
 -->
+
+### 2026-10-24 · deploy-combined · Anish (Claude Code)
+- **Changed:** (1) Names: "Find my people" is one shared queue per category, so a stale or repeated first name (e.g. "anish") blocked everyone else and the queue capped at 8; now the queue has no cap or name rule and the matcher numbers clashes ("Sam 2"). In friends games, joining with a disconnected player's name takes back that seat from a new window; any other clash gets a number instead of an error (DECISIONS #45). (2) WhatsApp group now shows in friends games too: on phones after "I'm in" (with a hint before), and on the friends-game TV once someone adds the invite (#44). (3) Muse is shown as connected again with no demo wording: home pill, profile auto-pull, "Reserved · Booked by Muse"; the TV lobby's "Demo spot" button now shows the street (#40, `CLAUDE.md` rule). (4) The Judge's ruling no longer ends in ".." ("not 2am."). (5) README screenshots retaken in the new UI.
+- **Verified:** `pnpm typecheck` clean, `pnpm test` 54/54 (new tests for the ruling text and name numbering), `pnpm sim` 24, `pnpm sim:strangers` 15, `pnpm sim:match` 16 (new: a stale queue name doesn't block, friends rejoin keeps the seat, a second "Zed" becomes "Zed 2"), `pnpm web:build:maincloud` built. In the browser against a local server: home "Muse is connected" dialog, profile auto-pull, a friends game through to the plan with "Reserved", the WhatsApp paste box, then the QR on the phone and on the TV; no console errors.
+- **Not done / unverified:** Maincloud not republished (needs `pnpm db:maincloud`) and not deployed to Vercel. QR not scanned with a real phone. Trov: not posted (no access).
 
 ### 2026-10-24 · deploy-combined · Anish (Claude Code)
 - **Changed:** new branch that merges the default branch (WhatsApp QR, STATUS.md, pre-push hook) with Jose's latest `codex/find-my-people-design` commits (cover art, hardened controls, labeled Muse demo). No conflicts. Jose's labeled Muse wording won the merge in `CLAUDE.md` and DECISIONS #40. No backend changes since `82e7020`, which Maincloud already runs.

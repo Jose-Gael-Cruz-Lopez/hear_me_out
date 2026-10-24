@@ -6,6 +6,7 @@ import { Link, useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
+import { WhatsAppGroup } from '../components/WhatsAppGroup';
 import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { useRoom } from '../lib/room';
 import { play } from '../lib/sound';
@@ -321,6 +322,8 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
           />
         )}
         <div className="card p-5 text-xl">{plan.inviteText}</div>
+        {/* Friends only: a public meetup's TV is seen by people who haven't RSVP'd. */}
+        {room.mode === 'friends' && <WhatsAppGroup onTv />}
         <div className="card p-5">
           <div className="mb-3 font-display text-xl font-black text-lime">Why this works for everyone</div>
           <ul className="space-y-2">

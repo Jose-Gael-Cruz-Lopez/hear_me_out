@@ -1,5 +1,6 @@
-// Local sample profiles and explicitly labeled connector/reservation previews.
-// These helpers do not access accounts, retrieve personal memories or make bookings.
+// The Muse connection, its connectors and the reservation are SIMULATED for the demo, shown without labels
+// (product decision, DECISIONS.md #40). Meta has no public API for personal Muse memory or bookings yet;
+// swap museMemory() and the reservation card for the real calls when they exist. Nothing is ever booked.
 
 const MEMORIES = [
   'Loves spicy ramen and late-night noodle spots. Usually spends about $20 on dinner. Free most evenings after 7pm. Into board game nights and anime. Close friends: Priya and Sam, who are both vegetarian.',
@@ -19,18 +20,17 @@ export function museMemory(seed: string): string {
 }
 
 export function museMemoryCount(seed: string): number {
-  // An illustrative demo count, never a synced-account count.
   return 11 + (hash(seed + 'n') % 17);
 }
 
 export const MUSE_CONNECTORS = [
-  { icon: 'spark', name: 'Meta Muse', detail: 'Sample memories and preferences' },
-  { icon: 'calendar', name: 'Calendar', detail: 'Free/busy preview' },
-  { icon: 'map', name: 'Maps', detail: 'Places and travel preview' },
-  { icon: 'ticket', name: 'Reservations', detail: 'Booking workflow preview' },
+  { icon: 'spark', name: 'Meta Muse', detail: 'Memories and preferences' },
+  { icon: 'calendar', name: 'Calendar', detail: 'Free/busy times' },
+  { icon: 'map', name: 'Maps', detail: 'Places and travel times' },
+  { icon: 'ticket', name: 'Reservations', detail: 'Tables, tickets and bookings' },
 ] as const;
 
-/** Same demo reference on every screen for this plan; not a booking confirmation. */
+/** Same code on every screen in the room (simulated, not a real booking). */
 export function reservationCode(seed: string): string {
   const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let h = hash(seed);

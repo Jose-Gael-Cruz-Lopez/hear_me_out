@@ -2,6 +2,7 @@ import { ScheduleAt } from 'spacetimedb';
 import { enqueueJob, playersIn, startGame, type Ctx, type RoomRow } from './core';
 import { makeRoomCode } from './logic/codes';
 import { groupName } from './logic/match';
+import { uniqueName } from './logic/text';
 
 /** A fresh room row. Matchmaking rooms are owned by the module itself (no human host, timers drive everything). */
 export function insertRoom(ctx: Ctx, f: { mode: string; category: string; locationLabel: string; tzOffsetMin: number; fastMode: boolean; isPublic: boolean; aiStatus?: string }): RoomRow {
@@ -77,8 +78,11 @@ export function tryMatch(ctx: Ctx, q: RoomRow, quiet: boolean): void {
   const why = shared.length ? `You matched on ${shared.map(t => `#${t}`).join(', ')}.` : 'You matched: new people, new vibes.';
 
   const room = insertRoom(ctx, { mode: 'strangers', category: q.category, locationLabel: q.locationLabel, tzOffsetMin: q.tzOffsetMin, fastMode: q.fastMode, isPublic: false, aiStatus: why });
+  const names: string[] = [];
   group.forEach((p, seat) => {
-    ctx.db.player.id.update({ ...p, roomId: room.id, seat, ready: true, actedSeq: 0 });
+    const name = uniqueName(p.name, names);
+    names.push(name);
+    ctx.db.player.id.update({ ...p, name, roomId: room.id, seat, ready: true, actedSeq: 0 });
     const pub = ctx.db.profilePublic.playerId.find(p.id);
     if (pub) ctx.db.profilePublic.playerId.update({ ...pub, roomId: room.id });
     const draft = ctx.db.profileDraft.playerId.find(p.id);

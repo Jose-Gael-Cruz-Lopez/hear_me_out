@@ -3,6 +3,14 @@ export function clampText(s: string, max: number): string {
   return trimmed.length > max ? trimmed.slice(0, max) : trimmed;
 }
 
+/** `name`, or "Sam 2", "Sam 3"… when someone already has it (case-insensitive). */
+export function uniqueName(name: string, taken: readonly string[]): string {
+  const used = new Set(taken.map(n => n.toLowerCase()));
+  let out = name;
+  for (let n = 2; used.has(out.toLowerCase()); n++) out = `${name} ${n}`;
+  return out;
+}
+
 /** Lowercase kebab-case, letters/digits only, at most 24 chars. Returns '' for junk. */
 export function sanitizeTag(raw: string): string {
   return raw
