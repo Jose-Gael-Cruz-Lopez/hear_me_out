@@ -145,6 +145,7 @@ export function deleteRoomData(ctx: Ctx, roomId: bigint): void {
   for (const x of [...ctx.db.warmup.roomId.filter(roomId)]) ctx.db.warmup.id.delete(x.id);
   for (const x of [...ctx.db.award.roomId.filter(roomId)]) ctx.db.award.id.delete(x.id);
   for (const x of [...ctx.db.media.roomId.filter(roomId)]) ctx.db.media.id.delete(x.id);
+  for (const x of [...ctx.db.report.roomId.filter(roomId)]) ctx.db.report.id.delete(x.id);
   for (const x of [...ctx.db.aiJob.roomId.filter(roomId)]) ctx.db.aiJob.id.delete(x.id);
   for (const x of [...ctx.db.mergeOffer.roomA.filter(roomId)]) ctx.db.mergeOffer.id.delete(x.id);
   for (const x of [...ctx.db.mergeOffer.roomB.filter(roomId)]) ctx.db.mergeOffer.id.delete(x.id);

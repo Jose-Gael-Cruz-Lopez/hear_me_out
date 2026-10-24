@@ -3,6 +3,7 @@ import { ScheduleAt, Timestamp, type Infer } from 'spacetimedb';
 import spacetimedb, { option, pitch, player, room } from './schema';
 import { assignDefenders } from './logic/assign';
 import { botPitchText, defaultBrief, defaultInvite, type VenueFacts } from './logic/fallbacks';
+import { mergeIntroFallback } from './logic/match';
 import { formatSlotLabel, localMidnightMicros, localMinutes, pickSlot } from './logic/slot';
 import { mostPersuasive, tallyVotes } from './logic/tally';
 import { topTags } from './logic/text';
@@ -27,7 +28,8 @@ export type JobKind =
   | 'plan_copy'
   | 'poster'
   | 'icebreakers'
-  | 'match_blurb';
+  | 'match_blurb'
+  | 'merge_intro';
 
 // ---------- Auth ----------
 
@@ -429,6 +431,67 @@ function endVote(ctx: Ctx, r: RoomRow): void {
   const next = setPhase(ctx, r, 'results', undefined, { winnerOptionId: winner.id, tiebreakText: result.tiebreakText });
   const planId = createPlan(ctx, next, winner, players);
   enqueueJob(ctx, r.id, 'plan_copy', planId);
+  proposeMerges(ctx, next, planId, winner);
+}
+
+/** Another room picked the same place at an overlapping time: offer to merge tables (bots say yes). */
+function proposeMerges(ctx: Ctx, r: RoomRow, planId: bigint, winner: OptionRow): void {
+  const mine = ctx.db.plan.id.find(planId);
+  if (!mine) return;
+  for (const other of [...ctx.db.plan.iter()]) {
+    if (other.roomId === r.id) continue;
+    const otherOption = ctx.db.option.id.find(other.optionId);
+    const otherRoom = ctx.db.room.id.find(other.roomId);
+    if (!otherOption || !otherRoom || otherOption.placeId !== winner.placeId || otherRoom.phase === 'ended') continue;
+    const overlaps =
+      other.startAt.microsSinceUnixEpoch < mine.endAt.microsSinceUnixEpoch && mine.startAt.microsSinceUnixEpoch < other.endAt.microsSinceUnixEpoch;
+    if (!overlaps) continue;
+    const exists = [...ctx.db.mergeOffer.roomA.filter(other.roomId)].some(o => o.roomB === r.id);
+    if (exists) continue;
+    const offer = ctx.db.mergeOffer.insert({
+      id: 0n,
+      roomA: other.roomId,
+      roomB: r.id,
+      venueTitle: winner.title,
+      slotLabel: other.slotLabel,
+      status: 'open',
+      introText: mergeIntroFallback(otherRoom.groupName || 'Group A', r.groupName || 'Group B', winner.title, other.slotLabel),
+      createdAt: ctx.timestamp,
+    });
+    for (const roomId of [other.roomId, r.id]) {
+      for (const p of playersIn(ctx, roomId)) {
+        if (p.isBot && !ctx.db.mergeVote.playerId.find(p.id)) ctx.db.mergeVote.insert({ playerId: p.id, offerId: offer.id, roomId, yes: true });
+      }
+    }
+    settleMergeOffer(ctx, offer.id);
+  }
+}
+
+/** Accept when both rooms have a yes majority, decline when either has a no majority. */
+export function settleMergeOffer(ctx: Ctx, offerId: bigint): void {
+  const offer = ctx.db.mergeOffer.id.find(offerId);
+  if (!offer || offer.status !== 'open') return;
+  const verdict = (roomId: bigint): 'yes' | 'no' | 'pending' => {
+    const n = playersIn(ctx, roomId).length;
+    const votes = [...ctx.db.mergeVote.offerId.filter(offerId)].filter(v => v.roomId === roomId);
+    const yes = votes.filter(v => v.yes).length;
+    if (yes * 2 > n) return 'yes';
+    if ((votes.length - yes) * 2 >= n) return 'no';
+    return 'pending';
+  };
+  const a = verdict(offer.roomA);
+  const b = verdict(offer.roomB);
+  if (a === 'no' || b === 'no') {
+    ctx.db.mergeOffer.id.update({ ...offer, status: 'declined' });
+    return;
+  }
+  if (a !== 'yes' || b !== 'yes') return;
+  ctx.db.mergeOffer.id.update({ ...offer, status: 'accepted' });
+  const planA = ctx.db.plan.roomId.find(offer.roomA);
+  const planB = ctx.db.plan.roomId.find(offer.roomB);
+  if (planA) ctx.db.plan.id.update({ ...planA, mergedWithRoomId: offer.roomB });
+  if (planB) ctx.db.plan.id.update({ ...planB, mergedWithRoomId: offer.roomA });
+  enqueueJob(ctx, offer.roomA, 'merge_intro', offer.id);
 }
 
 function createPlan(ctx: Ctx, r: RoomRow, winner: OptionRow, players: PlayerRow[]): bigint {
@@ -439,8 +502,10 @@ function createPlan(ctx: Ctx, r: RoomRow, winner: OptionRow, players: PlayerRow[
     windows: ctx.db.profilePublic.playerId.find(p.id)?.availability ?? [],
   }));
   const slotLen = r.category === 'activity' ? 120 : r.category === 'movie' ? 150 : 90;
+  // Public meetups advertise a start time; never plan earlier than that.
+  const fromMin = r.targetStartMin >= 0 ? Math.max(nowMin, r.targetStartMin - 30) : nowMin;
   const slot = pickSlot({
-    nowMin,
+    nowMin: fromMin,
     players: slotPlayers,
     venue: { hoursKnown: winner.hoursKnown, open: winner.openIntervals },
     slotLen,
@@ -467,6 +532,7 @@ function createPlan(ctx: Ctx, r: RoomRow, winner: OptionRow, players: PlayerRow[
     icebreakers: [],
     status: 'drafting',
     meetupConfirmed: false,
+    mergedWithRoomId: 0n,
   });
   for (const p of players) {
     if (p.isBot) {

@@ -15,6 +15,9 @@ import { membersOf, optionsOf, playersOf, profileOf, roomOf } from './deps';
 
 export type Handler = (job: AiJob, d: Deps) => Promise<void>;
 
+/** Thrown when there is nothing to improve (e.g. Muse offline): the module's offline content stays. */
+export class SkipJob extends Error {}
+
 function payload<T>(job: AiJob): T {
   try {
     return JSON.parse(job.payloadJson || '{}') as T;
@@ -448,7 +451,34 @@ const poster: Handler = async (job, d) => {
   await d.conn.reducers.finishPoster({ jobId: job.id, posterUrl: '', mime: '', bytes: new Uint8Array() });
 };
 
+// ---------- Strangers mode ----------
+
+const match_blurb: Handler = async (job, d) => {
+  const { shared = [], players = 0 } = payload<{ shared?: string[]; players?: number }>(job);
+  const out = await d.muse.json({ ...prompts.matchBlurb, input: { sharedTags: shared, peopleInLobby: players }, effort: 'minimal', roomId: job.roomId });
+  if (!out) throw new SkipJob('Muse offline: keeping the offline blurb');
+  await d.conn.reducers.finishMatchBlurb({ jobId: job.id, line: out.line });
+};
+
+const merge_intro: Handler = async (job, d) => {
+  const offer = d.conn.db.mergeOffer.id.find(job.refId);
+  if (!offer) throw new Error('offer gone');
+  const roomA = roomOf(d.conn, offer.roomA);
+  const roomB = roomOf(d.conn, offer.roomB);
+  const tags = (roomId: bigint) => playersOf(d.conn, roomId).flatMap(p => profileOf(d.conn, p.id)?.approvedTags ?? []);
+  const out = await d.muse.json({
+    ...prompts.mergeIntro,
+    input: { groupA: roomA?.groupName, groupB: roomB?.groupName, venue: offer.venueTitle, time: offer.slotLabel, tagsA: tags(offer.roomA), tagsB: tags(offer.roomB) },
+    effort: 'minimal',
+    roomId: job.roomId,
+  });
+  if (!out) throw new SkipJob('Muse offline: keeping the offline intro');
+  await d.conn.reducers.finishMergeIntro({ jobId: job.id, text: out.text });
+};
+
 export const handlers: Record<string, Handler> = {
+  match_blurb,
+  merge_intro,
   distill_profile,
   warmup,
   scout,

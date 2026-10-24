@@ -155,4 +155,9 @@ export const setRsvp = spacetimedb.reducer({ planId: t.u64(), status: t.string()
   const row = { playerId: me.id, planId, roomId: plan.roomId, status };
   if (ctx.db.rsvp.playerId.find(me.id)) ctx.db.rsvp.playerId.update(row);
   else ctx.db.rsvp.insert(row);
+  // Public meetups only count as confirmed once at least 3 people say yes.
+  const yes = [...ctx.db.rsvp.planId.filter(planId)].filter(x => x.status === 'yes').length;
+  const confirmed = yes >= 3;
+  const fresh = ctx.db.plan.id.find(planId);
+  if (fresh && fresh.meetupConfirmed !== confirmed) ctx.db.plan.id.update({ ...fresh, meetupConfirmed: confirmed });
 });

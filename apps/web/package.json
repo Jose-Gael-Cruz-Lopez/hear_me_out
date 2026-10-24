@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.2.0",
     "@hmo/bindings": "workspace:*",
+    "@hmo/module": "workspace:*",
     "@hmo/shared": "workspace:*",
     "canvas-confetti": "^1.9.3",
     "motion": "^12.23.0",

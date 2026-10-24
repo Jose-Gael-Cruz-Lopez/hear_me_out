@@ -15,6 +15,7 @@ import {
 import { deleteRoomData } from '../cleanup';
 import { BOT_PRESETS } from '../logic/bots';
 import { makeRoomCode, normalizeCode } from '../logic/codes';
+import { groupName, isFirstName } from '../logic/match';
 import { clampText } from '../logic/text';
 import { MAX_PLAYERS } from '../logic/timing';
 
@@ -56,6 +57,8 @@ export const createRoom = spacetimedb.reducer(
       tiebreakText: '',
       fastMode,
       createdAt: ctx.timestamp,
+      groupName: groupName(n => ctx.random.integerInRange(0, n - 1)),
+      targetStartMin: -1,
     });
   }
 );
@@ -91,37 +94,49 @@ export const setRoomSetup = spacetimedb.reducer(
   }
 );
 
-export const joinRoom = spacetimedb.reducer(
-  { code: t.string(), name: t.string(), avatar: t.string() },
-  (ctx, { code, name, avatar }) => {
-    const r = ctx.db.room.code.find(normalizeCode(code));
-    if (!r) throw new SenderError('No room with that code.');
-    const cleanName = clampText(name, 20);
-    if (!cleanName) throw new SenderError('Pick a name.');
-    const cleanAvatar = clampText(avatar, 8) || '🙂';
+function addPlayer(ctx: Ctx, code: string, name: string, avatar: string, publicJoin: boolean): void {
+  const r = ctx.db.room.code.find(normalizeCode(code));
+  if (!r) throw new SenderError('No room with that code.');
+  if (r.mode === 'strangers' && !publicJoin) throw new SenderError('This is a public meetup: confirm you are 18+ to join.');
+  const cleanName = clampText(name, 20);
+  if (!cleanName) throw new SenderError('Pick a name.');
+  if (r.mode === 'strangers' && !isFirstName(cleanName)) throw new SenderError('Public meetups use first names only (one word).');
+  const cleanAvatar = clampText(avatar, 8) || '🙂';
 
-    const existing = findMyPlayer(ctx, r.id);
-    if (existing) {
-      ctx.db.player.id.update({ ...existing, name: cleanName, avatar: cleanAvatar, connected: true });
-      return;
-    }
-    if (r.phase !== 'lobby' && r.phase !== 'profiles') throw new SenderError('This game already started.');
-    const players = playersIn(ctx, r.id);
-    if (players.length >= MAX_PLAYERS) throw new SenderError('This room is full.');
-    if (players.some(p => p.name.toLowerCase() === cleanName.toLowerCase())) throw new SenderError('Someone already has that name.');
-    ctx.db.player.insert({
-      id: 0n,
-      identity: ctx.sender,
-      roomId: r.id,
-      name: cleanName,
-      avatar: cleanAvatar,
-      isBot: false,
-      connected: true,
-      ready: false,
-      actedSeq: 0,
-      seat: nextSeat(ctx, r.id),
-      joinedAt: ctx.timestamp,
-    });
+  const existing = findMyPlayer(ctx, r.id);
+  if (existing) {
+    ctx.db.player.id.update({ ...existing, name: cleanName, avatar: cleanAvatar, connected: true });
+    return;
+  }
+  if (r.phase !== 'lobby' && r.phase !== 'profiles') throw new SenderError('This game already started.');
+  const players = playersIn(ctx, r.id);
+  if (players.length >= MAX_PLAYERS) throw new SenderError('This room is full.');
+  if (players.some(p => p.name.toLowerCase() === cleanName.toLowerCase())) throw new SenderError('Someone already has that name.');
+  ctx.db.player.insert({
+    id: 0n,
+    identity: ctx.sender,
+    roomId: r.id,
+    name: cleanName,
+    avatar: cleanAvatar,
+    isBot: false,
+    connected: true,
+    ready: false,
+    actedSeq: 0,
+    seat: nextSeat(ctx, r.id),
+    joinedAt: ctx.timestamp,
+  });
+}
+
+export const joinRoom = spacetimedb.reducer({ code: t.string(), name: t.string(), avatar: t.string() }, (ctx, { code, name, avatar }) =>
+  addPlayer(ctx, code, name, avatar, false)
+);
+
+/** Public meetups: 18+ confirmation and first names only. */
+export const joinPublicRoom = spacetimedb.reducer(
+  { code: t.string(), name: t.string(), avatar: t.string(), confirmed18: t.bool() },
+  (ctx, { code, name, avatar, confirmed18 }) => {
+    if (!confirmed18) throw new SenderError('Public meetups are 18+ only.');
+    addPlayer(ctx, code, name, avatar, true);
   }
 );
 

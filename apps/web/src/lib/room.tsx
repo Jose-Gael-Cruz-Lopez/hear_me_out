@@ -6,6 +6,8 @@ import {
   type Award,
   type DbConnection,
   type Media,
+  type MergeOffer,
+  type MergeVote,
   type Objection,
   type Option,
   type Pitch,
@@ -43,6 +45,8 @@ export interface RoomData {
   me: Player | undefined;
   myDraft: ProfileDraft | undefined;
   myPrevoteOptionId: bigint | undefined;
+  mergeOffers: MergeOffer[];
+  mergeVotes: MergeVote[];
   playerById: (id: bigint) => Player | undefined;
   optionById: (id: bigint) => Option | undefined;
 }
@@ -74,6 +78,8 @@ export function RoomDataProvider({ room, withMedia, children }: { room: Room; wi
   const [allMedia] = useTable(tables.media.where(m => m.roomId.eq(id)), { enabled: withMedia });
   const [posterMedia] = useTable(tables.media.where(m => m.roomId.eq(id).and(m.kind.eq('poster'))), { enabled: !withMedia });
   const media = withMedia ? allMedia : posterMedia;
+  const [mergeOffers] = useTable(tables.mergeOffer.where(o => o.roomA.eq(id).or(o.roomB.eq(id))));
+  const [mergeVotes] = useTable(tables.mergeVote);
   const [drafts] = useTable(tables.myProfileDraft);
   const [prevotes] = useTable(tables.myPrevote);
 
@@ -100,10 +106,12 @@ export function RoomDataProvider({ room, withMedia, children }: { room: Room; wi
       me,
       myDraft: me ? drafts.find(d => d.playerId === me.id) : undefined,
       myPrevoteOptionId: me ? prevotes.find(p => p.playerId === me.id)?.optionId : undefined,
+      mergeOffers: [...mergeOffers].sort((a, b) => Number(b.id - a.id)),
+      mergeVotes: mergeVotes.filter(v => mergeOffers.some(o => o.id === v.offerId)),
       playerById: (pid: bigint) => sortedPlayers.find(p => p.id === pid),
       optionById: (oid: bigint) => sortedOptions.find(o => o.id === oid),
     };
-  }, [room, players, profiles, options, assignments, pitches, warmups, votes, awards, plans, rsvps, objections, media, drafts, prevotes, identity]);
+  }, [room, players, profiles, options, assignments, pitches, warmups, votes, awards, plans, rsvps, objections, media, drafts, prevotes, mergeOffers, mergeVotes, identity]);
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
 }

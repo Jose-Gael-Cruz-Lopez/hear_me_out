@@ -37,6 +37,7 @@ import {
 import AddBotReducer from "./add_bot_reducer";
 import AnswerWarmupReducer from "./answer_warmup_reducer";
 import ApproveTagsReducer from "./approve_tags_reducer";
+import BrowseLobbiesReducer from "./browse_lobbies_reducer";
 import CacheVenuesReducer from "./cache_venues_reducer";
 import CastPrevoteReducer from "./cast_prevote_reducer";
 import CastVoteReducer from "./cast_vote_reducer";
@@ -51,16 +52,21 @@ import FinishBotPitchesReducer from "./finish_bot_pitches_reducer";
 import FinishCurateReducer from "./finish_curate_reducer";
 import FinishDistillReducer from "./finish_distill_reducer";
 import FinishFactcheckReducer from "./finish_factcheck_reducer";
+import FinishMatchBlurbReducer from "./finish_match_blurb_reducer";
+import FinishMergeIntroReducer from "./finish_merge_intro_reducer";
 import FinishPlanCopyReducer from "./finish_plan_copy_reducer";
 import FinishPosterReducer from "./finish_poster_reducer";
 import FinishScoutReducer from "./finish_scout_reducer";
 import FinishTranscribeReducer from "./finish_transcribe_reducer";
 import FinishWarmupReducer from "./finish_warmup_reducer";
+import JoinPublicRoomReducer from "./join_public_room_reducer";
 import JoinRoomReducer from "./join_room_reducer";
 import KickPlayerReducer from "./kick_player_reducer";
 import LeaveRoomReducer from "./leave_room_reducer";
 import RaiseObjectionReducer from "./raise_objection_reducer";
 import ReactReducer from "./react_reducer";
+import ReportPlayerReducer from "./report_player_reducer";
+import SetMeetupDetailsReducer from "./set_meetup_details_reducer";
 import SetRoomSetupReducer from "./set_room_setup_reducer";
 import SetRsvpReducer from "./set_rsvp_reducer";
 import SkipPhaseReducer from "./skip_phase_reducer";
@@ -68,6 +74,7 @@ import StartGameReducer from "./start_game_reducer";
 import SubmitProfileReducer from "./submit_profile_reducer";
 import SubmitTypedPitchReducer from "./submit_typed_pitch_reducer";
 import UploadPitchAudioReducer from "./upload_pitch_audio_reducer";
+import VoteMergeReducer from "./vote_merge_reducer";
 import WhoAmIReducer from "./who_am_i_reducer";
 import WriteLiveCaptionReducer from "./write_live_caption_reducer";
 
@@ -81,6 +88,7 @@ import AwardRow from "./award_table";
 import MediaRow from "./media_table";
 import MergeOfferRow from "./merge_offer_table";
 import MergeVoteRow from "./merge_vote_table";
+import MyLobbyMatchesRow from "./my_lobby_matches_table";
 import MyPrevoteRow from "./my_prevote_table";
 import MyProfileDraftRow from "./my_profile_draft_table";
 import ObjectionRow from "./objection_table";
@@ -339,6 +347,13 @@ const tablesSchema = __schema({
     constraints: [
     ],
   }, AdminVenueCacheRow),
+  myLobbyMatches: __table({
+    name: 'my_lobby_matches',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, MyLobbyMatchesRow),
   myPrevote: __table({
     name: 'my_prevote',
     indexes: [
@@ -360,6 +375,7 @@ const reducersSchema = __reducers(
   __reducerSchema("add_bot", AddBotReducer),
   __reducerSchema("answer_warmup", AnswerWarmupReducer),
   __reducerSchema("approve_tags", ApproveTagsReducer),
+  __reducerSchema("browse_lobbies", BrowseLobbiesReducer),
   __reducerSchema("cache_venues", CacheVenuesReducer),
   __reducerSchema("cast_prevote", CastPrevoteReducer),
   __reducerSchema("cast_vote", CastVoteReducer),
@@ -374,16 +390,21 @@ const reducersSchema = __reducers(
   __reducerSchema("finish_curate", FinishCurateReducer),
   __reducerSchema("finish_distill", FinishDistillReducer),
   __reducerSchema("finish_factcheck", FinishFactcheckReducer),
+  __reducerSchema("finish_match_blurb", FinishMatchBlurbReducer),
+  __reducerSchema("finish_merge_intro", FinishMergeIntroReducer),
   __reducerSchema("finish_plan_copy", FinishPlanCopyReducer),
   __reducerSchema("finish_poster", FinishPosterReducer),
   __reducerSchema("finish_scout", FinishScoutReducer),
   __reducerSchema("finish_transcribe", FinishTranscribeReducer),
   __reducerSchema("finish_warmup", FinishWarmupReducer),
+  __reducerSchema("join_public_room", JoinPublicRoomReducer),
   __reducerSchema("join_room", JoinRoomReducer),
   __reducerSchema("kick_player", KickPlayerReducer),
   __reducerSchema("leave_room", LeaveRoomReducer),
   __reducerSchema("raise_objection", RaiseObjectionReducer),
   __reducerSchema("react", ReactReducer),
+  __reducerSchema("report_player", ReportPlayerReducer),
+  __reducerSchema("set_meetup_details", SetMeetupDetailsReducer),
   __reducerSchema("set_room_setup", SetRoomSetupReducer),
   __reducerSchema("set_rsvp", SetRsvpReducer),
   __reducerSchema("skip_phase", SkipPhaseReducer),
@@ -391,6 +412,7 @@ const reducersSchema = __reducers(
   __reducerSchema("submit_profile", SubmitProfileReducer),
   __reducerSchema("submit_typed_pitch", SubmitTypedPitchReducer),
   __reducerSchema("upload_pitch_audio", UploadPitchAudioReducer),
+  __reducerSchema("vote_merge", VoteMergeReducer),
   __reducerSchema("who_am_i", WhoAmIReducer),
   __reducerSchema("write_live_caption", WriteLiveCaptionReducer),
 );

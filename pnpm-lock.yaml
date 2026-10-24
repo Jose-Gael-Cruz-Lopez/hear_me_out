@@ -244,6 +244,9 @@ importers:
       '@hmo/bindings':
         specifier: workspace:*
         version: link:../../packages/bindings
+      '@hmo/module':
+        specifier: workspace:*
+        version: link:../module
       '@hmo/shared':
         specifier: workspace:*
         version: link:../../packages/shared

@@ -35,4 +35,6 @@ export default __t.row({
   tiebreakText: __t.string().name("tiebreak_text"),
   fastMode: __t.bool().name("fast_mode"),
   createdAt: __t.timestamp().name("created_at"),
+  groupName: __t.string().name("group_name"),
+  targetStartMin: __t.i32().name("target_start_min"),
 });

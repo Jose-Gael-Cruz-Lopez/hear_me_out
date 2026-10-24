@@ -41,6 +41,7 @@ export function connect(cfg: Config): Promise<Conn> {
             tables.vote,
             tables.plan,
             tables.award,
+            tables.mergeOffer,
             tables.media.where(m => m.kind.eq('pitch_audio')),
             tables.adminJobs,
             tables.adminVenueCache,

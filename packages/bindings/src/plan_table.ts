@@ -32,4 +32,5 @@ export default __t.row({
   icebreakers: __t.array(__t.string()),
   status: __t.string(),
   meetupConfirmed: __t.bool().name("meetup_confirmed"),
+  mergedWithRoomId: __t.u64().name("merged_with_room_id"),
 });

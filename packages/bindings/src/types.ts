@@ -75,6 +75,18 @@ export const JanitorTimer = __t.object("JanitorTimer", {
 });
 export type JanitorTimer = __Infer<typeof JanitorTimer>;
 
+export const LobbyMatch = __t.object("LobbyMatch", {
+  id: __t.u64(),
+  identity: __t.identity(),
+  roomId: __t.u64(),
+  score: __t.u8(),
+  sharedTags: __t.array(__t.string()),
+  distanceKm: __t.f64(),
+  blurb: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type LobbyMatch = __Infer<typeof LobbyMatch>;
+
 export const Media = __t.object("Media", {
   id: __t.u64(),
   roomId: __t.u64(),
@@ -104,6 +116,9 @@ export const MergeVote = __t.object("MergeVote", {
   yes: __t.bool(),
 });
 export type MergeVote = __Infer<typeof MergeVote>;
+
+export const MyLobbyMatches = __t.object("MyLobbyMatches", {});
+export type MyLobbyMatches = __Infer<typeof MyLobbyMatches>;
 
 export const MyPrevote = __t.object("MyPrevote", {});
 export type MyPrevote = __Infer<typeof MyPrevote>;
@@ -229,6 +244,7 @@ export const Plan = __t.object("Plan", {
   icebreakers: __t.array(__t.string()),
   status: __t.string(),
   meetupConfirmed: __t.bool(),
+  mergedWithRoomId: __t.u64(),
 });
 export type Plan = __Infer<typeof Plan>;
 
@@ -299,6 +315,16 @@ export const Reaction = __t.object("Reaction", {
 });
 export type Reaction = __Infer<typeof Reaction>;
 
+export const Report = __t.object("Report", {
+  id: __t.u64(),
+  roomId: __t.u64(),
+  reporterPlayerId: __t.u64(),
+  reportedPlayerId: __t.u64(),
+  reason: __t.string(),
+  createdAt: __t.timestamp(),
+});
+export type Report = __Infer<typeof Report>;
+
 export const Room = __t.object("Room", {
   id: __t.u64(),
   code: __t.string(),
@@ -324,6 +350,8 @@ export const Room = __t.object("Room", {
   tiebreakText: __t.string(),
   fastMode: __t.bool(),
   createdAt: __t.timestamp(),
+  groupName: __t.string(),
+  targetStartMin: __t.i32(),
 });
 export type Room = __Infer<typeof Room>;
 

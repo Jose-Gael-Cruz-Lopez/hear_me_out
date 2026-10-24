@@ -116,6 +116,10 @@ const room = table(
     /** Short timers for the simulator and quick tests. */
     fastMode: t.bool(),
     createdAt: t.timestamp(),
+    /** "The Taco Lawyers": shown in merge offers. */
+    groupName: t.string().default(''),
+    /** Strangers mode: intended start, local minutes; -1 = flexible. */
+    targetStartMin: t.i32().default(-1),
   }
 );
 
@@ -315,6 +319,8 @@ const plan = table(
     /** drafting | ready */
     status: t.string(),
     meetupConfirmed: t.bool(),
+    /** Set on both plans when a merge offer is accepted. */
+    mergedWithRoomId: t.u64().default(0n),
   }
 );
 
@@ -351,6 +357,34 @@ const mergeVote = table(
     offerId: t.u64().index('btree'),
     roomId: t.u64(),
     yes: t.bool(),
+  }
+);
+
+/** Private: a visitor's lobby matches (strangers mode), exposed only to them via my_lobby_matches. */
+const lobbyMatch = table(
+  { name: 'lobby_match' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    identity: t.identity().index('btree'),
+    roomId: t.u64(),
+    score: t.u8(),
+    sharedTags: t.array(t.string()),
+    distanceKm: t.f64(),
+    blurb: t.string(),
+    createdAt: t.timestamp(),
+  }
+);
+
+/** Private: block & report records (strangers mode). */
+const report = table(
+  { name: 'report' },
+  {
+    id: t.u64().primaryKey().autoInc(),
+    roomId: t.u64().index('btree'),
+    reporterPlayerId: t.u64(),
+    reportedPlayerId: t.u64(),
+    reason: t.string(),
+    createdAt: t.timestamp(),
   }
 );
 
@@ -427,6 +461,8 @@ const spacetimedb = schema({
   rsvp,
   mergeOffer,
   mergeVote,
+  lobbyMatch,
+  report,
   media,
   aiJob,
   phaseTimer,
@@ -454,6 +490,8 @@ export {
   rsvp,
   mergeOffer,
   mergeVote,
+  lobbyMatch,
+  report,
   media,
   aiJob,
   phaseTimer,

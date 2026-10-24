@@ -1,5 +1,5 @@
 import type { AiJob } from '@hmo/bindings';
-import { handlers } from './jobs/handlers';
+import { handlers, SkipJob } from './jobs/handlers';
 import type { Deps } from './jobs/deps';
 import { log } from './log';
 
@@ -45,7 +45,8 @@ export function startRunner(d: Deps): { stop(): void; inFlight(): number } {
       await withTimeout(handler(job, d), JOB_TIMEOUT_MS, job.kind);
       log.info('job done', { kind: job.kind, id: job.id, ms: Date.now() - started });
     } catch (err) {
-      log.warn('job failed, the module applies its fallback', { kind: job.kind, id: job.id, err: String(err).slice(0, 200) });
+      if (err instanceof SkipJob) log.info('job skipped', { kind: job.kind, id: job.id, why: err.message });
+      else log.warn('job failed, the module applies its fallback', { kind: job.kind, id: job.id, err: String(err).slice(0, 200) });
       await d.conn.reducers.failJob({ jobId: job.id, error: String(err).slice(0, 400) }).catch(e => log.error('fail_job failed', { err: String(e) }));
     } finally {
       running.delete(key);

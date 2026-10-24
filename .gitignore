@@ -7,3 +7,4 @@ dist/
 spacetime.local.json
 fixtures/cache/
 fixtures/raw/
+.claude/worktrees/

@@ -52,6 +52,9 @@ export const janitor = spacetimedb.reducer({ onSchedule: janitorTimer }, { timer
   for (const r of [...ctx.db.room.iter()]) {
     if (now - r.createdAt.microsSinceUnixEpoch > 12n * 3600n * SECOND) deleteRoomData(ctx, r.id);
   }
+  for (const m of [...ctx.db.lobbyMatch.iter()]) {
+    if (now - m.createdAt.microsSinceUnixEpoch > 3600n * SECOND) ctx.db.lobbyMatch.id.delete(m.id);
+  }
   for (const m of [...ctx.db.media.iter()]) {
     if (now - m.createdAt.microsSinceUnixEpoch > 2n * 3600n * SECOND) ctx.db.media.id.delete(m.id);
   }

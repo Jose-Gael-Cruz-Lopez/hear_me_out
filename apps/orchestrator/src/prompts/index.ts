@@ -123,3 +123,9 @@ export const icebreakers = {
   instructions: 'Write 3 short icebreaker questions for strangers meeting up, from their shared approved tags.',
   schema: z.object({ icebreakers: z.array(z.string().max(140)).length(3) }),
 };
+
+export const mergeIntro = {
+  name: 'merge_intro',
+  instructions: 'Two groups picked the same place at the same time and agreed to merge tables. Write one warm, funny intro (<= 40 words) that names both groups and gives them one thing to talk about from their shared tags.',
+  schema: z.object({ text: z.string().max(320) }),
+};

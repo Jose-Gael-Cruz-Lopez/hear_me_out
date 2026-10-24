@@ -5,3 +5,4 @@ export * from './reducers/room';
 export * from './reducers/profile';
 export * from './reducers/game';
 export * from './reducers/jobs';
+export * from './reducers/strangers';

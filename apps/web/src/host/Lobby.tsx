@@ -5,6 +5,15 @@ import { DEMO_LOCATION } from '../lib/connection';
 import { useCall, useRoom } from '../lib/room';
 import { unlockAudio } from '../lib/sound';
 
+const MEETUP_VIBES = ['spicy-food', 'board-games', 'karaoke', 'ramen', 'tacos', 'live-music', 'night-owl', 'cheap-eats', 'outdoors', 'dessert', 'anime', 'coffee'];
+const MEETUP_TIMES = [
+  { label: '6pm', min: 18 * 60 },
+  { label: '7pm', min: 19 * 60 },
+  { label: '8pm', min: 20 * 60 },
+  { label: '9pm', min: 21 * 60 },
+  { label: 'Flexible', min: -1 },
+];
+
 const CATEGORIES = [
   { id: 'food', label: 'Food', emoji: '🍜' },
   { id: 'activity', label: 'Activity', emoji: '🎳' },
@@ -121,6 +130,41 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
             )}
           </div>
         </div>
+
+        {room.mode === 'strangers' && (
+          <div className="space-y-3 rounded-2xl bg-sky/10 p-4 ring-1 ring-sky/30">
+            <div className="text-lg font-bold">Advertise your vibe (shown in the public lobby list)</div>
+            <div className="flex flex-wrap gap-2">
+              {MEETUP_VIBES.map(v => {
+                const on = room.vibeTags.includes(v);
+                return (
+                  <button
+                    key={v}
+                    disabled={!isHost}
+                    onClick={() => call(c => c.reducers.setMeetupDetails({ roomId: room.id, vibeTags: on ? room.vibeTags.filter(x => x !== v) : [...room.vibeTags, v].slice(0, 6), targetStartMin: room.targetStartMin }))}
+                    className={`chip px-3 py-1.5 ${on ? 'bg-sun text-ink' : 'bg-ink-3 text-cream'}`}
+                  >
+                    #{v}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold">Meet around</span>
+              {MEETUP_TIMES.map(t => (
+                <button
+                  key={t.label}
+                  disabled={!isHost}
+                  onClick={() => call(c => c.reducers.setMeetupDetails({ roomId: room.id, vibeTags: room.vibeTags, targetStartMin: t.min }))}
+                  className={`chip px-3 py-1.5 ${room.targetStartMin === t.min ? 'bg-sun text-ink' : 'bg-ink-3 text-cream'}`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="text-sm text-cream/70">🛡️ 18+ · first names only · public venues · exact address after RSVP · 3 RSVPs to confirm</div>
+          </div>
+        )}
 
         <div className="rounded-2xl bg-ink/60 p-4">
           {room.scoutStatus === '' && <div className="text-cream/60">Pick a category and a place. The Judge starts scouting real venues right away.</div>}

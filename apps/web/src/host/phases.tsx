@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
+import { MergeBanner } from '../components/MergeBanner';
 import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { useRoom } from '../lib/room';
 import { play } from '../lib/sound';
@@ -281,7 +282,7 @@ export function HostResults() {
 }
 
 export function HostPlan({ isHost }: { isHost: boolean }) {
-  const { plan, optionById, players, rsvps, media, playerById } = useRoom();
+  const { plan, optionById, players, rsvps, media, playerById, room } = useRoom();
   const [, navigate] = useLocation();
   const option = plan ? optionById(plan.optionId) : undefined;
   const posterMedia = plan && plan.posterMediaId ? media.get(plan.posterMediaId) : undefined;
@@ -301,6 +302,12 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
           <div className="mt-1 text-lg text-cream/70">{option?.address}</div>
           {cantMake.length > 0 && <div className="mt-2 chip bg-tang/20 text-tang">Can't make this slot: {cantMake.join(', ')}</div>}
         </div>
+        <MergeBanner asPlayer={false} />
+        {room.mode === 'strangers' && (
+          <div className={`chip self-start px-4 py-2 text-lg ${plan.meetupConfirmed ? 'bg-lime/20 text-lime' : 'bg-sun/15 text-sun'}`}>
+            {plan.meetupConfirmed ? '✅ Meetup confirmed' : `Meetup needs 3 RSVPs (${rsvps.filter(r => r.status === 'yes').length}/3)`}
+          </div>
+        )}
         <div className="card p-5 text-xl">{plan.inviteText}</div>
         <div className="card p-5">
           <div className="mb-3 font-display text-xl font-black text-lime">Why this works for everyone</div>

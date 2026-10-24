@@ -13,7 +13,8 @@
     "orchestrator": "pnpm --filter @hmo/orchestrator dev",
     "sim": "tsx --env-file-if-exists=.env scripts/sim.ts",
     "test": "vitest run",
-    "typecheck": "pnpm -r --parallel typecheck && tsc -p scripts/tsconfig.json"
+    "typecheck": "pnpm -r --parallel typecheck && tsc -p scripts/tsconfig.json",
+    "sim:strangers": "tsx --env-file-if-exists=.env scripts/sim-strangers.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

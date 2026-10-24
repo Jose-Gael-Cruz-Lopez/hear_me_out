@@ -1,6 +1,8 @@
 import { motion } from 'motion/react';
 import { useRef } from 'react';
 import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
+import { MergeBanner } from '../components/MergeBanner';
+import { SafetyList } from '../components/Safety';
 import { Avatar, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { useCall, useRoom } from '../lib/room';
 import { play } from '../lib/sound';
@@ -27,6 +29,9 @@ export function PlayLobby() {
       <div className="font-display text-3xl font-black">You're in!</div>
       <div className="text-lg text-cream/75">
         {players.length} player{players.length === 1 ? '' : 's'} in room {room.code}. Watch the TV, the host starts the game.
+      </div>
+      <div className="w-full">
+        <SafetyList />
       </div>
     </div>
   );
@@ -275,12 +280,35 @@ export function PlayPlan() {
     }
   };
   const cantMake = plan.cantMake.includes(me?.id ?? -1n);
+  const isPublic = room.mode === 'strangers';
+  const going = rsvps.filter(r => r.status === 'yes').length;
+  // Public meetups: neighborhood only until you RSVP yes.
+  const showAddress = !isPublic || mine?.status === 'yes';
   return (
     <div className="flex flex-col gap-5">
+      <MergeBanner asPlayer />
       <Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
+      {isPublic && (
+        <div className={`card p-5 ring-2 ${plan.meetupConfirmed ? 'ring-lime' : 'ring-sun/50'}`}>
+          <div className="font-display text-2xl font-black">
+            {going} {going === 1 ? 'person' : 'people'} · {option.category} · {plan.slotLabel.split('·').pop()?.trim()}
+          </div>
+          <div className={plan.meetupConfirmed ? 'font-bold text-lime' : 'text-cream/75'}>
+            {plan.meetupConfirmed ? '✅ Meetup confirmed!' : `Needs 3 RSVPs to confirm (${going}/3)`}
+          </div>
+          {plan.icebreakers.length > 0 && (
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-cream/85">
+              {plan.icebreakers.map(i => (
+                <li key={i}>{i}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       <div className="card space-y-2 p-5">
         <div className="font-display text-3xl font-black">{option.title}</div>
         <div className="font-display text-xl font-extrabold text-sky">{plan.slotLabel}</div>
+        <div className="text-sm text-cream/70">{showAddress ? option.address : '📍 Exact address unlocks when you RSVP "I\'m in"'}</div>
         {cantMake && <div className="chip bg-tang/20 text-tang">This slot doesn't fit your free time, sorry!</div>}
         <div className="text-cream/80">{plan.inviteText}</div>
         {plan.whyForEach.find(w => w.playerId === me?.id) && <div className="text-lime">💚 {plan.whyForEach.find(w => w.playerId === me?.id)!.line}</div>}
@@ -299,13 +327,20 @@ export function PlayPlan() {
         <a className="btn btn-sky text-lg" href={googleCalendarUrl(event)} target="_blank" rel="noreferrer">
           Google Calendar
         </a>
-        <a className="btn btn-ghost text-lg" href={option.mapsUrl} target="_blank" rel="noreferrer">
-          🗺️ Maps
-        </a>
+        {showAddress ? (
+          <a className="btn btn-ghost text-lg" href={option.mapsUrl} target="_blank" rel="noreferrer">
+            🗺️ Maps
+          </a>
+        ) : (
+          <button className="btn btn-ghost text-lg" disabled>
+            🗺️ After RSVP
+          </button>
+        )}
         <button className="btn btn-ghost text-lg" onClick={() => void share()}>
           🔗 Share
         </button>
       </div>
+      <SafetyList />
       <div className="text-center text-xs text-muted">Room {room.code}</div>
     </div>
   );
