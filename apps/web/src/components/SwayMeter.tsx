@@ -4,6 +4,7 @@ import { sway } from '@hmo/module/logic/sway';
 import { useMemo } from 'react';
 import { useCall, useRoom } from '../lib/room';
 import { play } from '../lib/sound';
+import { VenueImage } from './ui';
 
 const SWAY_COLORS = ['#f2dc6e', '#d1e6eb', '#f3d8d2', '#dbe4c9'];
 export const swayColor = (i: number) => SWAY_COLORS[i % SWAY_COLORS.length];
@@ -95,7 +96,7 @@ export function LeanPicker() {
                 void call(c => c.reducers.setLean({ roomId: room.id, optionId: o.id }), { silent: true });
               }}
             >
-              <i />
+              <VenueImage option={o} className="lean-photo" />
               <span>{o.title}</span>
             </button>
           );

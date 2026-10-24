@@ -1,4 +1,4 @@
-import { IconText, AvatarMark } from '../components/Ink';
+import { IconText } from '../components/Ink';
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect } from 'react';
@@ -6,7 +6,7 @@ import { Link, useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
-import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
+import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard, VenueImage } from '../components/ui';
 import { MenuProof } from '../components/MenuProof';
 import { BusyChart } from '../components/BusyChart';
 import { useRoom } from '../lib/room';
@@ -253,9 +253,16 @@ export function HostResults() {
   const best = awards.find(a => a.kind === 'best_line');
   return (
     <div className="flex flex-1 flex-col items-center gap-8">
-      <motion.div initial={{ scale: 0.3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
-        <PhaseTitle kicker="The verdict is in" title={<span className="text-sun">{winner?.title ?? '…'}</span>} sub={`${votes.filter(v => v.optionId === room.winnerOptionId).length} of ${players.length} votes`} />
-      </motion.div>
+      <div className="verdict-hero">
+        {winner && (
+          <motion.div initial={{ scale: 0.5, rotate: -10, opacity: 0 }} animate={{ scale: 1, rotate: -3, opacity: 1 }} transition={{ type: 'spring', stiffness: 180, damping: 13 }}>
+            <VenueImage option={winner} className="verdict-photo" />
+          </motion.div>
+        )}
+        <motion.div initial={{ scale: 0.3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
+          <PhaseTitle kicker="The verdict is in" title={<span className="text-sun">{winner?.title ?? '…'}</span>} sub={`${votes.filter(v => v.optionId === room.winnerOptionId).length} of ${players.length} votes`} />
+        </motion.div>
+      </div>
       {room.tiebreakText && <div className="chip bg-grape/30 px-5 py-2 text-lg ring-1 ring-grape/60"><IconText text={"⚖️ "} />{room.tiebreakText}</div>}
       {winner && <div className="w-full max-w-3xl"><MenuProof optionId={winner.id} big /></div>}
       <div className="grid w-full max-w-5xl gap-6 md:grid-cols-2">
@@ -323,6 +330,7 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
 
       <div className="plan-main">
         <header className="plan-hero">
+          {option && <VenueImage option={option} className="plan-photo" />}
           <div className="plan-kicker">It's a plan</div>
           <h1 className="plan-title">{option?.title}</h1>
           <div className="plan-meta">
@@ -339,22 +347,6 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
         <MergeBanner asPlayer={false} />
         {option && <BusyChart plan={plan} option={option} tzOffsetMin={room.tzOffsetMin} />}
         {option && <MenuProof optionId={option.id} />}
-        {plan.whyForEach.length > 0 && (
-          <div className="plan-panel">
-            <div className="plan-label">Why it works for everyone</div>
-            <ul className="plan-why">
-              {plan.whyForEach.map(w => {
-                const p = playerById(w.playerId);
-                return (
-                  <li key={String(w.playerId)}>
-                    <AvatarMark value={p?.avatar} size={22} />
-                    <span>{w.line}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
       </div>
 
       <div className="plan-side">
@@ -367,7 +359,6 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
             ready={room.mode !== 'strangers' || plan.meetupConfirmed}
           />
         )}
-        <blockquote className="plan-invite">{plan.inviteText}</blockquote>
         {plan.icebreakers.length > 0 && (
           <div className="plan-panel">
             <div className="plan-label">Icebreakers for the table</div>

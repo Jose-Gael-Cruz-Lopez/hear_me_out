@@ -134,7 +134,7 @@ export function VenueImage({ option, className }: { option: Pick<Option, 'imageU
 export function VenueCard({ option, players, compact = false, children, highlight }: { option: Option; players?: Player[]; compact?: boolean; children?: ReactNode; highlight?: string }) {
   return (
     <div className="card overflow-hidden" style={highlight ? { boxShadow: `0 0 0 4px ${highlight}, 0 10px 30px rgb(0 0 0 / 0.35)` } : undefined}>
-      <VenueImage option={option} className={compact ? 'h-28 w-full' : 'h-40 w-full'} />
+      <VenueImage option={option} className={compact ? 'h-44 w-full' : 'h-48 w-full'} />
       <div className="space-y-2 p-4">
         <div className="font-display text-2xl leading-tight font-black">{option.title}</div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-bold">

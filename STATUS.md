@@ -9,7 +9,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Up next / on hold
 
-- Rest of the WhatsApp UI is on hold by request (the public-meetup QR is done). Not planned: showing it on the TV, which is a shared screen in the room.
+- WhatsApp: the card now shows in friends games too (Prisha lifted the hold, DECISIONS #47). Not planned: showing it on the TV, which is a shared screen in the room.
 - Trov: the repo was connected but the dashboard still lists no repos for the org (`repos: []`, branches "not connected"). A Trov admin needs to run **Sync GitHub** / give Trov's GitHub app access to jacky_boxie in the web app.
 
 ## Done recently

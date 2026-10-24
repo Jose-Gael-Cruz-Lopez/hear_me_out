@@ -7,7 +7,7 @@ import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
 import { SafetyList } from '../components/Safety';
 import { WhatsAppGroup } from '../components/WhatsAppGroup';
-import { Avatar, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
+import { Avatar, Poster, seatColor, useObjectUrl, VenueCard, VenueImage } from '../components/ui';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
 import { LeanPicker, SwayMeter } from '../components/SwayMeter';
 import { MenuProof } from '../components/MenuProof';
@@ -129,6 +129,7 @@ export function BriefCard() {
   return (
     <div className="card overflow-hidden">
       <div className="bg-gradient-to-r from-pop to-grape px-5 py-3 font-display text-sm font-black tracking-[0.25em]">YOUR CASE</div>
+      <VenueImage option={o} className="h-44 w-full" />
       <div className="space-y-3 p-5">
         <div className="font-display text-3xl leading-tight font-black">Defend {o.title}</div>
         <div className="text-lg text-sun italic">“{a.stylePrompt}”</div>
@@ -176,12 +177,13 @@ export function PlayPlayback() {
       )}
       {!stage && <div className="card flex items-center gap-4 p-4">
         {speaker && <Avatar player={speaker} size={64} label={false} />}
-        <div>
+        <div className="min-w-0 flex-1">
           <div className="text-sm font-bold text-cream/60">{mine ? "You're up!" : `${speaker?.name} is defending`}</div>
           <div className="font-display text-2xl font-black" style={{ color: speaker ? seatColor(speaker.seat) : undefined }}>
             {option?.title}
           </div>
         </div>
+        {option && <VenueImage option={option} className="h-20 w-20 flex-none rounded-2xl border-2 border-ink" />}
       </div>}
       {!stage && <SwayMeter compact />}
       <LeanPicker />
@@ -251,7 +253,12 @@ export function PlayResults() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
       <div className="font-display text-sm font-black tracking-[0.25em] text-sun">THE VERDICT</div>
-      <motion.div initial={{ scale: 0.4 }} animate={{ scale: 1 }} className="font-display text-5xl leading-tight font-black">
+      {winner && (
+        <motion.div initial={{ scale: 0.6, rotate: -6, opacity: 0 }} animate={{ scale: 1, rotate: -2, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 14 }} className="w-full">
+          <VenueImage option={winner} className="h-52 w-full rounded-3xl border-2 border-ink shadow-[4px_5px_0_#14140f]" />
+        </motion.div>
+      )}
+      <motion.div initial={{ scale: 0.4 }} animate={{ scale: 1 }} className="font-display text-4xl leading-tight font-black">
         {winner?.title}
       </motion.div>
       {room.tiebreakText && <div className="text-cream/75">{room.tiebreakText}</div>}
@@ -333,6 +340,7 @@ export function PlayPlan() {
         </div>
       )}
       <div className="ticket">
+        <VenueImage option={option} className="ticket-photo" />
         <div className="ticket-hero">
           <div className="plan-kicker">It's a plan</div>
           <div className="ticket-title">{option.title}</div>
@@ -356,7 +364,6 @@ export function PlayPlan() {
         <div className="ticket-section">
           <MenuProof optionId={option.id} />
         </div>
-        <div className="ticket-section ticket-invite">“{plan.inviteText}”</div>
       </div>
       <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
       <WhatsAppGroup />

@@ -8,7 +8,7 @@ import { useCall, useRoom } from '../lib/room';
 import { toast } from '../lib/toast';
 
 /**
- * Public meetups, once confirmed: the WhatsApp group for the people going. The server only sends
+ * The WhatsApp group for the people going, in friends games and (once confirmed) public meetups. The server only sends
  * my_group_chat to people who RSVP'd yes, so everyone else gets nothing here. Someone going creates
  * the group and pastes its invite; then everyone going sees a QR code, a join button and a share link.
  */
@@ -16,7 +16,7 @@ export function WhatsAppGroup() {
   const { room } = useRoom();
   const [rows] = useTable(tables.myGroupChat);
   const chat = rows.find(r => r.roomId === room.id);
-  if (room.mode !== 'strangers' || !chat) return null;
+  if (!chat) return null;
   return (
     <div className="card space-y-3 p-5">
       <div className="text-sm font-bold text-muted">WHATSAPP GROUP</div>

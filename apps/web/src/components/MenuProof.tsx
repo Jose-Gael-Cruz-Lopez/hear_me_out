@@ -47,32 +47,29 @@ export function MenuProof({ optionId, linked = true, big = false }: { optionId: 
     );
   }
   if (m.status === 'confirmed') {
+    // Dish names only ("Saag Tofu: fresh spinach…" → "Saag Tofu"); the full line stays in the tooltip.
+    const dishes = [...new Set(m.dishes.map(d => d.dish.split(/:\s/)[0]!.replace(/\.$/, '')))].slice(0, big ? 4 : 3);
     return (
       <div className={`menu-proof confirmed ${big ? 'big' : ''}`}>
         <div className="menu-proof-head">
           <IconText text="📋 " />
-          Menu checked · {diets} ✓ {source && <>· {source}</>}
+          {diets} on their menu ✓ {source && <span className="menu-proof-site">{source}</span>}
         </div>
-        <ul>
-          {m.dishes.map((d, i) => (
-            <li key={i}>
-              {m.diets.length > 1 && <b>{label(d.diet)}: </b>}“{d.dish}”
-            </li>
+        <div className="menu-proof-dishes">
+          {dishes.map((d, i) => (
+            <span key={i} title={m.dishes.find(x => x.dish.startsWith(d))?.dish}>
+              {d}
+            </span>
           ))}
-        </ul>
+        </div>
       </div>
     );
   }
-  const text =
-    m.status === 'not_found'
-      ? `Checked their website: no ${diets.toLowerCase()} dishes listed. Ask before you go.`
-      : m.status === 'no_website'
-        ? 'No website to check the menu.'
-        : 'Menu not checked (needs live Apify).';
+  if (m.status !== 'not_found') return null; // no website / not checked: nothing worth saying
   return (
-    <div className={`menu-proof ${m.status}`}>
+    <div className="menu-proof not_found">
       <IconText text="📋 " />
-      {text} {m.status === 'not_found' && source}
+      No {diets.toLowerCase()} dishes on their site. Ask first. {source}
     </div>
   );
 }
