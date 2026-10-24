@@ -6,6 +6,7 @@ import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
 import { SafetyList } from '../components/Safety';
+import { WhatsAppGroup } from '../components/WhatsAppGroup';
 import { Avatar, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
 import { LeanPicker, SwayMeter } from '../components/SwayMeter';
@@ -354,6 +355,7 @@ export function PlayPlan() {
         <div className="ticket-section ticket-invite">“{plan.inviteText}”</div>
       </div>
       <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
+      <WhatsAppGroup />
       <div className="ticket-actions">
         <button className="btn btn-sun" disabled={!showAddress} onClick={downloadIcs}>
           <IconText text={'📅 Calendar'} />
