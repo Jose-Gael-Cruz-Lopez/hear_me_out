@@ -170,11 +170,15 @@ Backup: if the network dies, the mock AI host + cached places keep the full loop
 spacetime/          SpacetimeDB module (TypeScript) + vitest tests
 web/                Next.js 16 app (App Router)
   app/api/          AI + places routes (server-only keys)
-  components/       host big screen, phone controller, plan card
+  components/
+    host/           big screen (lobby, showtime, results, AI host voice)
+    play/           phone controller (join, questions, pitch, vote)
+    shared/         ui.tsx primitives + PlanCard
   lib/ai/muse.ts    every Muse call + mock host
   lib/game/         questions, hard filters, time slots, assignments, .ics
   lib/places/       Apify normalization + cache loader
   data/places/      cached places JSON (sample + Apify output)
   src/module_bindings/  generated SpacetimeDB client bindings
 scripts/            fetch-places.ts (Apify), dev-spacetime.sh, e2e.cjs (browser smoke test)
+docs/               REDESIGN.md (UI redesign notes)
 ```

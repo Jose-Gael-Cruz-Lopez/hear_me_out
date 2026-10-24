@@ -3,7 +3,7 @@
 // 30-second voice pitch: MediaRecorder → /api/transcribe (Muse Voice Transcribe).
 // In mock mode we also run the browser's own SpeechRecognition (where available) as a free transcript.
 import { useEffect, useRef, useState } from 'react';
-import { Spinner } from '../ui';
+import { Spinner } from '../shared/ui';
 
 const LIMIT_S = 30;
 
@@ -59,7 +59,6 @@ export function Recorder({ useBrowserHint, onTranscript }: { useBrowserHint: boo
         stream.getTracks().forEach(t => t.stop());
         speech.current?.stop();
         setState('transcribing');
-        // Give the browser recognizer a moment to deliver its last result.
         await new Promise(r => setTimeout(r, 400));
         try {
           const form = new FormData();
@@ -114,19 +113,40 @@ export function Recorder({ useBrowserHint, onTranscript }: { useBrowserHint: boo
   };
 
   return (
-    <div className="stack">
+    <div className="stack" style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 18 }}>
       {state === 'idle' && (
-        <button className="btn big pink block" onClick={start}>
-          🎙️ Record (30s)
-        </button>
+        <>
+          <button className="rec-btn" onClick={start}>
+            <span className="icon">🎙️</span>
+            Tap to record
+          </button>
+          <div className="muted" style={{ fontWeight: 700 }}>
+            {LIMIT_S} seconds. Make it count.
+          </div>
+        </>
       )}
       {state === 'recording' && (
-        <button className="btn big block" onClick={stop}>
-          <span className="rec-dot" /> Stop · {left}s left
-        </button>
+        <>
+          <button
+            className="rec-ring pop"
+            onClick={stop}
+            style={{ background: `conic-gradient(var(--red) ${((LIMIT_S - left) / LIMIT_S) * 360}deg, var(--panel2) 0)` }}
+            aria-label="Stop recording"
+          >
+            <span>
+              <span className="num">{Math.max(0, left)}</span>
+              <span className="lbl">● REC · TAP TO STOP</span>
+            </span>
+          </button>
+          <div className="wave" aria-hidden>
+            {Array.from({ length: 16 }, (_, i) => (
+              <span key={i} />
+            ))}
+          </div>
+        </>
       )}
       {state === 'transcribing' && (
-        <div className="card center">
+        <div className="card center" style={{ fontWeight: 800 }}>
           <Spinner /> Transcribing your masterpiece…
         </div>
       )}
