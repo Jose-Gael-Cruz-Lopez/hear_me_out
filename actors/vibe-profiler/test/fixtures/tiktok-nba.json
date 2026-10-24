@@ -1,0 +1,192 @@
+{
+  "source": "Recorded clockworks/tiktok-scraper output for nba (public brand account) on 2026-10-24 (resultsLimit 3).",
+  "trimmed": "Kept post fields only. Removed comments, commenters, tagged users, mentions, collaborators, media/CDN URLs and author details; other accounts' @handles in captions replaced with @[mention].",
+  "items": [
+    {
+      "id": "7700121719511567647",
+      "text": "Luka and Austin help secure the @[mention] win at home 📍 #NBA #Basketball #LukaDoncic #AustinReaves #Lakers ",
+      "textLanguage": "en",
+      "createTime": 1792824335,
+      "createTimeISO": "2026-10-24T06:45:35.000Z",
+      "isAd": false,
+      "webVideoUrl": "https://www.tiktok.com/@nba/video/7700121719511567647",
+      "diggCount": 3095,
+      "shareCount": 54,
+      "playCount": 45800,
+      "collectCount": 74,
+      "commentCount": 49,
+      "repostCount": 0,
+      "isSlideshow": false,
+      "isPinned": false,
+      "isSponsored": false,
+      "input": "nba",
+      "fromProfileSection": "videos",
+      "isStory": false,
+      "authorMeta": {
+        "name": "nba",
+        "nickName": "NBA",
+        "verified": true
+      },
+      "videoMeta": {
+        "duration": 46
+      },
+      "hashtags": [
+        {
+          "id": null,
+          "name": "nba",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "basketball",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "lukadoncic",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "austinreaves",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "lakers",
+          "title": null,
+          "cover": null
+        }
+      ],
+      "mentions": []
+    },
+    {
+      "id": "7700120359017647390",
+      "text": "This is also the most points by a teenager in @[mention] Kings HISTORY 👏 #NBA #Basketball #Kings #SacramentoKings #DariusAcuffJr ",
+      "textLanguage": "en",
+      "createTime": 1792824004,
+      "createTimeISO": "2026-10-24T06:40:04.000Z",
+      "isAd": false,
+      "webVideoUrl": "https://www.tiktok.com/@nba/video/7700120359017647390",
+      "diggCount": 1411,
+      "shareCount": 34,
+      "playCount": 16500,
+      "collectCount": 38,
+      "commentCount": 19,
+      "repostCount": 0,
+      "isSlideshow": false,
+      "isPinned": false,
+      "isSponsored": false,
+      "input": "nba",
+      "fromProfileSection": "videos",
+      "isStory": false,
+      "authorMeta": {
+        "name": "nba",
+        "nickName": "NBA",
+        "verified": true
+      },
+      "videoMeta": {
+        "duration": 94
+      },
+      "hashtags": [
+        {
+          "id": null,
+          "name": "nba",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "basketball",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "kings",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "sacramentokings",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "dariusacuffjr",
+          "title": null,
+          "cover": null
+        }
+      ],
+      "mentions": []
+    },
+    {
+      "id": "7700114584882941215",
+      "text": "What a Fantastic Finish for the @[mention] 🚀 #NBA #Basketball #Rockets #KevinDurant #AmenThompson ",
+      "textLanguage": "en",
+      "createTime": 1792822665,
+      "createTimeISO": "2026-10-24T06:17:45.000Z",
+      "isAd": false,
+      "webVideoUrl": "https://www.tiktok.com/@nba/video/7700114584882941215",
+      "diggCount": 3853,
+      "shareCount": 110,
+      "playCount": 36800,
+      "collectCount": 112,
+      "commentCount": 45,
+      "repostCount": 0,
+      "isSlideshow": false,
+      "isPinned": false,
+      "isSponsored": false,
+      "input": "nba",
+      "fromProfileSection": "videos",
+      "isStory": false,
+      "authorMeta": {
+        "name": "nba",
+        "nickName": "NBA",
+        "verified": true
+      },
+      "videoMeta": {
+        "duration": 105
+      },
+      "hashtags": [
+        {
+          "id": null,
+          "name": "nba",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "basketball",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "rockets",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "kevindurant",
+          "title": null,
+          "cover": null
+        },
+        {
+          "id": null,
+          "name": "amenthompson",
+          "title": null,
+          "cover": null
+        }
+      ],
+      "mentions": []
+    }
+  ]
+}

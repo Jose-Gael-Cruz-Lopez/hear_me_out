@@ -1,0 +1,78 @@
+{
+  "source": "Recorded apify/instagram-scraper output for https://www.instagram.com/natgeo/ (public brand account) on 2026-10-24 (resultsLimit 3).",
+  "trimmed": "Kept post fields only. Removed comments, commenters, tagged users, mentions, collaborators, media/CDN URLs and author details; other accounts' @handles in captions replaced with @[mention].",
+  "items": [
+    {
+      "id": "4014420964519231906",
+      "type": "Sidecar",
+      "shortCode": "De2FpkRDMGi",
+      "caption": "Presented by @[mention] Fewer than 400 bearded vultures remain in South Africa and Lesotho. National Geographic Explorer Shannon Hoffman has spent over a decade trying to change their fate. By collecting eggs from remote mountain nests and raising chicks through a specialized breeding program, she hopes to raise a new generation that can eventually return to the wild.\n\nThrough its partnership with the National Geographic Society and as part of its Perpetual Planet Initiative, #Rolex supports expeditions exploring and protecting remarkable places around the world, a selection of which are featured in #AfricaEarthsWildHome. #PerpetualPlanet\n\nFind out more about bearded vultures at the link in bio. \n\nPhotographs by @[mention]",
+      "hashtags": [
+        "Rolex",
+        "AfricaEarthsWildHome",
+        "PerpetualPlanet"
+      ],
+      "url": "https://www.instagram.com/p/De2FpkRDMGi/",
+      "commentsCount": 220,
+      "alt": "Photo by National Geographic on October 23, 2026. May be an image of text.",
+      "likesCount": 109332,
+      "timestamp": "2026-10-23T19:00:00.000Z",
+      "ownerFullName": "National Geographic",
+      "ownerUsername": "natgeo",
+      "ownerId": "787132",
+      "isPinned": false,
+      "inputUrl": "https://www.instagram.com/natgeo/",
+      "videoViewCount": null,
+      "productType": "carousel_container",
+      "isCommentsDisabled": false,
+      "paidPartnership": false
+    },
+    {
+      "id": "4013912525377067555",
+      "type": "Image",
+      "shortCode": "De0SCzal1oj",
+      "caption": "Presented by National Geographic Society in partnership with @[mention] Meet the explorers working with coastal communities to protect our oceans in a changing world. \n\nNarrated by @[mention], set sail across all five ocean basins in Expedition: Saving Our Seas, premiering Friday, November 13 at 9/8c on National Geographic. Streaming next day on @[mention] and @[mention] \n\nRolex and The National Geographic Society are partnering on science-based expeditions to explore, study, and document change in the planet’s unique regions. #PerpetualPlanet.",
+      "hashtags": [
+        "PerpetualPlanet"
+      ],
+      "url": "https://www.instagram.com/p/De0SCzal1oj/",
+      "commentsCount": 68,
+      "alt": "Photo by National Geographic TV on October 23, 2026. May be an image of whale, map, poster, screen and text.",
+      "likesCount": 19095,
+      "timestamp": "2026-10-23T13:00:02.000Z",
+      "ownerFullName": "National Geographic TV",
+      "ownerUsername": "natgeotv",
+      "ownerId": "18091046",
+      "isPinned": false,
+      "inputUrl": "https://www.instagram.com/natgeo/",
+      "videoViewCount": null,
+      "productType": "feed",
+      "isCommentsDisabled": false,
+      "paidPartnership": false
+    },
+    {
+      "id": "4014197598704990196",
+      "type": "Video",
+      "shortCode": "De1S3KpCXf0",
+      "caption": "Warning—looking at nudibranchs may cause excessive awe. @[mention] loves these little creatures, and so do we. 💛🧡🩷\n\nWe’re celebrating 20 years of the National Geographic #PhotoArk, an audacious project documenting the world's incredible biodiversity and highlighting the importance of conservation through photography. Which animal do you want to see next?",
+      "hashtags": [
+        "PhotoArk"
+      ],
+      "url": "https://www.instagram.com/p/De1S3KpCXf0/",
+      "commentsCount": 202,
+      "alt": "Video by National Geographic on October 23, 2026. May be an image of snail and text.",
+      "likesCount": 56162,
+      "timestamp": "2026-10-23T10:01:35.000Z",
+      "ownerFullName": "National Geographic",
+      "ownerUsername": "natgeo",
+      "ownerId": "787132",
+      "isPinned": false,
+      "inputUrl": "https://www.instagram.com/natgeo/",
+      "videoViewCount": null,
+      "productType": "clips",
+      "isCommentsDisabled": false,
+      "paidPartnership": false,
+      "videoDuration": 23.743999
+    }
+  ]
+}

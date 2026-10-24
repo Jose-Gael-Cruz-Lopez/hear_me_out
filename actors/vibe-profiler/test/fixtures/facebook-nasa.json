@@ -1,0 +1,73 @@
+{
+  "source": "Recorded apify/facebook-posts-scraper output for https://www.facebook.com/nasa (public brand page) on 2026-10-24 (resultsLimit 3).",
+  "trimmed": "Kept post fields only. Removed comments, commenters, tagged users, mentions, collaborators, media/CDN URLs and author details; other accounts' @handles in captions replaced with @[mention].",
+  "items": [
+    {
+      "facebookUrl": "https://www.facebook.com/nasa",
+      "postId": "1665530011609035",
+      "pageName": "NASA",
+      "url": "https://www.facebook.com/reel/1803909017420449/",
+      "time": "2026-10-23T23:40:58.000Z",
+      "timestamp": 1792798858,
+      "text": "We are not slowing down. 🚀\n\nOur Artemis III mission will send four astronauts to low Earth orbit next year to test critical systems needed for future lunar landings https://go.nasa.gov/4zV3TuG and we’re accelerating efforts to ensure the success of Artemis IV, the first Artemis mission on the lunar surface https://go.nasa.gov/3UeKjdl.",
+      "likes": 1134,
+      "comments": 34,
+      "shares": 145,
+      "topReactionsCount": 5,
+      "isVideo": true,
+      "viewsCount": 63713,
+      "inputUrl": "https://www.facebook.com/nasa",
+      "facebookId": "100044561550831",
+      "paidPartnership": false,
+      "media": [
+        {
+          "__typename": "Video"
+        }
+      ]
+    },
+    {
+      "facebookUrl": "https://www.facebook.com/nasa",
+      "postId": "1665224618306241",
+      "pageName": "NASA",
+      "url": "https://www.facebook.com/NASA/posts/pfbid034yXSf9oGHbkaiBbQmBjPzVg8K6rtVZ9aXD9ipqfvMLbrtyLs46XStni26ECrF7Pjl",
+      "time": "2026-10-23T15:34:24.000Z",
+      "timestamp": 1792769664,
+      "text": "Ahh… blue lagoon 🏖️\n \nThis deep-blue sea of gas and dust—called Messier 8 or the Lagoon Nebula—is a hotbed of star formation. The young stars within the nebula emit rays of high-energy light, including X-rays shown in pink by our Chandra X-ray Observatory.",
+      "likes": 3260,
+      "comments": 79,
+      "shares": 334,
+      "topReactionsCount": 7,
+      "inputUrl": "https://www.facebook.com/nasa",
+      "facebookId": "100044561550831",
+      "paidPartnership": false,
+      "media": [
+        {
+          "__typename": "Photo",
+          "ocrText": "Dynamic, textured clouds swoop across the scene. Their color ranges from deep, steely blue to bright silver. Pink and white stars of varying sizes decorate the clouds."
+        }
+      ]
+    },
+    {
+      "facebookUrl": "https://www.facebook.com/nasa",
+      "postId": "1664477875047582",
+      "pageName": "NASA",
+      "url": "https://www.facebook.com/NASA/posts/pfbid0k7tzA6RQs9eDStaNMSNiA88KgGKukzyxVL961nhexPL9Rb9rnFoNwBVaN4peaNgml",
+      "time": "2026-10-22T19:53:38.000Z",
+      "timestamp": 1792698818,
+      "text": "That's our jam 🎼\n \nAstronomers used our Chandra X-ray Observatory to find out that this radio wave formation, known as the \"Treble Clef\" thanks to its distinctive shape, was likely caused by an outburst from a supermassive black hole, followed by a collision of two galaxy clusters.",
+      "likes": 6235,
+      "comments": 130,
+      "shares": 701,
+      "topReactionsCount": 7,
+      "inputUrl": "https://www.facebook.com/nasa",
+      "facebookId": "100044561550831",
+      "paidPartnership": false,
+      "media": [
+        {
+          "__typename": "Photo",
+          "ocrText": "A composite image of a radio wave formation that looks a lot like a treble clef musical symbol, hovering in the midst of two colliding galaxy clusters. There are many specks of light set against the blackness of space; those are galaxies and stars. At the center of the image is a large, oval, blue-purple cloud with ragged edges. In the middle of the purple field, tilting slightly to our left, is what appears to be a giant treble clef, loosely drawn with a neon pink marker. Like the musical notation for which it's named, the formation has a strong vertical stroke with a continuous, fluid line swooping back and forth as it moves from top to bottom."
+        }
+      ]
+    }
+  ]
+}

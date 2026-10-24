@@ -1,0 +1,37 @@
+{
+  "name": "vibe-profiler",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Apify actor: turn public social posts into interest & taste tags.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": "./src/core.ts",
+    "./muse": "./src/muse.ts",
+    "./apify": "./src/apify-call.ts"
+  },
+  "scripts": {
+    "start": "npm run start:dev",
+    "start:dev": "tsx src/main.ts",
+    "start:prod": "node dist/main.js",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --config vitest.config.ts",
+    "local": "apify run --purge",
+    "push": "apify push"
+  },
+  "dependencies": {
+    "apify": "^3.7.2",
+    "apify-client": "^2.25.0",
+    "openai": "^6.0.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "~5.6.2"
+  },
+  "license": "MIT"
+}

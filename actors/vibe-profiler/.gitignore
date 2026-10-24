@@ -1,0 +1,8 @@
+# Also read by `apify push`, so these never get uploaded.
+node_modules/
+dist/
+storage/
+apify_storage/
+crawlee_storage/
+.env
+*.log
