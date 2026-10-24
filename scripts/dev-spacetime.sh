@@ -15,4 +15,4 @@ echo "SpacetimeDB is up on :3000 (log: $DATA_DIR/server.log)"
 
 EXTRA=()
 [[ "${1:-}" == "--reset" ]] && EXTRA+=(--delete-data)
-spacetime publish "$DB_NAME" --module-path "$ROOT/spacetime" --server local --yes "${EXTRA[@]}"
+spacetime publish "$DB_NAME" --module-path "$ROOT/spacetime" --server local --yes ${EXTRA[@]+"${EXTRA[@]}"}
