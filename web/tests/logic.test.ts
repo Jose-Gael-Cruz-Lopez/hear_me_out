@@ -157,6 +157,8 @@ describe('ics + mock AI', () => {
     expect(r1).toBe(r2);
     expect(r1.length).toBeGreaterThan(10);
     expect(await mockHost.transcribe(new Blob([]), 'hello world')).toBe('hello world');
+    const bot = await mockHost.botPitch({ botName: 'Chip', optionName: 'Tacolicious', category: 'Mexican restaurant', prompt: '' });
+    expect(bot).toContain('Tacolicious');
     const svg = mockPosterSvg('Ace Wasabi\'s <Sushi> & Co', 'Sushi restaurant', 'great');
     expect(svg).toContain('&lt;SUSHI&gt;');
     expect(svg.startsWith('<svg')).toBe(true);

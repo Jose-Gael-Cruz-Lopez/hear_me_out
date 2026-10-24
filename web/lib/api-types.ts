@@ -33,7 +33,8 @@ export interface OptionsResponse {
 
 export type ReactRequest =
   | { kind: 'pitch'; playerName: string; optionName: string; prompt: string; pitch: string }
-  | { kind: 'orphan'; optionName: string; category: string; blurb: string; rating: number };
+  | { kind: 'orphan'; optionName: string; category: string; blurb: string; rating: number }
+  | { kind: 'bot'; botName: string; optionName: string; category: string; prompt: string };
 
 export interface PlanRequest {
   optionName: string;

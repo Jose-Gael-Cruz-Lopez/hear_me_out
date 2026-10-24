@@ -4,12 +4,12 @@
 // lobby's host, drives the AI: it calls our API routes and writes results via host-only reducers.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { useAction, useGame, type Game } from '@/lib/stdb';
+import { useAction, useGame, useLoadedOnce, type Game } from '@/lib/stdb';
 import { rankSlots } from '@/lib/game/slots';
 import { DIETS, DISTANCES, FREE_SLOTS, label, VIBES } from '@/lib/game/questions';
 import type { OptionsResponse, PlanResponse } from '@/lib/api-types';
 import type { Option } from '@/src/module_bindings/types';
-import { Avatar, ErrorBox, OptionMeta, posterSrc, price, Spinner } from '../ui';
+import { Avatar, Countdown, ErrorBox, OptionMeta, posterSrc, price, ReconnectBanner, Spinner } from '../ui';
 import { PlanCard } from '../PlanCard';
 import { HostVoiceProvider, useHostVoice } from './HostVoice';
 
@@ -49,7 +49,8 @@ function HostInner({ code }: { code: string }) {
       .catch(() => {});
   }, []);
 
-  if (!g.connected || !g.ready) {
+  const loaded = useLoadedOnce(g.connected && g.ready);
+  if (!loaded) {
     return (
       <main className="stage center">
         <Spinner /> Connecting to the game board…
@@ -69,10 +70,12 @@ function HostInner({ code }: { code: string }) {
 
   return (
     <main className="stage">
+      <ReconnectBanner show={!g.connected} />
       <header className="stage-top">
         <div className="logo">Pitch Fight</div>
         <div className="code-box">{g.code}</div>
         <span className="badge">{PHASE_NAMES[g.phase] ?? g.phase}</span>
+        <Countdown deadlineMicros={g.lobby.deadlineMicros} />
         <div className="spacer" />
         {ai && <span className={`badge ${ai === 'mock' ? 'warn' : ''}`}>AI host: {ai === 'mock' ? 'mock mode' : 'Meta Muse'}</span>}
         {!g.isHost && <span className="badge warn">Spectator screen</span>}
@@ -153,11 +156,18 @@ function Lobby({ g }: { g: Game }) {
         <div className="players">
           {g.players.length === 0 && <div className="muted">Waiting for the first brave soul…</div>}
           {g.players.map(p => (
-            <Avatar key={String(p.id)} p={p} />
+            <Avatar
+              key={String(p.id)}
+              p={p}
+              onRemove={g.isHost ? () => act.run(() => g.conn!.reducers.removePlayer({ code: g.code, playerId: p.id })) : undefined}
+            />
           ))}
         </div>
         {g.isHost && (
           <div className="row" style={{ marginTop: 16 }}>
+            <button className="btn ghost" disabled={act.busy} onClick={() => act.run(() => g.conn!.reducers.addBot({ code: g.code }))}>
+              🤖 Add test bot
+            </button>
             <button
               className="btn big pink"
               disabled={g.players.length < 2 || act.busy}
@@ -165,7 +175,7 @@ function Lobby({ g }: { g: Game }) {
             >
               Everybody&apos;s in → Start
             </button>
-            {g.players.length < 2 && <span className="muted">Need at least 2 players</span>}
+            {g.players.length < 2 && <span className="muted">Need at least 2 players (bots count — great for solo testing)</span>}
           </div>
         )}
         <ErrorBox error={act.error} />
@@ -354,12 +364,31 @@ function Options({ g }: { g: Game }) {
 
 // ---------------------------------------------------------------- PITCH
 
+/** Host-only: ask the AI to write each bot's pitch (in character, following its prompt), then submit it. */
+function useBotPitches(g: Game) {
+  const started = useRef(new Set<string>());
+  useEffect(() => {
+    if (!g.isHost || !g.conn) return;
+    for (const b of g.players.filter(p => p.isBot)) {
+      const k = String(b.id);
+      const a = g.assignments.find(x => x.playerId === b.id);
+      const o = a && g.options.find(x => x.id === a.optionId);
+      if (!a || !o || started.current.has(k) || g.pitches.some(x => x.playerId === b.id)) continue;
+      started.current.add(k);
+      postJson<{ line: string }>('/api/react', { kind: 'bot', botName: b.name, optionName: o.name, category: o.category, prompt: a.prompt })
+        .then(r => g.conn?.reducers.botPitch({ code: g.code, playerId: b.id, text: r.line }))
+        .catch(() => started.current.delete(k));
+    }
+  }, [g]);
+}
+
 function Pitching({ g }: { g: Game }) {
   const { say } = useHostVoice();
   const act = useAction();
   useOptionPrep(g);
+  useBotPitches(g);
   useEffect(() => {
-    say('Phones out! You have thirty seconds to make your case. Record your voice, or type it if the room is too loud.', 'pitch-intro');
+    say('Phones out! Thirty seconds of voice, or type it if the room is too loud. The clock is ticking.', 'pitch-intro');
   }, [say]);
   const done = g.players.filter(p => g.pitches.some(x => x.playerId === p.id));
   return (
@@ -513,18 +542,10 @@ function Showtime({ g }: { g: Game }) {
 function Vote({ g }: { g: Game }) {
   const { say } = useHostVoice();
   const act = useAction();
-  const closing = useRef(false);
-  const allIn = g.players.length > 0 && g.votes.length >= g.players.length;
+  // No client-side closing: the server closes voting on the last vote or when the timer runs out.
   useEffect(() => {
     say('Voting is open! One vote each, and no voting for yourself. I am watching.', 'vote-intro');
   }, [say]);
-  useEffect(() => {
-    if (g.isHost && allIn && !closing.current) {
-      closing.current = true;
-      say('All votes are in!', 'all-in');
-      setTimeout(() => act.run(() => g.conn!.reducers.closeVoting({ code: g.code })), 1200);
-    }
-  }, [allIn, g, act, say]);
   return (
     <div className="stack">
       <h1 className="phase-title display">Vote on your phone</h1>

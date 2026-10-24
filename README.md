@@ -32,13 +32,19 @@ SpacetimeDB is the realtime backend, **not** the AI host. Tables: `lobby`, `play
 `assignment`, `pitch`, `vote`, `plan`, `rsvp`. Every phone and the big screen subscribe to their lobby's rows
 (`useTable(tables.x.where(r => r.lobbyCode.eq(code)))`), so they all stay in sync with no polling and no custom socket server.
 
-Rules are enforced server-side in reducers (and covered by tests):
+Rules are enforced server-side in reducers (17 tests):
 - only the lobby's host identity can advance phases or write AI results (`setOptions`, `setReaction`, `setPlan`, …)
 - phase order is enforced (you can't pitch during VOTE, can't vote during PITCH)
 - **no self-votes:** you can't vote for the option you defended
 - **one vote each:** a second vote is rejected
 - every player must get an assignment; names are unique per lobby; inputs are validated and length-capped
 - ties are broken with SpacetimeDB's deterministic `ctx.random`
+- **timed phases run on the server:** starting PITCH (90s) or VOTE (45s) inserts a row into a scheduled
+  `phase_timer` table; SpacetimeDB fires the `phaseTimeout` reducer at the deadline and advances the game, even
+  if the host's tab is closed. Stale timers (host already moved on) are ignored, and clients can't call it.
+- **voting closes itself** the moment the last vote lands
+- **test bots:** the host can add bots (`addBot`). They answer the questions and vote inside reducers (never for
+  the option they defended); their pitches are written by the AI host and submitted via the host-only `botPitch`
 
 The host browser runs the AI (via our API routes) and writes results back through host-only reducers, so
 the database stays the single source of truth that every screen renders from.
@@ -46,7 +52,7 @@ the database stays the single source of truth that every screen renders from.
 ### Meta Muse: the AI host
 All calls are in `web/lib/ai/muse.ts`:
 - **Muse Spark**: chooses 4–6 options from the pre-filtered shortlist, writes each player's defend-prompt,
-  reacts to every pitch, pitches any option nobody was assigned, and picks the time everyone's free.
+  reacts to every pitch, pitches any option nobody was assigned, writes the test bots' pitches, and picks the time everyone's free.
 - **Muse Voice Transcribe**: voice pitches → text.
 - **Muse Image**: a funny movie poster per option.
 
@@ -89,7 +95,8 @@ cd web && npm run dev
 
 Open **http://localhost:3001/host** on the big screen. Phones join at `http://<your-laptop-LAN-IP>:3001/play/CODE`;
 the app automatically talks to SpacetimeDB on `:3000` of the same host.
-To fake extra phones on one computer, open `/play/CODE?seat=2`, `?seat=3`, … in new tabs (each seat gets its own identity).
+**Playing alone?** Tap **🤖 Add test bot** in the lobby: one human + bots can play every phase.
+To fake extra human phones on one computer, open `/play/CODE?seat=2`, `?seat=3`, … in new tabs (each seat gets its own identity).
 
 **Voice recording on phones needs HTTPS** (browsers block the mic on plain-HTTP LAN addresses). Either deploy
 (below), or tunnel both ports (e.g. `cloudflared tunnel --url http://localhost:3001` and one for `:3000`, then set
@@ -111,6 +118,10 @@ node scripts/fetch-places.ts --label "Berkeley, CA" --lat 37.8716 --lng -122.272
 ```bash
 cd spacetime && npm test   # reducer rules against SpacetimeDB's in-memory test datastore
 cd web && npm test         # hours parser, hard filters + relaxation, time slots, assignments, .ics, mock AI
+
+# Full game in real browsers (needs the app + SpacetimeDB running, and `npm i -g playwright`)
+node scripts/e2e.cjs          # big screen + 2 phones, every phase
+node scripts/e2e.cjs --solo   # big screen + 1 phone + 2 test bots
 ```
 
 ## Environment variables (`web/.env.local`)
@@ -125,6 +136,7 @@ cd web && npm test         # hours parser, hard filters + relaxation, time slots
 
 ## Demo script (≈3 min)
 
+0. **Only one judge?** Add two test bots in the lobby; everything below still works.
 1. **Hook (15s):** "Every group chat has the same fight: *where do we go?* Pitch Fight turns that fight into a game."
 2. **Lobby (20s):** open `/host` on the projector → **Start game**. Room code + QR appear; the AI host welcomes everyone out loud.
    Two judges scan the QR and type names; their avatars pop in live (SpacetimeDB subscriptions).
@@ -144,10 +156,12 @@ Backup: if the network dies, the mock AI host + cached places keep the full loop
 ## Known limitations
 - Live Muse calls are stubbed until the API docs are in; the game runs on the mock host (clearly labeled on screen).
 - Profiles live in a public SpacetimeDB table; "hidden" answers are hidden in the UI, not cryptographically private.
-- The AI orchestration runs in the host's browser tab: if the host closes it mid-round, the round pauses until they reopen it.
+- The AI calls (options, posters, reactions, bot pitches) run from the host's browser tab. If the host closes it, the
+  pitch and vote timers still advance the game on the server, but AI steps wait until the host screen is reopened.
 - Opening hours are evaluated in the venue's local time using the host browser's clock; places with unknown hours are allowed but ranked lower.
 - Diet tags come from Google "offerings", which are incomplete; diet is never relaxed unless nothing else is left, and the screen says so when it is.
 - Sample places data is hand-written and approximate; run the Apify script for real data.
+- Countdowns are rendered against each device's clock, so a phone with a skewed clock shows a slightly off timer (the server deadline is what counts).
 - Phones joining by new tab/device get a new identity (tokens are per browser), so rejoining from another device creates a new player.
 - Not built yet: strangers mode (QR → match queue → auto lobby), Instagram Story share card.
 
@@ -162,5 +176,5 @@ web/                Next.js 16 app (App Router)
   lib/places/       Apify normalization + cache loader
   data/places/      cached places JSON (sample + Apify output)
   src/module_bindings/  generated SpacetimeDB client bindings
-scripts/            fetch-places.ts (Apify), dev-spacetime.sh
+scripts/            fetch-places.ts (Apify), dev-spacetime.sh, e2e.cjs (browser smoke test)
 ```

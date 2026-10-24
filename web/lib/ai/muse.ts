@@ -55,6 +55,13 @@ export interface HostPitchInput {
   rating: number;
 }
 
+export interface BotPitchInput {
+  botName: string;
+  optionName: string;
+  category: string;
+  prompt: string;
+}
+
 export interface PickTimeInput {
   optionName: string;
   total: number;
@@ -78,6 +85,8 @@ export interface AiHost {
   writePrompt(input: PromptInput, seed: number): Promise<string>;
   reactToPitch(input: ReactInput): Promise<string>;
   hostPitch(input: HostPitchInput): Promise<string>;
+  /** Writes a test bot's pitch, in character, following its assigned prompt. */
+  botPitch(input: BotPitchInput): Promise<string>;
   pickTime(input: PickTimeInput): Promise<{ slot: string; blurb: string }>;
   transcribe(audio: Blob, browserHint?: string): Promise<string>;
   poster(input: PosterInput): Promise<Poster>;
@@ -117,6 +126,14 @@ const REACTIONS = [
   (n: string, o: string) => `If ${o} doesn't win, ${n} is legally allowed to say "I told you so" forever.`,
 ];
 
+const BOT_PITCHES = [
+  (o: string, c: string) => `Beep boop. I have analyzed every ${c} in the city and ${o} is the only logical choice. Resistance is futile.`,
+  (o: string) => `My circuits were not built to feel, and yet ${o} makes me feel things. Vote with your hearts. I'll vote with my battery.`,
+  (o: string) => `Ladies, gentlemen, and fellow toasters: ${o}. Great food. Good lighting. Zero firmware updates required.`,
+  (o: string, c: string) => `I computed ten thousand futures. In every single one, you are happiest eating ${c} at ${o}.`,
+  (o: string) => `Error 404: a better option than ${o} was not found.`,
+];
+
 const mock: AiHost = {
   mode: 'mock',
 
@@ -142,6 +159,10 @@ const mock: AiHost = {
 
   async hostPitch({ optionName, category, rating }) {
     return `Nobody was brave enough to defend ${optionName}, so I will: ${rating ? `${rating.toFixed(1)} stars` : 'a hidden gem'} of ${category.toLowerCase()} excellence. Vote with your hearts. And stomachs.`;
+  },
+
+  async botPitch({ botName, optionName, category }) {
+    return pick(BOT_PITCHES, botName + optionName)(optionName, category.toLowerCase());
   },
 
   async pickTime({ optionName, slots, total }) {
@@ -271,6 +292,9 @@ const muse: AiHost = {
     throw new MuseNotConfigured('Spark');
   },
   async hostPitch() {
+    throw new MuseNotConfigured('Spark');
+  },
+  async botPitch() {
     throw new MuseNotConfigured('Spark');
   },
   async pickTime() {

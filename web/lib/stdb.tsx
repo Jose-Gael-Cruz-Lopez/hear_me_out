@@ -71,7 +71,8 @@ export function useGame(rawCode: string) {
   const sortedPlayers = useMemo(() => [...players].sort((a, b) => Number(a.id - b.id)), [players]);
   const options = useMemo(() => [...optionRows].sort((a, b) => a.slot - b.slot), [optionRows]);
   const assignments = useMemo(() => [...assignmentRows].sort((a, b) => a.order - b.order), [assignmentRows]);
-  const me = identity ? sortedPlayers.find(p => p.identity.isEqual(identity)) : undefined;
+  // Bots share the host's identity, so they are never "me".
+  const me = identity ? sortedPlayers.find(p => !p.isBot && p.identity.isEqual(identity)) : undefined;
   const isHost = !!(identity && lobby?.host.isEqual(identity));
 
   return {
@@ -96,6 +97,13 @@ export function useGame(rawCode: string) {
 }
 
 export type Game = ReturnType<typeof useGame>;
+
+/** True once the board has loaded at least once, so a later network blip shows a banner instead of a blank screen. */
+export function useLoadedOnce(ready: boolean) {
+  const [loaded, setLoaded] = useState(false);
+  if (ready && !loaded) setLoaded(true);
+  return loaded;
+}
 
 /** Wraps a reducer call: tracks busy state and surfaces the server's rule-violation message. */
 export function useAction() {

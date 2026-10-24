@@ -2,15 +2,16 @@
 
 // The phone controller. Everything here is a reducer call; the server enforces the rules.
 import { useEffect, useState } from 'react';
-import { useAction, useGame, type Game } from '@/lib/stdb';
+import { useAction, useGame, useLoadedOnce, type Game } from '@/lib/stdb';
 import { BUDGETS, DIETS, DISTANCES, FREE_SLOTS, label, VIBES } from '@/lib/game/questions';
-import { ErrorBox, OptionMeta, playerStyle, posterSrc, price, Spinner } from '../ui';
+import { Countdown, ErrorBox, OptionMeta, playerStyle, posterSrc, price, ReconnectBanner, Spinner } from '../ui';
 import { PlanCard } from '../PlanCard';
 import { Recorder } from './Recorder';
 
 export function PlayerScreen({ code }: { code: string }) {
   const g = useGame(code);
-  if (!g.connected || !g.ready) {
+  const loaded = useLoadedOnce(g.connected && g.ready);
+  if (!loaded) {
     return (
       <main className="phone center" style={{ justifyContent: 'center' }}>
         <Spinner /> Connecting…
@@ -29,6 +30,7 @@ export function PlayerScreen({ code }: { code: string }) {
   }
   return (
     <main className="phone">
+      <ReconnectBanner show={!g.connected} />
       <div className="phone-top">
         <span className="logo" style={{ fontSize: '1.3rem' }}>
           Pitch Fight
@@ -39,6 +41,7 @@ export function PlayerScreen({ code }: { code: string }) {
               {playerStyle(g.me).face} {g.me.name}
             </span>
           )}
+          <Countdown deadlineMicros={g.lobby.deadlineMicros} />
           <span className="code-box">{g.code}</span>
         </span>
       </div>

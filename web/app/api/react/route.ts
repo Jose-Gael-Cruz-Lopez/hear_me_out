@@ -7,6 +7,8 @@ export async function POST(req: Request) {
   const r =
     body.kind === 'pitch'
       ? await withFallback('reactToPitch', ai => ai.reactToPitch(body))
-      : await withFallback('hostPitch', ai => ai.hostPitch(body));
+      : body.kind === 'bot'
+        ? await withFallback('botPitch', ai => ai.botPitch(body))
+        : await withFallback('hostPitch', ai => ai.hostPitch(body));
   return NextResponse.json({ line: r.value, ai: r.mode });
 }

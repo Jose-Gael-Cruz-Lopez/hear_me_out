@@ -539,3 +539,41 @@ textarea.input {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- bots, timers, reconnect ---------- */
+
+.avatar .remove {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0 0 4px;
+}
+
+.countdown {
+  font-size: 1rem;
+  background: var(--panel2);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown.hot {
+  background: var(--red);
+  color: #fff;
+  animation: pulse 1s infinite;
+}
+
+.reconnect {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #5a4210;
+  color: var(--yellow);
+  font-weight: 800;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+}
