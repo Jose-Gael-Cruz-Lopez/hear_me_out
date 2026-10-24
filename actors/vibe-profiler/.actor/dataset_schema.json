@@ -1,0 +1,93 @@
+{
+  "$schema": "https://apify.com/schemas/v1/dataset.ide.json",
+  "actorSpecification": 1,
+  "fields": {
+    "type": "object",
+    "properties": {
+      "platform": { "type": "string", "enum": ["instagram", "tiktok", "facebook"], "description": "Social platform of the handle." },
+      "handle": { "type": "string", "description": "Lowercase username or Facebook page slug.", "example": "natgeo" },
+      "profileUrl": { "type": "string", "description": "Profile URL that was scraped." },
+      "status": { "type": "string", "enum": ["ok", "no-posts", "error"], "description": "Whether posts were found for this handle." },
+      "error": { "type": "string", "description": "Why scraping failed (only when status is error)." },
+      "postCount": { "type": "integer", "description": "Number of posts analyzed." },
+      "tags": { "type": "array", "items": { "type": "string" }, "description": "Vibe tag names, e.g. spicy-food, night-owl.", "example": ["ramen", "night-owl"] },
+      "vibeTags": {
+        "type": "array",
+        "description": "Up to 8 kebab-case tags with a short reason and the indices of the posts they were derived from.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "tag": { "type": "string" },
+            "reason": { "type": "string" },
+            "evidencePostIndices": { "type": "array", "items": { "type": "integer" } }
+          }
+        }
+      },
+      "vibeTagsSource": { "type": "string", "enum": ["muse", "heuristic"], "description": "Whether tags came from Muse Spark or the deterministic heuristics." },
+      "topHashtags": { "type": "array", "description": "Most used hashtags (generic and sensitive ones excluded) with counts." },
+      "topLocations": { "type": "array", "description": "Most tagged places with counts." },
+      "interests": { "type": "array", "description": "Interests matched by keywords, hashtags and emoji (food, nightlife, outdoors, gaming, film, music, fitness, arts, sports, travel) with share of posts and evidence." },
+      "subInterests": { "type": "array", "description": "Specific interests such as ramen, tacos, coffee, dessert, spicy-food, board-games, live-music, hiking." },
+      "postingPattern": { "type": "string", "enum": ["morning-person", "night-owl", "mixed", "unknown"], "description": "Posting-time pattern in the chosen time zone." },
+      "postingHours": { "type": "object", "description": "Post counts by local time of day: morning 5-11, afternoon 11-17, evening 17-21, lateNight 21-5." },
+      "timeZone": { "type": "string", "description": "Time zone used for posting hours." },
+      "firstPostAt": { "type": ["string", "null"], "description": "Oldest analyzed post (ISO 8601)." },
+      "lastPostAt": { "type": ["string", "null"], "description": "Newest analyzed post (ISO 8601)." },
+      "posts": { "type": "array", "description": "Normalized posts. Present only when includePosts is on." }
+    }
+  },
+  "views": {
+    "overview": {
+      "title": "Overview",
+      "transformation": {
+        "fields": ["platform", "handle", "status", "postCount", "tags", "postingPattern", "vibeTagsSource", "topHashtags", "topLocations"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "platform": { "label": "Platform", "format": "text" },
+          "handle": { "label": "Handle", "format": "text" },
+          "status": { "label": "Status", "format": "text" },
+          "postCount": { "label": "Posts", "format": "number" },
+          "tags": { "label": "Vibe tags", "format": "array" },
+          "postingPattern": { "label": "Posting pattern", "format": "text" },
+          "vibeTagsSource": { "label": "Tag source", "format": "text" },
+          "topHashtags": { "label": "Top hashtags", "format": "array" },
+          "topLocations": { "label": "Top places", "format": "array" }
+        }
+      }
+    },
+    "tags": {
+      "title": "Vibe tags with evidence",
+      "transformation": {
+        "fields": ["platform", "handle", "vibeTags", "vibeTagsSource"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "platform": { "label": "Platform", "format": "text" },
+          "handle": { "label": "Handle", "format": "text" },
+          "vibeTags": { "label": "Vibe tags", "format": "array" },
+          "vibeTagsSource": { "label": "Source", "format": "text" }
+        }
+      }
+    },
+    "interests": {
+      "title": "Interests",
+      "transformation": {
+        "fields": ["platform", "handle", "interests", "subInterests", "postingHours", "timeZone"]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "platform": { "label": "Platform", "format": "text" },
+          "handle": { "label": "Handle", "format": "text" },
+          "interests": { "label": "Interests", "format": "array" },
+          "subInterests": { "label": "Specific interests", "format": "array" },
+          "postingHours": { "label": "Posting hours", "format": "object" },
+          "timeZone": { "label": "Time zone", "format": "text" }
+        }
+      }
+    }
+  }
+}

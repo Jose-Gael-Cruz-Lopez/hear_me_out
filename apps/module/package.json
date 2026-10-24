@@ -1,0 +1,19 @@
+{
+  "name": "@hmo/module",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "spacetime build",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "spacetimedb": "2.13.*"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.2"
+  },
+  "exports": {
+    "./logic/*": "./src/logic/*.ts"
+  }
+}

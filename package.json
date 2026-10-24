@@ -1,0 +1,37 @@
+{
+  "name": "hear-me-out",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "scripts": {
+    "db:publish": "spacetime publish hear-me-out --module-path apps/module --server local --yes",
+    "db:reset": "spacetime publish hear-me-out --module-path apps/module --server local --delete-data=always --yes",
+    "db:generate": "spacetime generate --lang typescript --out-dir packages/bindings/src --module-path apps/module --yes",
+    "db:logs": "spacetime logs hear-me-out --server local -n 100",
+    "db:maincloud": "spacetime publish hear-me-out --module-path apps/module --server maincloud --yes",
+    "web": "pnpm --filter @hmo/web dev",
+    "orchestrator": "pnpm --filter @hmo/orchestrator dev",
+    "sim": "tsx --env-file-if-exists=.env scripts/sim.ts",
+    "test": "vitest run",
+    "typecheck": "pnpm -r --parallel typecheck && tsc -p scripts/tsconfig.json",
+    "sim:strangers": "tsx --env-file-if-exists=.env scripts/sim-strangers.ts",
+    "dev": "concurrently -k -n orch,web -c magenta,cyan \"pnpm orchestrator\" \"pnpm web\"",
+    "prewarm": "pnpm --filter @hmo/orchestrator exec tsx --env-file-if-exists=../../.env src/scripts/prewarm.ts",
+    "actor:push": "pnpm --filter vibe-profiler push",
+    "demo:player": "tsx --env-file-if-exists=.env scripts/demo-player.ts",
+    "web:build:maincloud": "SPACETIMEDB_URI=wss://maincloud.spacetimedb.com pnpm --filter @hmo/web build",
+    "sim:match": "tsx --env-file-if-exists=.env scripts/sim-match.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "~5.6.2",
+    "vitest": "^3.2.0",
+    "concurrently": "^9.2.0"
+  },
+  "dependencies": {
+    "@hmo/bindings": "workspace:*",
+    "@hmo/orchestrator": "workspace:*",
+    "spacetimedb": "2.13.*"
+  }
+}

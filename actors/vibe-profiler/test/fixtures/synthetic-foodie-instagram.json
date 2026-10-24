@@ -1,0 +1,117 @@
+{
+  "source": "Synthetic, hand-written items in apify/instagram-scraper's output shape for a fictional account (example.foodie). No real person or place.",
+  "trimmed": "n/a",
+  "items": [
+    {
+      "id": "1001",
+      "type": "Image",
+      "productType": "feed",
+      "caption": "Late night ramen run 🍜 tonkotsu broth was unreal #ramen #ramenlover #fyp",
+      "hashtags": ["ramen", "ramenlover", "fyp"],
+      "locationName": "Example Ramen House",
+      "timestamp": "2026-10-01T06:30:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/",
+      "alt": "Photo by Example Foodie on October 1, 2026. May be an image of noodles and soup."
+    },
+    {
+      "id": "1002",
+      "type": "Sidecar",
+      "productType": "carousel_container",
+      "caption": "Birria tacos 🌮🌮 with extra salsa. Spice level 🔥🔥🔥 #tacotuesday #spicyfood",
+      "hashtags": ["tacotuesday", "spicyfood"],
+      "locationName": "Example Taqueria",
+      "timestamp": "2026-10-03T07:15:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    },
+    {
+      "id": "1003",
+      "type": "Image",
+      "productType": "feed",
+      "caption": "Hot pot night with the crew 🌶️ #hotpot",
+      "hashtags": ["hotpot"],
+      "locationName": "Example Hot Pot",
+      "timestamp": "2026-10-05T05:45:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    },
+    {
+      "id": "1004",
+      "type": "Image",
+      "productType": "feed",
+      "caption": "Board game night: Catan rematch 🎲",
+      "hashtags": [],
+      "locationName": null,
+      "timestamp": "2026-10-07T04:10:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    },
+    {
+      "id": "1005",
+      "type": "Image",
+      "productType": "feed",
+      "caption": "Sunday flat white ☕️ and a croissant 🥐 #coffee",
+      "hashtags": ["coffee"],
+      "locationName": "Example Coffee Co",
+      "timestamp": "2026-10-11T17:30:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    },
+    {
+      "id": "1006",
+      "type": "Video",
+      "productType": "clips",
+      "caption": "Spicy miso ramen, round two 🍜🌶️ #ramen",
+      "hashtags": ["ramen"],
+      "locationName": "Example Ramen House",
+      "timestamp": "2026-10-13T08:20:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    },
+    {
+      "id": "1007",
+      "type": "Video",
+      "productType": "clips",
+      "caption": "Karaoke until close 🎤 #karaoke",
+      "hashtags": ["karaoke"],
+      "locationName": "Example Karaoke Bar",
+      "timestamp": "2026-10-15T09:05:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    },
+    {
+      "id": "1008",
+      "type": "Image",
+      "productType": "feed",
+      "caption": "Mochi ice cream for dessert 🍦",
+      "hashtags": [],
+      "locationName": "Example Dessert Bar",
+      "timestamp": "2026-10-18T06:00:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    },
+    {
+      "id": "1009",
+      "type": "Image",
+      "productType": "feed",
+      "caption": "Tried the vegan tacos at the taqueria, still spicy 🌶️ #vegan #tacos",
+      "hashtags": ["vegan", "tacos"],
+      "locationName": "Example Taqueria",
+      "timestamp": "2026-10-20T07:40:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    },
+    {
+      "id": "1010",
+      "type": "Image",
+      "productType": "feed",
+      "caption": "Sunday service at Example Chapel",
+      "hashtags": ["sundayservice"],
+      "locationName": "Example Chapel",
+      "timestamp": "2026-10-19T17:00:00.000Z",
+      "ownerUsername": "example.foodie",
+      "inputUrl": "https://www.instagram.com/example.foodie/"
+    }
+  ]
+}

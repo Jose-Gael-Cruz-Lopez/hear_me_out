@@ -1,0 +1,19 @@
+{
+  "$schema": "https://apify.com/schemas/v1/output.ide.json",
+  "actorOutputSchemaVersion": 1,
+  "title": "Vibe Profiler output",
+  "properties": {
+    "profiles": {
+      "type": "string",
+      "title": "Per-handle profiles",
+      "description": "One dataset item per handle: tags, interests, top hashtags and places, posting pattern. No raw post text unless includePosts is on.",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
+    },
+    "merged": {
+      "type": "string",
+      "title": "Merged profile",
+      "description": "OUTPUT record: one profile merged across all handles, with up to 8 vibe tags.",
+      "template": "{{links.apiDefaultKeyValueStoreUrl}}/records/OUTPUT"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://apify.com/schemas/v1/input.ide.json",
+  "title": "Vibe Profiler input",
+  "description": "Only profile accounts that are your own (or that you are allowed to analyze, such as a brand page you manage) and that you have consented to profile. Public posts only.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "instagramHandles": {
+      "title": "Instagram handles",
+      "type": "array",
+      "description": "Instagram usernames or profile URLs, e.g. <code>natgeo</code>, <code>@natgeo</code> or <code>https://www.instagram.com/natgeo/</code>. Public accounts only.",
+      "editor": "stringList",
+      "prefill": ["natgeo"],
+      "maxItems": 10
+    },
+    "tiktokHandles": {
+      "title": "TikTok handles",
+      "type": "array",
+      "description": "TikTok usernames or profile URLs, e.g. <code>nba</code> or <code>https://www.tiktok.com/@nba</code>. Public accounts only.",
+      "editor": "stringList",
+      "maxItems": 10
+    },
+    "facebookPageUrls": {
+      "title": "Facebook page URLs",
+      "type": "array",
+      "description": "Public Facebook page URLs, e.g. <code>https://www.facebook.com/nasa</code>. The Facebook scraper supports public pages, not personal profiles.",
+      "editor": "stringList",
+      "maxItems": 10
+    },
+    "postsPerProfile": {
+      "title": "Posts per profile",
+      "type": "integer",
+      "description": "How many recent posts to read per handle. More posts give better tags but cost more (each scraped post is billed by the scraper).",
+      "editor": "number",
+      "default": 12,
+      "prefill": 12,
+      "minimum": 1,
+      "maximum": 30,
+      "unit": "posts"
+    },
+    "timeZone": {
+      "title": "Time zone",
+      "type": "string",
+      "description": "IANA time zone used for the posting-time pattern (morning person / night owl), e.g. <code>America/Los_Angeles</code>. Defaults to UTC.",
+      "editor": "textfield",
+      "default": "UTC"
+    },
+    "includePosts": {
+      "title": "Include normalized posts in the output",
+      "type": "boolean",
+      "description": "Off by default for privacy: the dataset and OUTPUT then contain only counts and derived fields. Turn on to also store each normalized post (text, hashtags, place, time) so you can inspect the evidence behind each tag.",
+      "editor": "checkbox",
+      "default": false
+    },
+    "deleteScrapedData": {
+      "title": "Delete scraper datasets after use",
+      "type": "boolean",
+      "description": "Delete the default dataset and key-value store of each scraper run this actor starts, as soon as tags are derived, so raw posts do not outlive the run.",
+      "editor": "checkbox",
+      "default": true
+    },
+    "museApiKey": {
+      "title": "Muse API key (optional)",
+      "type": "string",
+      "description": "Meta Model API key. When set, Muse Spark writes up to 8 vibe tags with evidence post indices; otherwise tags come from deterministic keyword heuristics. Post text is sent to Meta's API only when this is set (links and @mentions are removed first).",
+      "editor": "textfield",
+      "isSecret": true,
+      "sectionCaption": "AI tags with Muse Spark (optional)",
+      "sectionDescription": "Bring your own Meta Model API key for AI-written vibe tags. Without a key the actor still returns heuristic tags."
+    },
+    "museModel": {
+      "title": "Muse model",
+      "type": "string",
+      "description": "Muse Spark model id.",
+      "editor": "textfield",
+      "default": "muse-spark-1.3"
+    }
+  },
+  "required": []
+}
