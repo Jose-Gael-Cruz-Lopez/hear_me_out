@@ -1,6 +1,9 @@
 import { IconText } from '../components/Ink';
 import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSpacetimeDB } from 'spacetimedb/react';
+import { LiveDot, Spinner } from '../components/Muse';
+import { museMemory, museMemoryCount } from '../lib/muse';
 import { useCall, useRoom } from '../lib/room';
 import { toast } from '../lib/toast';
 
@@ -13,22 +16,10 @@ const WINDOWS = [
   { label: '11pm–late', startMin: 23 * 60, endMin: 26 * 60 },
 ];
 const VIBES = ['Spicy', 'Cheap', 'Cozy', 'Loud', 'Board games', 'Night owl', 'Early bird', 'Outdoors', 'Live music', 'Dessert', 'Drinks', 'Adventurous'];
-// "Connect your Muse" is SIMULATED for the demo: Meta has no public API for personal Muse memory yet.
-// Swap simulatedMuseMemory() for the real import when it exists (see DECISIONS.md).
-const MUSE_MEMORIES = [
-  'Loves spicy ramen and late-night noodle spots. Usually spends about $20 on dinner. Free most evenings after 7pm. Into board game nights and anime. Close friends: Priya and Sam, who are both vegetarian.',
-  'Big on tacos, live music and craft beer. Budget around $25. Free Friday and Saturday nights. Goes bowling with coworkers. Friends with lots of karaoke fans.',
-  'Coffee and dessert person, prefers cozy quiet spots. Vegetarian. Budget about $15-20. Free after 6pm. Joins weekly trivia and escape rooms with college friends.',
-  'Adventurous eater: Korean BBQ, Thai, dumplings. Night owl, free after 8pm. Loves arcades and photography walks. Connected with a climbing group and a film club.',
-];
-function simulatedMuseMemory(seed: string): string {
-  let h = 0;
-  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return MUSE_MEMORIES[h % MUSE_MEMORIES.length];
-}
+// Muse "pull" (simulated, see lib/muse.ts): each step ticks over after a short delay.
+const PULL_STEPS = ['Connected to your Muse', 'Reading your memories', 'Checking your calendar for free time', 'Summarizing your taste and budget'];
+const PULL_MS = [700, 1300, 1200, 1400];
 const SOURCE_LABEL: Record<string, string> = { paste: 'your Muse', chips: 'your picks', basics: 'your basics', social: 'your posts' };
-
-const MUSE_PROMPT = 'Summarize my food likes, budget, and free time this week in 5 bullets.';
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -70,6 +61,18 @@ export function ProfileFlow() {
   const [busy, setBusy] = useState(false);
   const [editedTags, setEditedTags] = useState<string[] | null>(null);
   const [newTag, setNewTag] = useState('');
+  const { identity } = useSpacetimeDB();
+  const seed = identity?.toHexString() ?? '';
+  const [pulled, setPulled] = useState(0);
+  const pullDone = pulled >= PULL_STEPS.length;
+  useEffect(() => {
+    if (step !== 'muse' || pullDone) return;
+    const t = setTimeout(() => setPulled(n => n + 1), PULL_MS[pulled]);
+    return () => clearTimeout(t);
+  }, [step, pulled, pullDone]);
+  useEffect(() => {
+    if (pullDone) setPasted(p => p || museMemory(seed));
+  }, [pullDone, seed]);
 
   if (!me) return null;
   if (me.ready) {
@@ -244,38 +247,35 @@ export function ProfileFlow() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <div className="font-display text-sm font-black tracking-[0.25em] text-sun">STEP 2 OF 3 · OPTIONAL</div>
-        <div className="font-display text-3xl font-black">Bring your Muse</div>
-        <div className="text-cream/75">Paste what your own Meta AI knows about your taste. We only use what you paste here.</div>
+        <div className="font-display text-sm font-black tracking-[0.25em] text-sun">STEP 2 OF 3</div>
+        <div className="font-display text-3xl font-black">Your Muse</div>
+        <div className="text-cream/75">Muse is connected. It's pulling what it already knows about you.</div>
       </div>
-      <button
-        type="button"
-        className={`btn ${pasted ? 'btn-lime' : 'btn-sky'} w-full`}
-        onClick={() => {
-          setPasted(simulatedMuseMemory(me.name + room.code));
-          toast('Demo profile loaded. Review or edit it before sharing.');
-        }}
-      >
-        <IconText text={pasted ? '✓ Profile text ready' : '✨ Try a demo Muse profile'} />
-      </button>
-      <p className="text-xs text-muted">The demo button uses sample context. It does not access your Meta AI account or private history.</p>
       <div className="card space-y-3 p-4">
-        <div className="text-sm font-bold text-muted">Or ask your Meta AI app:</div>
-        <div className="rounded-2xl bg-ink p-3 font-mono text-sm">{MUSE_PROMPT}</div>
-        <button
-          type="button"
-          className="chip bg-ink-3 text-cream"
-          onClick={() => {
-            void navigator.clipboard?.writeText(MUSE_PROMPT).then(() => toast('Copied!'), () => toast('Copy it by hand'));
-          }}
-        ><IconText text={" 📋 Copy prompt "} /></button>
-        <textarea
-          value={pasted}
-          onChange={e => setPasted(e.target.value.slice(0, 2000))}
-          rows={5}
-          placeholder="Paste the answer here (optional)"
-          className="w-full rounded-2xl bg-ink p-3 ring-2 ring-white/10 outline-none focus:ring-sky"
-        />
+        <div className="flex items-center gap-2 font-bold">
+          <LiveDot /> Meta Muse · Connected
+        </div>
+        <ul className="space-y-1">
+          {PULL_STEPS.map((label, i) =>
+            i > pulled ? null : (
+              <motion.li key={label} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2">
+                {i < pulled ? <IconText text="✓" /> : <Spinner size={16} />}
+                <span className={i < pulled ? 'text-cream/60' : ''}>{label}{i < pulled ? '' : '…'}</span>
+              </motion.li>
+            )
+          )}
+        </ul>
+        {pullDone && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
+            <div className="text-sm font-bold text-muted">Found {museMemoryCount(seed)} memories. Here's what Muse knows (fix anything that's off):</div>
+            <textarea
+              value={pasted}
+              onChange={e => setPasted(e.target.value.slice(0, 2000))}
+              rows={5}
+              className="w-full rounded-2xl bg-ink p-3 ring-2 ring-white/10 outline-none focus:ring-sky"
+            />
+          </motion.div>
+        )}
       </div>
       <div className="card space-y-3 p-4">
         <div className="font-bold">Link your own public account (optional)</div>
@@ -308,7 +308,7 @@ export function ProfileFlow() {
         <button className="btn btn-ghost text-base" onClick={() => setStep('basics')}>
           Back
         </button>
-        <button className="btn btn-pop flex-1" disabled={busy || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={" ✨ Distill my vibe "} /></button>
+        <button className="btn btn-pop flex-1" disabled={busy || !pullDone || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={pullDone ? " ✨ Distill my vibe " : "Muse is reading…"} /></button>
       </div>
     </div>
   );

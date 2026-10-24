@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { PITCH_REACTIONS } from '../lib/reactions';
 import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
 import { MergeBanner } from '../components/MergeBanner';
+import { MuseReservation } from '../components/Muse';
 import { SafetyList } from '../components/Safety';
 import { Avatar, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
@@ -96,13 +97,16 @@ export function PlayPrevote() {
             play('pop');
             void call(c => c.reducers.castPrevote({ roomId: room.id, optionId: o.id }));
           }}
-          className={`card p-5 text-left font-display text-2xl font-black transition ${myPrevoteOptionId === o.id ? 'ring-4 ring-sun' : ''}`}
+          className="block w-full text-left transition active:scale-[0.99]"
         >
-          <IconText text={myPrevoteOptionId === o.id ? '🤫 ' : ''} />
-          {o.title}
-          <div className="text-sm font-bold text-cream/60">
-            {o.category} · ~{o.travelMin} min
-          </div>
+          <VenueCard option={o} highlight={myPrevoteOptionId === o.id ? 'var(--color-pop)' : undefined}>
+            {myPrevoteOptionId === o.id && (
+              <div className="chip bg-sun text-cream">
+                <IconText text="🤫 " />
+                Your secret pick
+              </div>
+            )}
+          </VenueCard>
         </button>
       ))}
     </div>
@@ -321,6 +325,7 @@ export function PlayPlan() {
         <div className="text-cream/80">{plan.inviteText}</div>
         {plan.whyForEach.find(w => w.playerId === me?.id) && <div className="text-lime"><IconText text={"💚 "} />{plan.whyForEach.find(w => w.playerId === me?.id)!.line}</div>}
       </div>
+      <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
       <div className="grid grid-cols-3 gap-3">
         {(['yes', 'maybe', 'no'] as const).map(s => (
           <button key={s} className={`btn text-lg ${mine?.status === s ? 'btn-lime' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.setRsvp({ planId: plan.id, status: s }))}>

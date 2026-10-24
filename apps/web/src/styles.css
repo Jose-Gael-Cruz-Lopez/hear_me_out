@@ -165,7 +165,7 @@ a { color: inherit; }
 .cover-other { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; font-size: 13px; font-weight: 800; }
 .cover-other button { text-decoration: underline; text-underline-offset: 4px; min-height: 32px; }
 .cover-footnote { position: absolute; z-index: 2; bottom: 14px; left: 20px; right: 20px; text-align: center; color: #68685f; font-size: 11px; pointer-events: none; }
-.ink-dialog { position: fixed; width: min(460px,calc(100% - 30px)); padding: 36px 28px; background: #f4f3ef; color: #14140f; border: 2px solid #14140f; border-radius: 23px 27px 22px 25px; box-shadow: 6px 8px 0 #14140f; }
+.ink-dialog { position: fixed; margin: auto; width: min(460px,calc(100% - 30px)); padding: 36px 28px; background: #f4f3ef; color: #14140f; border: 2px solid #14140f; border-radius: 23px 27px 22px 25px; box-shadow: 6px 8px 0 #14140f; }
 .ink-dialog::backdrop { background: #f4f3efb5; backdrop-filter: blur(3px); }
 .dialog-close { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #14140f; border-radius: 50%; }
 .meet-page { max-width: 1040px; padding: 28px 24px 48px; margin: auto; }
@@ -249,3 +249,12 @@ button.chip, a.chip { min-height: 40px; }
 .reaction-controls button { border: 1.5px solid #14140f; box-shadow: 2px 3px 0 #14140f; }
 
 [class*='text-tang'] { color: #91291f; }
+
+/* "Muse connected" pill and live dot */
+.cover-connected { position: absolute; z-index: 3; left: 28px; top: 24px; min-height: 42px; font-size: 13px; padding: 8px 15px; }
+.live-dot { display: inline-block; flex: none; width: 9px; height: 9px; border-radius: 50%; background: #3f9b4f; box-shadow: 0 0 0 3px #3f9b4f33; }
+@media (prefers-reduced-motion: no-preference) {
+  .live-dot { animation: live-pulse 2s ease-in-out infinite; }
+  @keyframes live-pulse { 50% { box-shadow: 0 0 0 6px #3f9b4f00; } }
+}
+@media (max-width: 700px) { .cover-connected { left: 18px; top: 18px; } }
