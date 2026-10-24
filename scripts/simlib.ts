@@ -104,7 +104,13 @@ export function autopilot(
   conn: DbConnection,
   name: string,
   roomId: () => bigint,
-  opts: { pickVote?: (options: { id: bigint; placeId: string; sortOrder: number }[]) => bigint | undefined; rsvp?: 'yes' | 'no'; mergeYes?: boolean } = {}
+  opts: {
+    pickVote?: (options: { id: bigint; placeId: string; sortOrder: number }[]) => bigint | undefined;
+    rsvp?: 'yes' | 'no';
+    mergeYes?: boolean;
+    /** Upload this recording instead of typing a pitch. */
+    pitchAudio?: { bytes: Uint8Array; mime: string; durationMs: number };
+  } = {}
 ): () => void {
   const done = new Set<string>();
   const once = (key: string, fn: () => Promise<unknown>) => {
@@ -148,7 +154,10 @@ export function autopilot(
         break;
       case 'pitching': {
         const mine = [...conn.db.pitch.iter()].find(p => p.roomId === r.id && p.playerId === me.id);
-        if (mine) once(`pi${k}`, () => conn.reducers.submitTypedPitch({ pitchId: mine.id, text: `I am ${name} and this place is five stars and open until 2am. Trust me!` }));
+        if (mine && opts.pitchAudio) {
+          const a = opts.pitchAudio;
+          once(`pi${k}`, () => conn.reducers.uploadPitchAudio({ pitchId: mine.id, mime: a.mime, bytes: a.bytes, durationMs: a.durationMs, browserTranscript: '' }));
+        } else if (mine) once(`pi${k}`, () => conn.reducers.submitTypedPitch({ pitchId: mine.id, text: `I am ${name} and this place is five stars and open until 2am. Trust me!` }));
         break;
       }
       case 'vote': {

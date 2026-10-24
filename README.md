@@ -108,6 +108,8 @@ Open `http://localhost:5173` → **Friends game** in one window (the TV), then j
 | `pnpm sim --muse` | The same round on live Muse (transcription of real speech, poster image) |
 | `pnpm sim --live` | The same round with a live Apify scrape |
 | `pnpm sim:strangers` | Lobby browser, vibe match, safety rules, meetup confirmation and a two-room merge (15 checks) |
+| `cd actors/vibe-profiler && npx vitest run --config vitest.config.ts` | 49 tests for the vibe-profiler actor (normalization, enrichment, Muse parsing) |
+| `pnpm demo:player CODE Name [pitch.webm]` | A scripted player that joins a real room from the terminal (handy for solo testing) |
 | `pnpm typecheck` | Every package |
 
 ## Deploy (multiple Macs)

@@ -7,6 +7,7 @@ import { toWav } from '../services/audio';
 import { evaluate, pickVaried, shortlist, type Candidate, type Member } from '../services/curation';
 import { factcheckLocal, type VenueRecord } from '../services/factcheck';
 import { geocode } from '../services/geocode';
+import { profileSocial } from '../services/social';
 import { botBoldClaim, offlineIcebreakers, offlinePosterPrompt, offlineStylePrompt, offlineTags } from '../services/offline';
 import { DEFAULT_QUERIES, nearestFixture, saveRawScrape, scrapeVenues, venueKey } from '../services/venues';
 import { log } from '../log';
@@ -67,22 +68,30 @@ interface DistillPayload {
 
 const distill_profile: Handler = async (job, d) => {
   const p = payload<DistillPayload>(job);
+  // The player linked their own public account and consented: derive tags from it (raw posts stay in memory).
+  const social = await profileSocial(d.cfg, p.socialLinks ?? []);
   const chipTags = chipsToTags(p.vibeChips ?? [], p.dietary ?? [], p.budgetMax ?? 2);
-  const fallback = offlineTags({ vibeChips: p.vibeChips ?? [], dietary: p.dietary ?? [], budgetMax: p.budgetMax ?? 2, pastedContext: p.pastedContext ?? '' }, chipTags);
-  // Social linking (vibe-profiler actor) plugs in here in M5; raw posts stay in memory only.
+  const socialTags = (social?.tags ?? []).map(t => ({ tag: t.tag, reason: `${t.reason} (your posts)`, source: 'social' }));
+  const fallback = offlineTags({ vibeChips: p.vibeChips ?? [], dietary: p.dietary ?? [], budgetMax: p.budgetMax ?? 2, pastedContext: p.pastedContext ?? '' }, [...chipTags, ...socialTags]);
   const out = await d.muse.json({
     ...prompts.distillProfile,
     input: {
       basics: { budgetMax: p.budgetMax, dietary: p.dietary, maxTravelMin: p.maxTravelMin },
       vibeChips: p.vibeChips,
       pastedFromTheirMuse: p.pastedContext || '(nothing pasted)',
+      fromTheirOwnPublicPosts: social
+        ? { tags: social.tags, interests: social.interests, topHashtags: social.topHashtags, postingPattern: social.postingPattern, posts: social.postCount }
+        : '(no account linked)',
     },
     effort: 'minimal',
     roomId: job.roomId,
   });
   const tags = out?.tags ?? fallback;
-  const note = out ? '' : 'Drafted from your picks and pasted text (AI distillation offline).';
-  await d.conn.reducers.finishDistill({ jobId: job.id, tags, note });
+  const notes = [
+    out ? '' : 'Drafted from your picks and pasted text (AI distillation offline).',
+    (p.socialLinks ?? []).length > 0 ? (social ? `Read ${social.postCount} public posts; raw posts were not stored.` : "Couldn't read your linked account, so it wasn't used.") : '',
+  ].filter(Boolean);
+  await d.conn.reducers.finishDistill({ jobId: job.id, tags, note: notes.join(' ') });
 };
 
 // ---------- Warm-up ----------

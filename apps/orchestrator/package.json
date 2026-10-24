@@ -16,6 +16,7 @@
     "ffmpeg-static": "^5.2.0",
     "openai": "^6.0.0",
     "spacetimedb": "2.13.*",
+    "vibe-profiler": "workspace:*",
     "zod": "^4.1.0"
   },
   "devDependencies": {

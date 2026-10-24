@@ -48,6 +48,9 @@ export function ProfileFlow() {
   const [times, setTimes] = useState<string[]>([]);
   const [vibes, setVibes] = useState<string[]>([]);
   const [pasted, setPasted] = useState('');
+  const [platform, setPlatform] = useState<'instagram' | 'tiktok' | 'facebook'>('instagram');
+  const [handle, setHandle] = useState('');
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [editedTags, setEditedTags] = useState<string[] | null>(null);
   const [newTag, setNewTag] = useState('');
@@ -82,8 +85,8 @@ export function ProfileFlow() {
         availability: mergeWindows(times),
         vibeChips: vibes,
         pastedContext: pasted,
-        socialLinks: [],
-        consent: false,
+        socialLinks: handle.trim() && consent ? [{ platform, handle: handle.trim() }] : [],
+        consent: !!handle.trim() && consent,
       })
     );
     setEditedTags(null);
@@ -99,6 +102,7 @@ export function ProfileFlow() {
             ✨
           </motion.div>
           <div className="font-display text-2xl font-black">Distilling your vibe…</div>
+          {myDraft.socialLinks.length > 0 && <div className="text-cream/70">Reading your public posts with Apify. This can take up to a minute.</div>}
         </div>
       );
     }
@@ -252,11 +256,38 @@ export function ProfileFlow() {
           className="w-full rounded-2xl bg-ink p-3 ring-2 ring-white/10 outline-none focus:ring-sky"
         />
       </div>
+      <div className="card space-y-3 p-4">
+        <div className="font-bold">Link your own public account (optional)</div>
+        <div className="text-sm text-cream/70">We read your recent public posts to suggest tags, then throw the posts away. You still approve every tag.</div>
+        <div className="flex gap-2">
+          <select
+            value={platform}
+            onChange={e => setPlatform(e.target.value as typeof platform)}
+            className="rounded-2xl bg-ink px-3 py-3 ring-2 ring-white/10 outline-none focus:ring-sky"
+          >
+            <option value="instagram">Instagram</option>
+            <option value="tiktok">TikTok</option>
+            <option value="facebook">Facebook page</option>
+          </select>
+          <input
+            value={handle}
+            onChange={e => setHandle(e.target.value.slice(0, 80))}
+            placeholder={platform === 'facebook' ? 'facebook.com/yourpage' : '@yourhandle'}
+            className="min-w-0 flex-1 rounded-2xl bg-ink px-4 py-3 ring-2 ring-white/10 outline-none focus:ring-sky"
+          />
+        </div>
+        {handle.trim() && (
+          <label className="flex items-start gap-2 text-sm font-bold">
+            <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-0.5 h-5 w-5 accent-[#a3ff5c]" />
+            This is my account and I consent to it being read for this game.
+          </label>
+        )}
+      </div>
       <div className="flex gap-3">
         <button className="btn btn-ghost text-base" onClick={() => setStep('basics')}>
           Back
         </button>
-        <button className="btn btn-pop flex-1" disabled={busy} onClick={() => void submit()}>
+        <button className="btn btn-pop flex-1" disabled={busy || (!!handle.trim() && !consent)} onClick={() => void submit()}>
           ✨ Distill my vibe
         </button>
       </div>
