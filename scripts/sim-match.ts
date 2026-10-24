@@ -11,6 +11,12 @@ async function main(): Promise<void> {
   const names = ['Ivy', 'Jun', 'Kai'];
   const seekers = await Promise.all(names.map(n => connect(n)));
   const [a] = seekers;
+  const where = process.env.DEMO_LOCATION || 'San Francisco';
+
+  // A stale "Ivy" who queued and closed the window. The real Ivy must still get in: the queue is shared.
+  const ghost = await connect('Ghost');
+  await ghost.reducers.joinMatchmaking({ category: 'food', locationLabel: where, tzOffsetMin: 0, name: 'Ivy', avatar: '🙂', confirmed18: true, fastMode: true });
+  ghost.disconnect();
 
   for (const [i, c] of seekers.entries()) {
     await c.reducers.joinMatchmaking({ category: 'food', locationLabel: process.env.DEMO_LOCATION || 'San Francisco', tzOffsetMin: -new Date().getTimezoneOffset(), name: names[i], avatar: '🙂', confirmed18: true, fastMode: true });
@@ -19,10 +25,11 @@ async function main(): Promise<void> {
   const inQueue = () => [...a.db.player.iter()].filter(p => p.roomId === queue.id);
   await waitFor('3 in queue', () => inQueue().length >= 3, 5000).catch(() => undefined);
   check(inQueue().length >= 3, `3 strangers joined the ${queue.category} queue (${queue.code})`);
+  check(inQueue().filter(p => p.name === 'Ivy').length >= 2, 'a name someone already used in the queue does not block joining');
 
   // Each builds a profile in the queue (simulated Muse memory) and approves the drafted tags.
   for (const [i, c] of seekers.entries()) {
-    const me = await waitFor('me', () => [...c.db.player.iter()].find(p => p.roomId === queue.id && p.name === names[i]));
+    const me = await waitFor('me', () => [...c.db.player.iter()].find(p => p.roomId === queue.id && p.identity.isEqual(c.identity!)));
     await c.reducers.submitProfile({ roomId: queue.id, budgetMax: 2, dietary: [], maxTravelMin: 30, availability: [{ startMin: 18 * 60, endMin: 23 * 60 }], vibeChips: ['Spicy'], pastedContext: MEMORY, socialLinks: [], consent: false });
     const draft = await waitFor('draft', () => [...c.db.myProfileDraft.iter()].find(d => d.playerId === me.id && d.status === 'ready'));
     await c.reducers.approveTags({ roomId: queue.id, tags: draft.draftTags.map(x => x.tag) });
@@ -30,7 +37,7 @@ async function main(): Promise<void> {
 
   // The matcher moves all three into a new room and starts the game.
   const room = await waitFor('matched room', () => {
-    const ids = new Set(names.map(n => [...a.db.player.iter()].find(p => p.name === n && p.roomId !== queue.id)?.roomId));
+    const ids = new Set(seekers.map(c => [...a.db.player.iter()].find(p => p.identity.isEqual(c.identity!) && p.roomId !== queue.id)?.roomId));
     const id = [...ids][0];
     return ids.size === 1 && id !== undefined ? a.db.room.id.find(id) : null;
   }, 20_000);
@@ -72,6 +79,29 @@ async function main(): Promise<void> {
   const hidden = await waitFor('hidden after no', () => !chat(c), 5000).catch(() => false);
   check(hidden === true, "switching your RSVP to no hides the group chat");
   outsider.disconnect();
+
+  // Friends game: rejoining under your name from a new window keeps your seat; a clash gets a number.
+  const host = await connect('Host');
+  await host.reducers.createRoom({ mode: 'friends', tzOffsetMin: 0, fastMode: true });
+  const friends = await waitFor('friends room', () => [...host.db.room.iter()].find(r => r.mode === 'friends' && r.hostIdentity.isEqual(host.identity!)));
+  const first = await connect('Zed');
+  await first.reducers.joinRoom({ code: friends.code, name: 'Zed', avatar: '🙂' });
+  const seat = await waitFor('Zed seat', () => [...host.db.player.iter()].find(p => p.roomId === friends.id && p.name === 'Zed'));
+  first.disconnect();
+  await waitFor('Zed offline', () => host.db.player.id.find(seat.id)?.connected === false, 5000);
+  const again = await connect('Zed again');
+  await again.reducers.joinRoom({ code: friends.code, name: 'zed', avatar: '😎' });
+  const reclaimed = await waitFor('Zed back', () => {
+    const p = host.db.player.id.find(seat.id);
+    return p?.identity.isEqual(again.identity!) && p.connected ? p : null;
+  }, 5000).catch(() => null);
+  check(!!reclaimed && [...host.db.player.iter()].filter(p => p.roomId === friends.id).length === 1, 'rejoining a friends game under your name from a new window keeps your seat');
+  const twin = await connect('Other Zed');
+  await twin.reducers.joinRoom({ code: friends.code, name: 'Zed', avatar: '🙂' });
+  const numbered = await waitFor('Zed 2', () => [...host.db.player.iter()].find(p => p.roomId === friends.id && p.identity.isEqual(twin.identity!)), 5000).catch(() => null);
+  check(numbered?.name === 'Zed 2', 'a second Zed joins as "Zed 2" instead of getting an error');
+  await host.reducers.deleteRoom({ roomId: friends.id }).catch(() => undefined);
+  for (const c of [again, twin, host]) c.disconnect();
 
   for (const id of [room.id, queue.id]) await orch.conn.reducers.deleteRoom({ roomId: id }).catch(() => undefined);
   orch.stop();

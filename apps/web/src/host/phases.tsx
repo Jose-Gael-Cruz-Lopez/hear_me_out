@@ -6,6 +6,7 @@ import { Link, useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
+import { WhatsAppGroup } from '../components/WhatsAppGroup';
 import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard, VenueImage } from '../components/ui';
 import { MenuProof } from '../components/MenuProof';
 import { BusyChart } from '../components/BusyChart';
@@ -369,6 +370,8 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
             </ul>
           </div>
         )}
+        {/* Friends only: a public meetup's TV is seen by people who haven't RSVP'd. */}
+        {room.mode === 'friends' && <WhatsAppGroup onTv />}
         {isHost && (
           <button className="btn btn-ghost self-start" onClick={() => navigate('/')}>
             New game

@@ -2,7 +2,7 @@ import { SenderError } from 'spacetimedb/server';
 import { findMyPlayer, playersIn, type Ctx } from './core';
 import { normalizeCode } from './logic/codes';
 import { isFirstName } from './logic/match';
-import { clampText } from './logic/text';
+import { clampText, uniqueName } from './logic/text';
 import { MAX_PLAYERS } from './logic/timing';
 
 export function nextSeat(ctx: Ctx, roomId: bigint): number {
@@ -25,15 +25,25 @@ export function addPlayer(ctx: Ctx, code: string, name: string, avatar: string, 
     ctx.db.player.id.update({ ...existing, name: cleanName, avatar: cleanAvatar, connected: true });
     return;
   }
-  if (r.phase !== 'lobby' && r.phase !== 'profiles') throw new SenderError('This game already started.');
   const players = playersIn(ctx, r.id);
-  if (players.length >= MAX_PLAYERS) throw new SenderError('This room is full.');
-  if (players.some(p => p.name.toLowerCase() === cleanName.toLowerCase())) throw new SenderError('Someone already has that name.');
+  // Friends games: a player whose window closed rejoins under the same name from a new window and
+  // keeps their seat. Not in public meetups, where a stranger could take over someone's seat.
+  const sameName = players.find(p => !p.isBot && !p.connected && p.name.toLowerCase() === cleanName.toLowerCase());
+  if (r.mode === 'friends' && sameName) {
+    ctx.db.player.id.update({ ...sameName, identity: ctx.sender, avatar: cleanAvatar, connected: true });
+    const draft = ctx.db.profileDraft.playerId.find(sameName.id);
+    if (draft) ctx.db.profileDraft.playerId.update({ ...draft, identity: ctx.sender });
+    return;
+  }
+  if (r.phase !== 'lobby' && r.phase !== 'profiles') throw new SenderError('This game already started.');
+  // The matchmaking queue is one shared waiting room per category: no size cap, and names only have
+  // to differ inside a game (tryMatch renames clashes).
+  if (r.mode !== 'queue' && players.length >= MAX_PLAYERS) throw new SenderError('This room is full.');
   ctx.db.player.insert({
     id: 0n,
     identity: ctx.sender,
     roomId: r.id,
-    name: cleanName,
+    name: r.mode === 'queue' ? cleanName : uniqueName(cleanName, players.map(p => p.name)),
     avatar: cleanAvatar,
     isBot: false,
     connected: true,

@@ -8,9 +8,9 @@ Everyone joins from their own browser window; a shared TV runs the show. The AI 
 
 | Player: approve your tags | TV: a pitch + the Judge's fact check |
 | --- | --- |
-| ![Approve tags](docs/screenshots/approve-tags.png) | ![Playback](docs/screenshots/playback.jpg) |
+| ![Approve tags](docs/screenshots/approve-tags.jpg) | ![Playback](docs/screenshots/playback.jpg) |
 
-| TV: the verdict | TV: the plan (poster by Muse Image) |
+| TV: the verdict | TV: the plan, booked, with the WhatsApp group |
 | --- | --- |
 | ![Results](docs/screenshots/results.jpg) | ![Plan](docs/screenshots/plan.jpg) |
 
@@ -23,7 +23,7 @@ Everyone joins from their own browser window; a shared TV runs the show. The AI 
 5. **Secret ballot** → **assignments** — you defend a place you probably didn't pick, in an AI-written persona, with 3 hints from real venue data.
 6. **Pitches** — record 30 s (or type). The TV plays each one with captions, flying reactions and OBJECTION!s; the Judge rules on the facts.
 7. **Vote → verdict** — winner, tie-break by group fit, **Most Persuasive** (who flipped the most votes) and **Best Line**.
-8. **The plan** — the earliest slot everyone can make, invite copy, “why this works for everyone” naming each person, a Muse Image poster, `.ics` + Google Calendar, Maps and RSVPs.
+8. **The plan** — the earliest slot everyone can make, invite copy, “why this works for everyone” naming each person, Muse Image cover art, `.ics` + Google Calendar, Maps and RSVPs.
 
 ## Architecture
 
