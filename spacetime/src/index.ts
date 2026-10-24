@@ -4,7 +4,7 @@
 // The AI host (Next.js API routes) never writes here directly; the host's
 // big-screen client calls host-only reducers with the AI results.
 import { schema, table, t, SenderError, type InferSchema, type ReducerCtx } from 'spacetimedb/server';
-import type { Identity } from 'spacetimedb';
+import { ScheduleAt, type Identity } from 'spacetimedb';
 
 const PHASES = ['LOBBY', 'PROFILE', 'OPTIONS', 'PITCH', 'SHOWTIME', 'VOTE', 'RESULT', 'PLAN'] as const;
 type Phase = (typeof PHASES)[number];
@@ -19,6 +19,11 @@ const DISTANCES = ['walk', 'short-ride', 'anywhere'];
 const FREE_SLOTS = ['now', 'tonight', 'tomorrow-lunch', 'tomorrow-night', 'weekend'];
 const RSVP = ['in', 'maybe', 'out'];
 const PROFILE_FIELDS = ['budget', 'diet', 'distance', 'freeWhen', 'vibe'];
+const VIBES = ['tacos', 'pizza', 'asian', 'burgers', 'healthy', 'sweet', 'drinks', 'active'];
+// Timed phases advance on their own (via a scheduled reducer) even if the host's tab is gone.
+const PITCH_SECONDS = 90;
+const VOTE_SECONDS = 45;
+const BOT_NAMES = ['Robo Rosa', 'Botany Bob', 'Chip', 'Glitch', 'Sir Byte', 'Toaster', 'Pixel', 'Unit 7'];
 
 const lobby = table(
   { name: 'lobby', public: true },
@@ -36,6 +41,8 @@ const lobby = table(
     tieBreak: t.bool(),
     // Free-form line the host screen shows (e.g. which filters had to be relaxed).
     notice: t.string(),
+    // When the current timed phase (PITCH / VOTE) auto-advances; 0 = no deadline.
+    deadlineMicros: t.u64(),
   }
 );
 
@@ -48,6 +55,9 @@ const player = table(
     name: t.string(),
     joinedAt: t.timestamp(),
     connected: t.bool(),
+    // Test bots let one person play the whole game. They share the host's identity and are
+    // driven by host-only reducers; they never count as "you" for a connected client.
+    isBot: t.bool(),
   }
 );
 
@@ -140,6 +150,17 @@ const rsvp = table(
   }
 );
 
+const phaseTimer = table(
+  { name: 'phase_timer' },
+  {
+    scheduledId: t.u64().primaryKey().autoInc(),
+    scheduledAt: t.scheduleAt(),
+    lobbyCode: t.string(),
+    phase: t.string(),
+    deadlineMicros: t.u64(),
+  }
+);
+
 const OptionInput = t.object('OptionInput', {
   name: t.string(),
   category: t.string(),
@@ -158,7 +179,7 @@ const AssignmentInput = t.object('AssignmentInput', {
   prompt: t.string(),
 });
 
-const spacetimedb = schema({ lobby, player, profile, option, assignment, pitch, vote, plan, rsvp });
+const spacetimedb = schema({ lobby, player, profile, option, assignment, pitch, vote, plan, rsvp, phaseTimer });
 export default spacetimedb;
 
 type Ctx = ReducerCtx<InferSchema<typeof spacetimedb>>;
@@ -186,7 +207,7 @@ function requirePhase(l: { phase: string }, ...phases: Phase[]) {
 }
 
 function findPlayer(ctx: Ctx, code: string, who: Identity) {
-  return playersOf(ctx, code).find(p => p.identity.isEqual(who));
+  return playersOf(ctx, code).find(p => !p.isBot && p.identity.isEqual(who));
 }
 
 function requirePlayer(ctx: Ctx, code: string) {
@@ -199,9 +220,22 @@ function playersOf(ctx: Ctx, code: string) {
   return [...ctx.db.player.lobbyCode.filter(code)];
 }
 
-function setPhase(ctx: Ctx, code: string, phase: Phase, patch: Partial<{ showtimeIndex: number; winnerOptionId: bigint; tieBreak: boolean; notice: string }> = {}) {
+type LobbyPatch = Partial<{ showtimeIndex: number; winnerOptionId: bigint; tieBreak: boolean; notice: string; deadlineMicros: bigint }>;
+
+/** Every phase change clears the deadline unless the patch sets a new one. */
+function setPhase(ctx: Ctx, code: string, phase: Phase, patch: LobbyPatch = {}) {
   const l = getLobby(ctx, code);
-  ctx.db.lobby.code.update({ ...l, ...patch, phase });
+  ctx.db.lobby.code.update({ ...l, deadlineMicros: 0n, ...patch, phase });
+}
+
+function setTimedPhase(ctx: Ctx, code: string, phase: Phase, seconds: number, patch: LobbyPatch = {}) {
+  const deadlineMicros = ctx.timestamp.microsSinceUnixEpoch + BigInt(seconds) * 1_000_000n;
+  setPhase(ctx, code, phase, { ...patch, deadlineMicros });
+  ctx.db.phaseTimer.insert({ scheduledId: 0n, scheduledAt: ScheduleAt.time(deadlineMicros), lobbyCode: code, phase, deadlineMicros });
+}
+
+function randomOf<T>(ctx: Ctx, list: readonly T[]): T {
+  return list[ctx.random.integerInRange(0, list.length - 1)]!;
 }
 
 function clearRound(ctx: Ctx, code: string) {
@@ -215,13 +249,13 @@ function clearRound(ctx: Ctx, code: string) {
 
 export const onDisconnect = spacetimedb.clientDisconnected(ctx => {
   for (const p of [...ctx.db.player.iter()]) {
-    if (p.identity.isEqual(ctx.sender) && p.connected) ctx.db.player.id.update({ ...p, connected: false });
+    if (!p.isBot && p.identity.isEqual(ctx.sender) && p.connected) ctx.db.player.id.update({ ...p, connected: false });
   }
 });
 
 export const onConnect = spacetimedb.clientConnected(ctx => {
   for (const p of [...ctx.db.player.iter()]) {
-    if (p.identity.isEqual(ctx.sender) && !p.connected) ctx.db.player.id.update({ ...p, connected: true });
+    if (!p.isBot && p.identity.isEqual(ctx.sender) && !p.connected) ctx.db.player.id.update({ ...p, connected: true });
   }
 });
 
@@ -233,6 +267,7 @@ export const createLobby = spacetimedb.reducer(
     const c = code.toUpperCase();
     if (!/^[A-Z]{4}$/.test(c)) throw new SenderError('Room code must be 4 letters');
     if (ctx.db.lobby.code.find(c)) throw new SenderError('Room code taken');
+    if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) throw new SenderError('Bad location');
     ctx.db.lobby.insert({
       code: c,
       host: ctx.sender,
@@ -245,6 +280,7 @@ export const createLobby = spacetimedb.reducer(
       winnerOptionId: 0n,
       tieBreak: false,
       notice: '',
+      deadlineMicros: 0n,
     });
   }
 );
@@ -262,13 +298,54 @@ export const joinLobby = spacetimedb.reducer({ code: t.string(), name: t.string(
   }
   requirePhase(l, 'LOBBY', 'PROFILE');
   if (others.length >= MAX_PLAYERS) throw new SenderError('Game is full');
-  ctx.db.player.insert({ id: 0n, lobbyCode: l.code, identity: ctx.sender, name: n, joinedAt: ctx.timestamp, connected: true });
+  ctx.db.player.insert({ id: 0n, lobbyCode: l.code, identity: ctx.sender, name: n, joinedAt: ctx.timestamp, connected: true, isBot: false });
+});
+
+export const addBot = spacetimedb.reducer({ code: t.string() }, (ctx, { code }) => {
+  const l = requireHost(ctx, code);
+  requirePhase(l, 'LOBBY', 'PROFILE');
+  const players = playersOf(ctx, l.code);
+  if (players.length >= MAX_PLAYERS) throw new SenderError('Game is full');
+  const taken = new Set(players.map(p => p.name.toLowerCase()));
+  const free = BOT_NAMES.filter(n => !taken.has(n.toLowerCase()));
+  if (free.length === 0) throw new SenderError('Out of bots');
+  const bot = ctx.db.player.insert({
+    id: 0n,
+    lobbyCode: l.code,
+    identity: ctx.sender,
+    name: randomOf(ctx, free),
+    joinedAt: ctx.timestamp,
+    connected: true,
+    isBot: true,
+  });
+  // Bots answer the questions instantly (and agreeably: no diet limits, flexible on time).
+  ctx.db.profile.insert({
+    playerId: bot.id,
+    lobbyCode: l.code,
+    budget: randomOf(ctx, [2, 3]),
+    diet: 'any',
+    distance: randomOf(ctx, ['short-ride', 'anywhere']),
+    freeWhen: [...FREE_SLOTS],
+    vibe: randomOf(ctx, VIBES),
+    hidden: [],
+  });
+});
+
+export const removePlayer = spacetimedb.reducer({ code: t.string(), playerId: t.u64() }, (ctx, { code, playerId }) => {
+  const l = requireHost(ctx, code);
+  requirePhase(l, 'LOBBY', 'PROFILE');
+  const p = ctx.db.player.id.find(playerId);
+  if (!p || p.lobbyCode !== l.code) throw new SenderError('No such player');
+  ctx.db.player.id.delete(p.id);
+  ctx.db.profile.playerId.delete(p.id);
 });
 
 export const startProfiles = spacetimedb.reducer({ code: t.string() }, (ctx, { code }) => {
   const l = requireHost(ctx, code);
   requirePhase(l, 'LOBBY');
-  if (playersOf(ctx, l.code).length < MIN_PLAYERS) throw new SenderError(`Need at least ${MIN_PLAYERS} players`);
+  const players = playersOf(ctx, l.code);
+  if (players.length < MIN_PLAYERS) throw new SenderError(`Need at least ${MIN_PLAYERS} players`);
+  if (!players.some(p => !p.isBot)) throw new SenderError('Need at least one human');
   setPhase(ctx, l.code, 'PROFILE');
 });
 
@@ -379,7 +456,7 @@ export const setHostLine = spacetimedb.reducer({ optionId: t.u64(), line: t.stri
 export const startPitching = spacetimedb.reducer({ code: t.string() }, (ctx, { code }) => {
   const l = requireHost(ctx, code);
   requirePhase(l, 'OPTIONS');
-  setPhase(ctx, l.code, 'PITCH');
+  setTimedPhase(ctx, l.code, 'PITCH', PITCH_SECONDS);
 });
 
 // ---------- PITCH ----------
@@ -389,17 +466,29 @@ export const submitPitch = spacetimedb.reducer(
   (ctx, { code, text, mode }) => {
     const l = getLobby(ctx, code);
     requirePhase(l, 'PITCH');
-    const p = requirePlayer(ctx, l.code);
-    const a = ctx.db.assignment.playerId.find(p.id);
-    if (!a) throw new SenderError('You have nothing to defend');
-    const body = text.trim().slice(0, 800);
-    if (!body) throw new SenderError('Say something!');
-    if (mode !== 'voice' && mode !== 'text') throw new SenderError('Bad pitch mode');
-    const row = { playerId: p.id, lobbyCode: l.code, optionId: a.optionId, text: body, mode, reaction: '', submittedAt: ctx.timestamp };
-    if (ctx.db.pitch.playerId.find(p.id)) ctx.db.pitch.playerId.update(row);
-    else ctx.db.pitch.insert(row);
+    writePitch(ctx, l.code, requirePlayer(ctx, l.code).id, text, mode);
   }
 );
+
+// The host screen asks the AI to write a pitch for each bot, then submits it here.
+export const botPitch = spacetimedb.reducer({ code: t.string(), playerId: t.u64(), text: t.string() }, (ctx, { code, playerId, text }) => {
+  const l = requireHost(ctx, code);
+  requirePhase(l, 'PITCH');
+  const p = ctx.db.player.id.find(playerId);
+  if (!p || p.lobbyCode !== l.code || !p.isBot) throw new SenderError('Not a bot in this game');
+  writePitch(ctx, l.code, p.id, text, 'text');
+});
+
+function writePitch(ctx: Ctx, code: string, playerId: bigint, text: string, mode: string) {
+  const a = ctx.db.assignment.playerId.find(playerId);
+  if (!a) throw new SenderError('You have nothing to defend');
+  const body = text.trim().slice(0, 800);
+  if (!body) throw new SenderError('Say something!');
+  if (mode !== 'voice' && mode !== 'text') throw new SenderError('Bad pitch mode');
+  const row = { playerId, lobbyCode: code, optionId: a.optionId, text: body, mode, reaction: '', submittedAt: ctx.timestamp };
+  if (ctx.db.pitch.playerId.find(playerId)) ctx.db.pitch.playerId.update(row);
+  else ctx.db.pitch.insert(row);
+}
 
 // ---------- SHOWTIME ----------
 
@@ -407,6 +496,16 @@ export const startShowtime = spacetimedb.reducer({ code: t.string() }, (ctx, { c
   const l = requireHost(ctx, code);
   requirePhase(l, 'PITCH');
   setPhase(ctx, l.code, 'SHOWTIME', { showtimeIndex: 0 });
+});
+
+// Fired by phase_timer when a timed phase runs out. Only the database itself may call it.
+export const phaseTimeout = spacetimedb.reducer({ onSchedule: phaseTimer }, { timer: phaseTimer.rowType }, (ctx, { timer }) => {
+  if (!ctx.sender.isEqual(ctx.databaseIdentity)) throw new SenderError('Timers fire on their own');
+  const l = ctx.db.lobby.code.find(timer.lobbyCode);
+  // Stale timer: the host already moved on (or restarted and armed a new deadline).
+  if (!l || l.phase !== timer.phase || l.deadlineMicros !== timer.deadlineMicros) return;
+  if (l.phase === 'PITCH') setPhase(ctx, l.code, 'SHOWTIME', { showtimeIndex: 0 });
+  else if (l.phase === 'VOTE') finishVoting(ctx, l.code);
 });
 
 export const setReaction = spacetimedb.reducer(
@@ -432,7 +531,15 @@ export const nextPitch = spacetimedb.reducer({ code: t.string(), delta: t.i32() 
 export const startVoting = spacetimedb.reducer({ code: t.string() }, (ctx, { code }) => {
   const l = requireHost(ctx, code);
   requirePhase(l, 'SHOWTIME');
-  setPhase(ctx, l.code, 'VOTE');
+  setTimedPhase(ctx, l.code, 'VOTE', VOTE_SECONDS);
+  // Bots vote right away, for anything except the option they defended.
+  const options = [...ctx.db.option.lobbyCode.filter(l.code)];
+  for (const b of playersOf(ctx, l.code).filter(p => p.isBot)) {
+    const own = ctx.db.assignment.playerId.find(b.id)?.optionId;
+    const choices = options.filter(o => o.id !== own);
+    if (choices.length) ctx.db.vote.insert({ voterId: b.id, lobbyCode: l.code, optionId: randomOf(ctx, choices).id });
+  }
+  maybeFinishVoting(ctx, l.code);
 });
 
 // ---------- VOTE ----------
@@ -447,11 +554,23 @@ export const castVote = spacetimedb.reducer({ code: t.string(), optionId: t.u64(
   if (a && a.optionId === optionId) throw new SenderError("You can't vote for the place you defended");
   if (ctx.db.vote.voterId.find(p.id)) throw new SenderError('You already voted');
   ctx.db.vote.insert({ voterId: p.id, lobbyCode: l.code, optionId });
+  maybeFinishVoting(ctx, l.code);
 });
 
 export const closeVoting = spacetimedb.reducer({ code: t.string() }, (ctx, { code }) => {
   const l = requireHost(ctx, code);
   requirePhase(l, 'VOTE');
+  finishVoting(ctx, l.code);
+});
+
+/** Voting closes by itself the moment the last player votes. */
+function maybeFinishVoting(ctx: Ctx, code: string) {
+  const votes = [...ctx.db.vote.lobbyCode.filter(code)].length;
+  if (votes >= playersOf(ctx, code).length) finishVoting(ctx, code);
+}
+
+function finishVoting(ctx: Ctx, code: string) {
+  const l = getLobby(ctx, code);
   const options = [...ctx.db.option.lobbyCode.filter(l.code)].sort((a, b) => a.slot - b.slot);
   if (options.length === 0) throw new SenderError('No options');
   const tally = new Map<bigint, number>(options.map(o => [o.id, 0]));
@@ -460,7 +579,7 @@ export const closeVoting = spacetimedb.reducer({ code: t.string() }, (ctx, { cod
   const leaders = options.filter(o => tally.get(o.id) === best);
   const winner = leaders.length === 1 ? leaders[0]! : leaders[ctx.random.integerInRange(0, leaders.length - 1)]!;
   setPhase(ctx, l.code, 'RESULT', { winnerOptionId: winner.id, tieBreak: leaders.length > 1 });
-});
+}
 
 // ---------- PLAN ----------
 

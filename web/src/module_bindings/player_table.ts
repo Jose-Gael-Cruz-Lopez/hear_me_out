@@ -17,4 +17,5 @@ export default __t.row({
   name: __t.string(),
   joinedAt: __t.timestamp().name("joined_at"),
   connected: __t.bool(),
+  isBot: __t.bool().name("is_bot"),
 });

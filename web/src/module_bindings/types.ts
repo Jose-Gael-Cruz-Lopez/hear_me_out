@@ -38,6 +38,7 @@ export const Lobby = __t.object("Lobby", {
   winnerOptionId: __t.u64(),
   tieBreak: __t.bool(),
   notice: __t.string(),
+  deadlineMicros: __t.u64(),
 });
 export type Lobby = __Infer<typeof Lobby>;
 
@@ -70,6 +71,15 @@ export const OptionInput = __t.object("OptionInput", {
 });
 export type OptionInput = __Infer<typeof OptionInput>;
 
+export const PhaseTimer = __t.object("PhaseTimer", {
+  scheduledId: __t.u64(),
+  scheduledAt: __t.scheduleAt(),
+  lobbyCode: __t.string(),
+  phase: __t.string(),
+  deadlineMicros: __t.u64(),
+});
+export type PhaseTimer = __Infer<typeof PhaseTimer>;
+
 export const Pitch = __t.object("Pitch", {
   playerId: __t.u64(),
   lobbyCode: __t.string(),
@@ -98,6 +108,7 @@ export const Player = __t.object("Player", {
   name: __t.string(),
   joinedAt: __t.timestamp(),
   connected: __t.bool(),
+  isBot: __t.bool(),
 });
 export type Player = __Infer<typeof Player>;
 

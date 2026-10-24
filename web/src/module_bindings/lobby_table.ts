@@ -22,4 +22,5 @@ export default __t.row({
   winnerOptionId: __t.u64().name("winner_option_id"),
   tieBreak: __t.bool().name("tie_break"),
   notice: __t.string(),
+  deadlineMicros: __t.u64().name("deadline_micros"),
 });

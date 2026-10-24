@@ -34,12 +34,15 @@ import {
 } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AddBotReducer from "./add_bot_reducer";
+import BotPitchReducer from "./bot_pitch_reducer";
 import CastVoteReducer from "./cast_vote_reducer";
 import CloseVotingReducer from "./close_voting_reducer";
 import CreateLobbyReducer from "./create_lobby_reducer";
 import JoinLobbyReducer from "./join_lobby_reducer";
 import NextPitchReducer from "./next_pitch_reducer";
 import PlayAgainReducer from "./play_again_reducer";
+import RemovePlayerReducer from "./remove_player_reducer";
 import SetHostLineReducer from "./set_host_line_reducer";
 import SetOptionsReducer from "./set_options_reducer";
 import SetPlanReducer from "./set_plan_reducer";
@@ -194,12 +197,15 @@ const tablesSchema = __schema({
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
+  __reducerSchema("add_bot", AddBotReducer),
+  __reducerSchema("bot_pitch", BotPitchReducer),
   __reducerSchema("cast_vote", CastVoteReducer),
   __reducerSchema("close_voting", CloseVotingReducer),
   __reducerSchema("create_lobby", CreateLobbyReducer),
   __reducerSchema("join_lobby", JoinLobbyReducer),
   __reducerSchema("next_pitch", NextPitchReducer),
   __reducerSchema("play_again", PlayAgainReducer),
+  __reducerSchema("remove_player", RemovePlayerReducer),
   __reducerSchema("set_host_line", SetHostLineReducer),
   __reducerSchema("set_options", SetOptionsReducer),
   __reducerSchema("set_plan", SetPlanReducer),

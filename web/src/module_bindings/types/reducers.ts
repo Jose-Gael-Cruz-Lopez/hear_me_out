@@ -6,12 +6,15 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AddBotReducer from "../add_bot_reducer";
+import BotPitchReducer from "../bot_pitch_reducer";
 import CastVoteReducer from "../cast_vote_reducer";
 import CloseVotingReducer from "../close_voting_reducer";
 import CreateLobbyReducer from "../create_lobby_reducer";
 import JoinLobbyReducer from "../join_lobby_reducer";
 import NextPitchReducer from "../next_pitch_reducer";
 import PlayAgainReducer from "../play_again_reducer";
+import RemovePlayerReducer from "../remove_player_reducer";
 import SetHostLineReducer from "../set_host_line_reducer";
 import SetOptionsReducer from "../set_options_reducer";
 import SetPlanReducer from "../set_plan_reducer";
@@ -25,12 +28,15 @@ import StartVotingReducer from "../start_voting_reducer";
 import SubmitPitchReducer from "../submit_pitch_reducer";
 import SubmitProfileReducer from "../submit_profile_reducer";
 
+export type AddBotParams = __Infer<typeof AddBotReducer>;
+export type BotPitchParams = __Infer<typeof BotPitchReducer>;
 export type CastVoteParams = __Infer<typeof CastVoteReducer>;
 export type CloseVotingParams = __Infer<typeof CloseVotingReducer>;
 export type CreateLobbyParams = __Infer<typeof CreateLobbyReducer>;
 export type JoinLobbyParams = __Infer<typeof JoinLobbyReducer>;
 export type NextPitchParams = __Infer<typeof NextPitchReducer>;
 export type PlayAgainParams = __Infer<typeof PlayAgainReducer>;
+export type RemovePlayerParams = __Infer<typeof RemovePlayerReducer>;
 export type SetHostLineParams = __Infer<typeof SetHostLineReducer>;
 export type SetOptionsParams = __Infer<typeof SetOptionsReducer>;
 export type SetPlanParams = __Infer<typeof SetPlanReducer>;
