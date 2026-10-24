@@ -5,6 +5,7 @@ import { useLocation } from 'wouter';
 import { useSpacetimeDB, useTable } from 'spacetimedb/react';
 import { tables } from '@hmo/bindings';
 import { Logo } from '../components/ui';
+import { MuseConnectedPill } from '../components/Muse';
 import { useCall } from '../lib/room';
 import { unlockAudio } from '../lib/sound';
 
@@ -43,6 +44,7 @@ export function Home() {
       <Crowd variant="cover" />
       <div className="cover-wash" />
       <button className="cover-join ink-pill" onClick={() => joinDialog.current?.showModal()}>Join a room <DoodleIcon name="arrowUpRight" size={18} /></button>
+      <MuseConnectedPill />
       <section className="cover-center" aria-label="Hear Me Out">
         <Logo size="xl" />
         <p className="cover-tagline">Make your case. Make a plan.</p>

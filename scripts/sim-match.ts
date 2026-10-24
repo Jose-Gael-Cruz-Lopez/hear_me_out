@@ -1,7 +1,7 @@
 // pnpm sim:match — "Find my people": 3 strangers queue up, connect their (simulated) Muse, approve tags,
 // get matched into one server-owned room automatically, and play through to a confirmed meetup.
 import { startOrchestrator } from '@hmo/orchestrator';
-import { autopilot, check, connect, finish, t, waitFor } from './simlib';
+import { autopilot, check, connect, finish, rejects, t, waitFor } from './simlib';
 
 const MEMORY = 'Loves spicy ramen and board game nights. Budget about $20. Free after 7pm.';
 
@@ -49,8 +49,30 @@ async function main(): Promise<void> {
   const plan = await waitFor('confirmed', () => [...a.db.plan.iter()].find(p => p.roomId === room.id && p.meetupConfirmed), 15_000).catch(() => undefined);
   const option = plan && a.db.option.id.find(plan.optionId);
   check(!!plan, `meetup confirmed with 3 RSVPs: ${option?.title}, ${plan?.slotLabel}`);
-
   for (const s of stops) s();
+
+  // WhatsApp group for the people going: generated name + intro, one attendee pastes the invite.
+  const LINK = 'https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv';
+  const [, b, c] = seekers;
+  const chat = (conn: typeof a) => [...conn.db.myGroupChat.iter()].find(g => g.roomId === room.id);
+  const before = await waitFor('group chat info', () => chat(b), 5000).catch(() => undefined);
+  check(!!before && before.inviteUrl === '' && before.suggestedName.includes(option?.title ?? '?') && before.intro.includes(option?.title ?? '?'),
+    `attendees get a generated group name: "${before?.suggestedName}"`);
+  check((await rejects(a.reducers.setGroupChatLink({ roomId: room.id, url: 'https://wa.me/15551234567' }))) !== null, 'a non-invite link is rejected');
+  await a.reducers.setGroupChatLink({ roomId: room.id, url: LINK });
+  const after = await waitFor('invite visible', () => chat(c)?.inviteUrl === LINK && chat(c), 5000).catch(() => undefined);
+  check(!!after && after.shareUrl.startsWith('https://wa.me/?text=') && decodeURIComponent(after.shareUrl).includes(LINK), 'everyone going sees the invite and a wa.me share link');
+  check(chat(b)?.canEdit === false && (await rejects(b.reducers.setGroupChatLink({ roomId: room.id, url: LINK.replace('Ab', 'Zz') }))) !== null,
+    'only whoever added it can replace it');
+  const outsider = await connect('Outsider');
+  check([...outsider.db.myGroupChat.iter()].length === 0, 'someone outside the meetup sees no group chat');
+  check((await rejects(outsider.reducers.setGroupChatLink({ roomId: room.id, url: LINK }))) !== null, 'an outsider cannot set the link');
+  const myPlan = [...c.db.plan.iter()].find(p => p.roomId === room.id)!;
+  await c.reducers.setRsvp({ planId: myPlan.id, status: 'no' });
+  const hidden = await waitFor('hidden after no', () => !chat(c), 5000).catch(() => false);
+  check(hidden === true, "switching your RSVP to no hides the group chat");
+  outsider.disconnect();
+
   for (const id of [room.id, queue.id]) await orch.conn.reducers.deleteRoom({ roomId: id }).catch(() => undefined);
   orch.stop();
   finish();

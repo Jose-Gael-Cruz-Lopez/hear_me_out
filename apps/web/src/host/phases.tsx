@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
+import { MuseReservation } from '../components/Muse';
 import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { useRoom } from '../lib/room';
 import { play } from '../lib/sound';
@@ -308,6 +309,16 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
           <div className={`chip self-start px-4 py-2 text-lg ${plan.meetupConfirmed ? 'bg-lime/20 text-lime' : 'bg-sun/15 text-sun'}`}>
             <IconText text={plan.meetupConfirmed ? '✅ Meetup confirmed' : `Meetup needs 3 RSVPs (${rsvps.filter(r => r.status === 'yes').length}/3)`} />
           </div>
+        )}
+        {option && (
+          <MuseReservation
+            big
+            plan={plan}
+            option={option}
+            category={room.category}
+            party={room.mode === 'strangers' ? rsvps.filter(r => r.status === 'yes').length : players.length - plan.cantMake.length}
+            ready={room.mode !== 'strangers' || plan.meetupConfirmed}
+          />
         )}
         <div className="card p-5 text-xl">{plan.inviteText}</div>
         <div className="card p-5">

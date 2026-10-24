@@ -20,5 +20,5 @@ Build plan: `SPEC.md`. Deviations and choices: `DECISIONS.md` (append when you d
 ## Rules
 
 - Every AI call needs a timeout and an offline fallback; the module also has a fallback per job kind.
-- Never present fixtures or offline content as live AI; label them.
+- Never present fixtures or offline content as live AI; label them. Muse profile samples, connector previews and reservation previews are explicitly identified as demos; they do not access accounts or make bookings (`apps/web/src/lib/muse.ts`).
 - Breaking schema changes are refused on publish: append columns with `.default(...)` or add tables.

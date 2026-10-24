@@ -1,6 +1,9 @@
 import { IconText } from '../components/Ink';
 import { AnimatePresence, motion } from 'motion/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSpacetimeDB } from 'spacetimedb/react';
+import { Spinner } from '../components/Muse';
+import { museMemory } from '../lib/muse';
 import { useCall, useRoom } from '../lib/room';
 import { toast } from '../lib/toast';
 
@@ -13,19 +16,9 @@ const WINDOWS = [
   { label: '11pm–late', startMin: 23 * 60, endMin: 26 * 60 },
 ];
 const VIBES = ['Spicy', 'Cheap', 'Cozy', 'Loud', 'Board games', 'Night owl', 'Early bird', 'Outdoors', 'Live music', 'Dessert', 'Drinks', 'Adventurous'];
-// "Connect your Muse" is SIMULATED for the demo: Meta has no public API for personal Muse memory yet.
-// Swap simulatedMuseMemory() for the real import when it exists (see DECISIONS.md).
-const MUSE_MEMORIES = [
-  'Loves spicy ramen and late-night noodle spots. Usually spends about $20 on dinner. Free most evenings after 7pm. Into board game nights and anime. Close friends: Priya and Sam, who are both vegetarian.',
-  'Big on tacos, live music and craft beer. Budget around $25. Free Friday and Saturday nights. Goes bowling with coworkers. Friends with lots of karaoke fans.',
-  'Coffee and dessert person, prefers cozy quiet spots. Vegetarian. Budget about $15-20. Free after 6pm. Joins weekly trivia and escape rooms with college friends.',
-  'Adventurous eater: Korean BBQ, Thai, dumplings. Night owl, free after 8pm. Loves arcades and photography walks. Connected with a climbing group and a film club.',
-];
-function simulatedMuseMemory(seed: string): string {
-  let h = 0;
-  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return MUSE_MEMORIES[h % MUSE_MEMORIES.length];
-}
+// Optional sample-data preview. No personal account or calendar is accessed.
+const PULL_STEPS = ['Loading a sample profile', 'Previewing sample preferences', 'Previewing sample availability', 'Preparing your editable sample'];
+const PULL_MS = [700, 1300, 1200, 1400];
 const SOURCE_LABEL: Record<string, string> = { paste: 'your Muse', chips: 'your picks', basics: 'your basics', social: 'your posts' };
 
 const MUSE_PROMPT = 'Summarize my food likes, budget, and free time this week in 5 bullets.';
@@ -75,6 +68,19 @@ export function ProfileFlow() {
   const [newTag, setNewTag] = useState('');
   const [manualCopy, setManualCopy] = useState(false);
   const promptRef = useRef<HTMLDivElement>(null);
+  const { identity } = useSpacetimeDB();
+  const seed = identity?.toHexString() ?? '';
+  const [pulled, setPulled] = useState(-1);
+  const demoLoading = pulled >= 0 && pulled < PULL_STEPS.length;
+  useEffect(() => {
+    if (step !== 'muse' || pulled < 0 || pulled >= PULL_STEPS.length) return;
+    const t = setTimeout(() => {
+      const next = pulled + 1;
+      setPulled(next);
+      if (next === PULL_STEPS.length) setPasted(museMemory(seed));
+    }, PULL_MS[pulled]);
+    return () => clearTimeout(t);
+  }, [step, pulled, seed]);
 
   if (!me) return null;
   if (me.ready) {
@@ -96,7 +102,7 @@ export function ProfileFlow() {
   }
 
   const submit = async (useSavedInputs = false) => {
-    if (submittingRef.current || approvingRef.current) return;
+    if (submittingRef.current || approvingRef.current || demoLoading) return;
     const savedProfile = profiles.get(me.id);
     if (useSavedInputs && (!myDraft || !savedProfile)) return;
     // Redo means distill the same submitted inputs again. After a reload the local
@@ -287,14 +293,22 @@ export function ProfileFlow() {
       <button
         type="button"
         className={`btn ${pasted ? 'btn-lime' : 'btn-sky'} w-full`}
+        disabled={demoLoading}
         onClick={() => {
-          setPasted(simulatedMuseMemory(me.name + room.code));
-          toast('Demo profile loaded. Review or edit it before sharing.');
+          setPulled(0);
         }}
       >
-        <IconText text={pasted ? '✓ Profile text ready' : '✨ Try a demo Muse profile'} />
+        <IconText text={demoLoading ? 'Loading sample…' : 'Try a demo Muse profile'} />
       </button>
       <p className="text-xs text-muted">The demo button uses sample context. It does not access your Meta AI account or private history.</p>
+      {pulled >= 0 && <div className="card space-y-2 p-4" role="status" aria-live="polite">
+        <div className="font-black">Sample profile preview</div>
+        {PULL_STEPS.slice(0, Math.min(pulled + 1, PULL_STEPS.length)).map((label, i) => <div key={label} className="flex items-center gap-2 text-sm">
+          {i < pulled ? <IconText text="✓" /> : <Spinner size={16} />}
+          <span>{label}{i < pulled ? '' : '…'}</span>
+        </div>)}
+        {!demoLoading && <p className="text-sm text-muted">Sample ready. Review or edit it below before sharing.</p>}
+      </div>}
       <div className="card space-y-3 p-4">
         <div className="text-sm font-bold text-muted">Or ask your Meta AI app:</div>
         <div ref={promptRef} tabIndex={-1} className="rounded-2xl bg-ink p-3 font-mono text-sm select-text">{MUSE_PROMPT}</div>
@@ -325,6 +339,7 @@ export function ProfileFlow() {
         {manualCopy && <p className="text-sm text-muted" role="status">Automatic copy is unavailable. Select the prompt above and use your device's Copy command.</p>}
         <textarea
           value={pasted}
+          disabled={demoLoading}
           onChange={e => setPasted(e.target.value.slice(0, 2000))}
           rows={5}
           placeholder="Paste the answer here (optional)"
@@ -362,7 +377,7 @@ export function ProfileFlow() {
         <button className="btn btn-ghost text-base" onClick={() => setStep('basics')}>
           Back
         </button>
-        <button className="btn btn-pop flex-1" disabled={busy || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={" ✨ Distill my vibe "} /></button>
+        <button className="btn btn-pop flex-1" disabled={busy || demoLoading || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={" ✨ Distill my vibe "} /></button>
       </div>
     </div>
   );

@@ -7,3 +7,4 @@ export * from './reducers/game';
 export * from './reducers/jobs';
 export * from './reducers/strangers';
 export * from './reducers/matchmaking';
+export * from './reducers/groupchat';
