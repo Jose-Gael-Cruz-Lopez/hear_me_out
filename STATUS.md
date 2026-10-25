@@ -48,6 +48,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Not done / unverified:**
 -->
 
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), live Muse cover
+- **Changed:** ran two genuine Muse Image generations; refined the coffee composition from a lone empty cup to two filled cups on cobalt linen. Generated covers retain their square composition, with native typography over the quiet upper area for short venue names. Added an image-only preview command that never substitutes fallbacks. Saved both model outputs, generation receipts and a standalone final poster under `docs/ui-verification/meta-polish/muse-live/`.
+- **Verified:** two live provider responses (about 18s and 13.5s); both returned valid viewable JPEGs. Visually compared both and reviewed the final rendered/exported poster. 70/70 tests, full workspace typecheck and web build passed. Credentials used only in the request subprocess environment, never saved to repository files.
+- **Not done / unverified:** only coffee art direction was visually sampled; other categories still need live visual review. Physical-device/microphone checks remain outstanding. Existing bundle warnings remain. Trov: not posted (no access).
+
 ### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), poster correction
 - **Changed:** removed illustrated poster covers. Muse Image remains the primary generator with independent-magazine photography direction, real materials and natural light; generated lettering/illustration/CGI are prohibited. Actual venue photo is the loading/failure fallback; missing images leave a clean typographic invitation. Accurate event typography remains native UI. Supersedes the vector-poster direction in the previous entry.
 - **Verified:** web typecheck, 70/70 tests (including photographic prompt requirements and existing safe transport/storage boundaries), production build; real plan visually shows venue-photo fallback with correct attribution. Existing character improvements retained.

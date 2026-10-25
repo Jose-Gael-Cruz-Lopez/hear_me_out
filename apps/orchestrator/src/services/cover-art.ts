@@ -1,10 +1,10 @@
 /** Art only. Venue names, dates and other accurate typography belong to the UI. */
 export const COVER_ART_RULES = [
   'Art-only event cover: square independent-magazine editorial photography.',
-  'One strong focal object; natural side light, realistic materials, intentional crop, negative space.',
-  'Restrained palette. No illustration, drawing, CGI, plastic gloss, neon or clutter.',
-  'No text, letters, numerals, logos, ornate borders, confetti or cuisine stereotypes.',
-  'No invented venue details or claims. The app adds all venue and time typography.',
+  'One strong focal object or arrangement; natural light, realistic materials. Fill the lower two-thirds; quiet upper-quarter negative space.',
+  'No illustration, drawing, CGI, plastic gloss or clutter.',
+  'No text, letters, numerals, logos or ornate borders.',
+  'No invented venue details or claims. Typography is added by the app.',
 ].join(' ');
 
 const FOOD_PALETTE = 'warm ivory, cobalt blue, muted tomato';
@@ -15,7 +15,7 @@ const DIRECTIONS = {
   generic: { subject: 'a linen-covered table with a single glass', palette: 'ivory, ink, dusty blue' },
   food: { subject: 'one ceramic plate and a casually folded linen napkin', palette: FOOD_PALETTE },
   noodles: { subject: 'one ceramic bowl of noodles, subtle steam', palette: FOOD_PALETTE },
-  coffee: { subject: 'one unbranded ceramic coffee cup', palette: FOOD_PALETTE },
+  coffee: { subject: 'two mismatched ceramic cups, espresso and latte, close together on cobalt linen; warm afternoon shadows', palette: FOOD_PALETTE },
   bakery: { subject: 'one torn loaf on linen, visible crumb', palette: FOOD_PALETTE },
   drink: { subject: 'one unbranded glass, condensation and translucent liquid', palette: FOOD_PALETTE },
   activity: { subject: 'a sunlit picnic blanket and one woven basket', palette: ACTIVITY_PALETTE },

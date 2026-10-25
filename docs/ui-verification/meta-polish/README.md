@@ -45,3 +45,16 @@ reported free plan, zero credits, and rejected generation with
 `job_minimum_basic_plan_required`. No generated asset exists, and no paid plan was
 purchased. That Higgsfield attempt is historical; poster generation uses the existing Muse
 Image integration. Live Muse image output remains unverified.
+
+## Live Muse validation — subsequent pass
+
+The missing credential was supplied for this run and used only in the request
+subprocess environment. Two real `muse-image-1.0` requests succeeded. Both raw
+JPEGs and SHA-256/prompt receipts are in `muse-live/`. No stock image, SVG or other
+model was used. V1 was rejected as too empty and product-like; v2 uses two filled
+cups and a closer arrangement. Reviewed v2 inside the actual Poster component,
+then exported the rendered markup and fonts to a self-contained `poster.html`.
+`final-poster.png` is its browser screenshot. Typography is app-rendered; Muse
+produced the photographic artwork. The scene is conceptual cover art, not a
+photograph of the real venue. This supersedes the earlier live-output limitation.
+Other activity categories have not yet received live visual review.

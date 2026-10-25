@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/bricolage-grotesque';
 
 @theme {
   --font-display: 'Nunito', ui-rounded, system-ui, sans-serif;
@@ -179,6 +180,7 @@ a { color: inherit; }
 /* Event covers have one visual idea; venue and time remain accurate, selectable text. */
 .event-invitation { margin: 0; overflow: hidden; width: 100%; background: #faf8f2; color: #24251e; border: 1.5px solid #14140f; border-radius: 18px; box-shadow: 3px 4px 0 #14140f; }
 .event-cover { aspect-ratio: 4 / 3; overflow: hidden; background: #f8f3e8; border-block: 1px solid #24251e24; }
+.event-cover[data-generated=true] { aspect-ratio: 1; }
 .event-cover-art { display: block; width: 100%; height: 100%; object-fit: cover; }
 .event-invitation-copy { padding: clamp(18px,5cqi,28px); }
 .event-invitation-eyebrow { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; font-size: 10px; line-height: 1.4; letter-spacing: .12em; font-weight: 900; text-transform: uppercase; color: #67675b; }
@@ -190,6 +192,9 @@ a { color: inherit; }
 .event-invitation-people > span { display: grid; place-items: center; width: 29px; height: 30px; }
 .event-invitation-credit { font-size: 10px; line-height: 1.5; color: #67675b; }
 .event-invitation { container-type: inline-size; }
+.event-invitation--generated { position: relative; }
+.event-invitation--generated .event-invitation-copy { position: absolute; inset: 0 0 auto; z-index: 1; padding-bottom: 44px; background: linear-gradient(#faf8f2f5 0%, #faf8f2de 65%, #faf8f200 100%); }
+.event-invitation--generated .event-invitation-title { font-family: 'Bricolage Grotesque Variable', Nunito, sans-serif; font-size: clamp(30px, 11cqi, 58px); font-weight: 800; line-height: .98; letter-spacing: -.055em; }
 @media (prefers-reduced-motion: no-preference) {
  .cover-center .ink-logo { animation: ink-arrive 900ms cubic-bezier(.16,1,.3,1) both; }
  .cover-tagline, .cover-actions { animation: ink-arrive 700ms 250ms cubic-bezier(.16,1,.3,1) both; }

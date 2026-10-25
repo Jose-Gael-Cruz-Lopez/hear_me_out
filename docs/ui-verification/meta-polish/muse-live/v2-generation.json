@@ -1,0 +1,13 @@
+{
+  "provider": "Meta Muse Image",
+  "requestedModel": "muse-image-1.0",
+  "title": "Pat's Cafe",
+  "category": "Cafe",
+  "prompt": "Art-only event cover: square independent-magazine editorial photography. One strong focal object or arrangement; natural light, realistic materials. Fill the lower two-thirds; quiet upper-quarter negative space. No illustration, drawing, CGI, plastic gloss or clutter. No text, letters, numerals, logos or ornate borders. No invented venue details or claims. Typography is added by the app. Subject: two mismatched ceramic cups, espresso and latte, close together on cobalt linen; warm afternoon shadows. Palette: warm ivory, cobalt blue, muted tomato.",
+  "mime": "image/jpeg",
+  "bytes": 639949,
+  "sha256": "393105af094a95779c4e37870cf47bda8bdf1356a52c0d00f90da0c60b0cc237",
+  "generatedAt": "2026-10-25T04:03:55.887Z",
+  "elapsedMs": 13550,
+  "fallbackUsed": false
+}

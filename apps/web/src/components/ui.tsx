@@ -172,14 +172,15 @@ export function Poster({ plan, option, imageUrl, players }: { plan: Plan; option
   // Old persisted posters contain model-rendered venue text. Keep those out of the new cover layout.
   const artUrl = plan.posterPrompt.startsWith('Art-only event cover:') && imageUrl !== failedImage ? imageUrl : undefined;
   const venueUrl = option?.imageUrl && option.imageUrl !== failedVenue ? option.imageUrl : undefined;
+  const immersive = !!artUrl && (option?.title.length ?? 0) <= 55;
   return (
-    <figure className="event-invitation">
+    <figure className={`event-invitation${immersive ? ' event-invitation--generated' : ''}`}>
       <figcaption className="event-invitation-copy">
         <div className="event-invitation-eyebrow"><span>HEAR ME OUT</span><span>{option?.category ?? 'The plan'}</span></div>
         <h2 className="event-invitation-title">{option?.title ?? 'The plan'}</h2>
         <p className="event-invitation-time">{plan.slotLabel}</p>
       </figcaption>
-      {(artUrl || venueUrl) && <div className="event-cover">
+      {(artUrl || venueUrl) && <div className="event-cover" data-generated={!!artUrl}>
         {artUrl ? <img src={artUrl} alt="" decoding="async" className="event-cover-art" onError={() => setFailedImage(artUrl)} />
           : <img src={venueUrl} alt={option?.title ?? ''} referrerPolicy="no-referrer" decoding="async" className="event-cover-art" onError={() => setFailedVenue(venueUrl)} />}
       </div>}
