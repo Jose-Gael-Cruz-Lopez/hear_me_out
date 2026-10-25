@@ -33,7 +33,7 @@ export function Avatar({
         animate={{ scale: 1 + bounce * 0.35, rotate: bounce * 6 }}
         transition={{ type: 'spring', stiffness: 500, damping: 18 }}
         className="relative grid place-items-center rounded-full"
-        style={{ width: size, height: size, background: '#fff', color: '#14140f', border: '1.5px solid #14140f', boxShadow: '2px 3px 0 #14140f', fontSize: size * 0.55 }}
+        style={{ width: size, height: size, background: size >= 64 ? 'transparent' : '#fff', color: '#14140f', border: size >= 64 ? 'none' : '1.5px solid #14140f', boxShadow: size >= 64 ? 'none' : '2px 3px 0 #14140f', fontSize: size * 0.55 }}
       >
         <AvatarMark value={player.avatar} size={size * .82} />
         {done && (

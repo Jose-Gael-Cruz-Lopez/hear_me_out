@@ -38,7 +38,7 @@ export function QueueScreen() {
       }}><DoodleIcon name="arrowLeft" size={16} />{leaving?'Leaving…':'Leave queue'}</button>
     </div>
     {!me?.ready ? <ProfileFlow /> : <section className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
-      <div className="queue-scene"><Crowd variant="stage" phase="LOBBY" members={waiting.map(p=>({id:p.id,name:p.name,connected:p.connected,status:'Vibe approved'}))} /></div>
+      <div className="queue-scene"><Crowd variant="stage" phase="LOBBY" members={waiting.map(p=>({id:p.id,name:p.name,avatar:p.avatar,connected:p.connected,status:'Vibe approved'}))} /></div>
       <h1 className="ink-heading text-4xl">Finding your people…</h1>
       <p className="max-w-md text-base text-muted">{waiting.length} {waiting.length === 1 ? 'person has' : 'people have'} approved their vibe. We'll form a group of 3–4 based on shared interests.</p>
       <div className="flex items-center gap-2 text-sm font-black"><DoodleIcon name="lock" size={18} />Only the tags you approved are shared.</div>

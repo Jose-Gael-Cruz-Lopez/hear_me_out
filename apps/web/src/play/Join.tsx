@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import { IconText, AvatarMark } from '../components/Ink';
 import { useState } from 'react';
 import { Link } from 'wouter';
@@ -52,7 +53,8 @@ export function JoinForm() {
             />
           </label>
           <div>
-            <span className="text-sm font-bold text-muted">PICK AN AVATAR</span>
+            <motion.div key={selectedAvatar} initial={{ x: -14, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="character-preview"><AvatarMark value={selectedAvatar} size={100} pose="move" /><strong>That’s you.</strong></motion.div>
+            <span className="text-sm font-bold text-muted">PICK YOUR LITTLE PERSON</span>
             <div className="mt-2 grid grid-cols-8 gap-2">
               {AVATARS.map((a, i) => (
                 <button

@@ -1,3 +1,4 @@
+import { GameCast } from '../components/GameCast';
 import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
 import { useEffect, useRef } from 'react';
@@ -104,6 +105,8 @@ export function HostScreen() {
           </div>
         </div>
       </header>
+
+      <GameCast host />
 
       <main className="relative flex flex-1 flex-col px-6 py-6">
                   <motion.div

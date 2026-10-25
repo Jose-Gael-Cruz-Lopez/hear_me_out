@@ -1,4 +1,4 @@
-import { IconText } from './Ink';
+import { IconText, AvatarMark } from './Ink';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTable } from 'spacetimedb/react';
@@ -12,6 +12,7 @@ interface Particle {
   id: number;
   emoji: string;
   name: string;
+  avatar: string;
   x: number;
 }
 
@@ -55,7 +56,7 @@ export function ReactionLayer({ viewport = false }: { viewport?: boolean }) {
         return;
       }
       const id = nextId++;
-      setParticles(ps => [...ps.slice(-40), { id, emoji: r.emoji, name: player?.name ?? 'Someone', x: Math.random() * 48 - 24 }]);
+      setParticles(ps => [...ps.slice(-40), { id, emoji: r.emoji, name: player?.name ?? 'Someone', avatar: player?.avatar ?? '', x: Math.random() * 48 - 24 }]);
       play('pop');
       expire(() => setParticles(ps => ps.filter(p => p.id !== id)), 2600);
     },
@@ -74,6 +75,7 @@ export function ReactionLayer({ viewport = false }: { viewport?: boolean }) {
       {particles.map(p => (
         <span key={p.id} aria-hidden="true" data-reaction={p.emoji} className="absolute bottom-4" style={{ left: `calc(50% + ${p.x}px)`, transform: 'translateX(-50%)' }}>
           <span className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-white px-4 py-2 text-sm font-black text-ink shadow-[2px_3px_0_#14140f]" style={{ maxWidth: 'min(18rem, calc(100vw - 6rem))', animation: 'float-up 2.6s ease-out forwards' }}>
+            <AvatarMark value={p.avatar} size={32} />
             <IconText text={p.emoji} size={24} />
             <span className="truncate">{p.name}: {reactionLabel(p.emoji)}</span>
           </span>

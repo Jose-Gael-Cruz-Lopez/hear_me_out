@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { GameCast } from '../components/GameCast';
 import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
 import { Link } from 'wouter';
@@ -43,7 +45,7 @@ export function PlayScreen() {
       case 'warmup':
         return <PlayWarmup />;
       case 'scouting':
-        return <PlayWaiting emoji="🛰️" title="Scouting real places…" sub={room.aiStatus} />;
+        return <PlayWaiting emoji="🛰️" title="Scouting real places…" sub="Finding places that fit your group." />;
       case 'finalists':
         return <PlayFinalists />;
       case 'prevote':
@@ -85,10 +87,11 @@ function MatchedOn() {
 
 function Frame({ children }: { children: React.ReactNode }) {
   const { room, me } = useRoom();
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [room.phase]);
   if (!me) return null;
   return (
     <div className="relative isolate mx-auto flex min-h-full max-w-xl flex-col" onClick={unlockAudio}>
-      <header className="flex items-center justify-between gap-3 px-4 pt-4">
+      <header className="player-game-bar flex items-center justify-between gap-3 px-4 pt-4">
         <div className="flex items-center gap-3">
           <Avatar player={me} size={44} label={false} />
           <div>
@@ -102,6 +105,7 @@ function Frame({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <MatchedOn />
+      <GameCast />
       <main className="flex flex-1 flex-col px-4 py-5">
                   <motion.div key={room.phase} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-1 flex-col">
             {children}

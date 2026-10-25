@@ -51,6 +51,7 @@ export function ProfileFlow() {
   const { room, me, myDraft, profiles } = useRoom();
   const call = useCall();
   const [step, setStep] = useState<'basics' | 'muse'>('basics');
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [step]);
   const [budget, setBudget] = useState(2);
   const [diets, setDiets] = useState<string[]>([]);
   const [travel, setTravel] = useState(30);

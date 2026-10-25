@@ -26,13 +26,13 @@ export function PlayWaiting({ emoji, title, sub }: { emoji: string; title: strin
 }
 
 export function PlayLobby() {
-  const { me, players, room } = useRoom();
+  const { me, players } = useRoom();
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
       {me && <Avatar player={me} size={140} />}
       <div className="font-display text-3xl font-black">You're in!</div>
       <div className="text-lg text-cream/75">
-        {players.length} player{players.length === 1 ? '' : 's'} in room {room.code}. Watch the TV, the host starts the game.
+        {players.length} in. The host starts when you’re ready.
       </div>
       <div className="w-full">
         <SafetyList />
@@ -144,7 +144,7 @@ export function PlayAssignment() {
     <div className="flex flex-col gap-4">
       <div className="text-center font-display text-2xl font-black">Plot twist!</div>
       <BriefCard />
-      <div className="text-center text-cream/70">Recording starts in a moment. Get your persona ready.</div>
+      <div className="text-center text-cream/70">Your pitch starts next. Get into character.</div>
     </div>
   );
 }

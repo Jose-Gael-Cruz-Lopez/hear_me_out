@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import { AvatarMark } from '../components/Ink';
 import { DoodleIcon } from '../components/DoodleIcon';
 import { useEffect, useState } from 'react';
@@ -44,13 +45,13 @@ export function Meet() {
         <section className="meet-intro">
           <span className="chip bg-sun">STRANGERS / RANDOM</span>
           <h1>Your kind<br />of strangers.</h1>
-          <p>Find a small group through the things you choose to share. Make a ridiculous case. Go somewhere together.</p>
+          <p>Meet your group. Make a ridiculous case. Go somewhere together.</p>
           <div className="meet-steps">
             <div><b>1</b> Bring your vibe</div>
             <div><b>2</b> Meet your group</div>
             <div><b>3</b> Play for a real plan</div>
           </div>
-          <p className="text-sm">Groups of 3–4. No host or TV needed: the game, pitches and votes appear on everyone's phone.</p>
+          <p className="text-sm">3–4 people. One game. All on your phones.</p>
         </section>
         <form className="card space-y-5 p-6" onSubmit={async e => {
           e.preventDefault(); unlockAudio(); setJoining(true);
@@ -64,11 +65,12 @@ export function Meet() {
               {CATEGORIES.map(c => <button key={c.id} type="button" aria-pressed={category === c.id} onClick={() => setCategory(c.id)} className={`meet-category rounded-2xl p-3 font-black ${category === c.id ? 'bg-sun' : 'bg-white'}`}><DoodleIcon name={c.icon} size={30} />{c.label}</button>)}
             </div>
           </fieldset>
-          <label className="block"><span className="text-xs font-black tracking-widest">AROUND</span><input required value={where} onChange={e=>setWhere(e.target.value)} className="mt-2 w-full rounded-2xl px-4 py-3" /><span className="mt-1 block text-xs text-muted">Used for venue suggestions. This prototype matches on category and approved interests, not distance.</span></label>
+          <label className="block"><span className="text-xs font-black tracking-widest">AROUND</span><input required value={where} onChange={e=>setWhere(e.target.value)} className="mt-2 w-full rounded-2xl px-4 py-3" /><span className="mt-1 block text-xs text-muted">Venue search area. Groups match on shared interests.</span></label>
           <label className="block"><span className="text-xs font-black tracking-widest">FIRST NAME (ONE WORD)</span><input required autoComplete="given-name" value={name} onChange={e=>setName(e.target.value.slice(0,20))} placeholder="Your name" className="mt-2 w-full rounded-2xl px-4 py-3 text-xl font-black" /></label>
+          <motion.div key={avatar} initial={{ x: -14, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="character-preview"><AvatarMark value={avatar} size={100} pose="move" /><strong>That’s you.</strong></motion.div>
           <fieldset><legend className="mb-2 text-xs font-black tracking-widest">PICK YOUR LITTLE PERSON</legend><div className="grid grid-cols-6 gap-2">{AVATARS.map((a,i)=><button key={a} type="button" className="avatar-choice grid aspect-square place-items-center" aria-label={`Avatar ${i+1}`} aria-pressed={avatar===a} onClick={()=>setAvatar(a)}><AvatarMark value={a} size={38} /></button>)}</div></fieldset>
           <div className="space-y-3 rounded-2xl bg-sky/15 p-4 text-sm">
-            <div className="flex items-start gap-2"><DoodleIcon name="shield" /><span>First names only. Public venues. Block &amp; report from the lobby or final plan. The exact address unlocks after your RSVP; three RSVPs confirm the meetup.</span></div>
+            <div className="flex items-start gap-2"><DoodleIcon name="shield" /><span>First names. Public venues. Your Yes unlocks the address. Three Yes replies make it a plan.</span></div>
             <label className="flex items-center gap-2 font-black"><input type="checkbox" checked={adult} onChange={e=>setAdult(e.target.checked)} className="h-5 w-5" />I'm 18 or older</label>
           </div>
           <button className="btn btn-pop w-full" disabled={!isActive || !name.trim() || !where.trim() || !adult || joining}>{joining ? 'Joining…' : 'Find my people'}<DoodleIcon name="arrow" /></button>
