@@ -1,5 +1,6 @@
 FROM node:24-slim
 WORKDIR /app
+RUN apt-get update && apt-get install --yes --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN npm install --global pnpm@12.15.0
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/module/package.json ./apps/module/

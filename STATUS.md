@@ -47,6 +47,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 ## Push log
 
 ### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
+- **Changed:** include the system CA certificate bundle required by the hosted Node runtime. Jose's personal Vercel project is `hear-me-out-jose`; production tracks this branch. Hosting PR: #8.
+- **Verified:** Vercel production deployment `5sG8ZdapJZEDHaw4EvzVAwUDNfmX` built both app and Linux/amd64 daemon successfully. Public site serves the current hero. Hosted daemon parses/starts and explicitly refuses to connect without the database publisher token; local amd64 emulation issue is absent on Vercel.
+- **Not done / unverified:** new CA bundle rollout; own Maincloud database creation and publisher credential await the user's SpacetimeDB sign-in. Meta/Apify secret form is open and blank. `DEMO_MODE=1` is provisional until live keys are added; public gameplay is not ready. Trov: not posted (no access).
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
 - **Changed:** start the daemon directly with Node/tsx, avoiding pnpm's dependency verification under the unprivileged runtime user. Created `hear-me-out-jose` in Jose's personal Vercel account; production branch and backend credentials are still being configured.
 - **Verified:** native Linux container connects as publisher and completes Food, Activity and Movie games: 295 checks with only the container worker running. Linux/amd64 image builds; local amd64 emulation crashes inside esbuild's Go runtime, so hosted amd64 startup remains to verify.
 - **Not done / unverified:** SpacetimeDB account login, live provider keys, correct hosted branch/daemon and public gameplay. Initial import uses the repository's older default branch and is not the finished rollout. Trov: not posted (no access).
