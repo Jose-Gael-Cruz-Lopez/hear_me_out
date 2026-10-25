@@ -268,7 +268,8 @@ const curate: Handler = async (job, d) => {
     if (unique.length >= Math.min(n, short.length) && unique.length >= 2) {
       options = unique.map(({ f, c }) => {
         const lines = members.map(m => {
-          const line = f.perPlayerFit.find(l => l.playerId === m.playerId.toString())?.line;
+          // Non-food fits use evaluated facts: model copy can otherwise invent food or ticket-price support.
+          const line = room.category === 'food' ? f.perPlayerFit.find(l => l.playerId === m.playerId.toString())?.line : undefined;
           return { playerId: m.playerId, line: line ? `${m.name}: ${line.replace(new RegExp(`^${m.name}:\\s*`), '')}` : c.fitLines.find(l => l.playerId === m.playerId)!.line };
         });
         // Blend the AI's judgment with the deterministic score so tie-breaks stay grounded in data.
@@ -468,12 +469,14 @@ const plan_copy: Handler = async (job, d) => {
   if (!plan) throw new Error('plan gone');
   const option = d.conn.db.option.id.find(plan.optionId);
   if (!option) throw new Error('option gone');
+  const room = roomOf(d.conn, job.roomId);
   const players = playersOf(d.conn, job.roomId);
   const tags = players.flatMap(p => profileOf(d.conn, p.id)?.approvedTags ?? []);
   const shared = [...new Set(tags.filter((t, i) => tags.indexOf(t) !== i)), ...new Set(tags)].slice(0, 6);
   const out = await d.muse.json({
     ...prompts.planCopy,
     input: {
+      category: room?.category,
       venue: promptVenue(option),
       time: plan.slotLabel,
       players: players.map(p => ({
@@ -488,7 +491,8 @@ const plan_copy: Handler = async (job, d) => {
     effort: 'low',
     roomId: job.roomId,
   });
-  const whyForEach = out
+  const useGroundedFit = room?.category === 'movie' || room?.category === 'activity';
+  const whyForEach = out && !useGroundedFit
     ? out.whyForEach.filter(w => players.some(p => p.id.toString() === w.playerId)).map(w => ({ playerId: BigInt(w.playerId), line: w.line }))
     : option.perPlayerFit;
   await d.conn.reducers.finishPlanCopy({

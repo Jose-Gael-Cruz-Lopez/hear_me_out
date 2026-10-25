@@ -5,7 +5,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 ## In progress
 
 <!-- One line each: what · who (agent) · branch -->
-- Deploy frontend and continuous AI worker to Jose’s Vercel account · Jose (Codex) · `codex/vercel-owned-deployment`
+- Verify deployed live-API Activity/Movie games from joining to final plan; fix and redeploy any failures · Jose (Codex) · `codex/vercel-owned-deployment`
 - Iterating on the combined build (main + Jose's latest design commits) · Anish (Claude Code) · `fix-names-whatsapp-muse` (same as `deploy-combined` up to `cc94a6a`)
 
 ## Up next / on hold
@@ -45,6 +45,12 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - `hidden-gems`, `iteration-1`: the old Pitch Fight app (Next.js), superseded.
 
 ## Push log
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex), deployed live-game audit
+- **Changed:** Movie/Activity personal fit descriptions now use evaluated venue facts through curation and final-plan copy, preventing food claims or invented ticket affordability. Plan-copy prompt receives the outing category. Hosting PR: #8.
+- **Verified:** production `hear-me-out-jose.vercel.app`, deployment `ApPu9zsbMGCimPFAUPUj46u9x96E`: three independent human-player tabs completed Activity room TDRR and Movie room DEJX from joining to final plan with 3/3 RSVPs. Live Apify Activity returned 44 partial results after its 85-second timeout; Movie returned 12 results after 37 seconds (7 category-filtered). Hosted Muse completed profiles, warm-ups, curation, briefs, fact-checks, plan copy and image covers. A false 2 AM closing claim was sustained against the venue's 9 PM close; a true 4.3/285 cinema-rating claim was verified. Typed pitches, reactions, private lean totals, manual voting, ready controls, rejoin persistence, invite/share copy, calendar downloads, poster download and social fallback controls exercised. 129/129 tests, workspace typecheck and production web build pass.
+- **Not done / unverified:** rollout of this copy correction is next. Voice recording excluded at the user's request. Existing Muse account/calendar connection and reservation remain simulations (DECISIONS #40); no real bookings or messages were sent. Movie is a cinema meetup, not confirmed screening/ticket inventory. Trov: not posted (no access).
+
 
 ### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
 - **Changed:** include the system CA certificate bundle required by the hosted Node runtime. Jose's personal Vercel project is `hear-me-out-jose`; production tracks this branch. Hosting PR: #8.

@@ -74,7 +74,7 @@ describe('poster generation boundaries', () => {
     const finishPlanCopy = vi.fn().mockResolvedValue(undefined);
     const deps = {
       conn: {
-        db: { plan: { id: { find: () => plan } }, option: { id: { find: () => option } }, player: { iter: () => [] } },
+        db: { plan: { id: { find: () => plan } }, option: { id: { find: () => option } }, room: { id: { find: () => ({ category: 'food' }) } }, player: { iter: () => [] } },
         reducers: { finishPlanCopy },
       },
       muse: { json: vi.fn().mockResolvedValue({ inviteText: 'Join us.', whyForEach: [], posterPrompt: legacyPrompt, icebreakers: [] }) },
