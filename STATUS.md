@@ -47,6 +47,12 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 ## Push log
 
 ### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
+- **Changed:** start the daemon directly with Node/tsx, avoiding pnpm's dependency verification under the unprivileged runtime user. Created `hear-me-out-jose` in Jose's personal Vercel account; production branch and backend credentials are still being configured.
+- **Verified:** native Linux container connects as publisher and completes Food, Activity and Movie games: 295 checks with only the container worker running. Linux/amd64 image builds; local amd64 emulation crashes inside esbuild's Go runtime, so hosted amd64 startup remains to verify.
+- **Not done / unverified:** SpacetimeDB account login, live provider keys, correct hosted branch/daemon and public gameplay. Initial import uses the repository's older default branch and is not the finished rollout. Trov: not posted (no access).
+
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
 - **Changed:** root Vercel configuration now deploys the Vite frontend with one continuous Judge daemon; Linux worker container excludes secrets/local artifacts; shutdown stops new claims and drains current jobs. Deployment guidance documents account/database identity and server-only keys.
 - **Verified:** 127/127 tests and workspace typecheck passed; Linux/amd64 container build passed. Additional container/runtime and hosted checks are in progress.
 - **Not done / unverified:** user’s SpacetimeDB account sign-in and live Meta/Apify keys are pending; Vercel project creation/deployment and public gameplay still need verification. Trov: not posted (no access).

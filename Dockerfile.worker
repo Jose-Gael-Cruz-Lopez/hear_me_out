@@ -11,4 +11,4 @@ COPY actors/vibe-profiler/package.json ./actors/vibe-profiler/
 RUN pnpm install --frozen-lockfile
 COPY --chown=node:node . .
 USER node
-CMD ["pnpm", "--filter", "@hmo/orchestrator", "exec", "tsx", "src/daemon.ts"]
+CMD ["node", "--import", "tsx", "apps/orchestrator/src/daemon.ts"]
