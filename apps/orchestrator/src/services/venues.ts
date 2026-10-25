@@ -11,6 +11,29 @@ export const DEFAULT_QUERIES: Record<string, string[]> = {
   movie: ['movie theater'],
 };
 
+/** Search results can contain nearby shops or other businesses; never mix outing categories. */
+export function venuesForCategory(venues: readonly Venue[], category: string): Venue[] {
+  const seen = new Set<string>();
+  return venues.filter(v => {
+    if (seen.has(v.placeId)) return false;
+    const kind = [v.category, ...v.categories].join(' ').toLowerCase();
+    const title = v.title.toLowerCase();
+    let matches = false;
+    if (category === 'movie') {
+      matches = /movie theater|movie theatre|cinema|imax|drive.?in theater/.test(kind);
+    } else if (category === 'food') {
+      matches = /restaurant|cafe|café|coffee shop|bakery|brewpub|food court|diner|pizzeria|ice cream|tea house|takeaway|salad shop|sandwich shop|bar\b/.test(kind);
+    } else if (category === 'activity') {
+      const excluded = /hotel|apartment|lodging|vacation|retail|store|shopping|transit|bus station|bus stop|parking/.test(v.category.toLowerCase());
+      const activity = /karaoke|bowling|arcade|escape room|museum|miniature golf|mini golf|indoor golf|trampoline|billiard|board.?game|go club|chess|amusement|tourist attraction|park\b|playground|recreation|sports complex|golf course|pool hall|fishing pier|historical landmark|historical place|live music|concert hall|comedy club/;
+      matches = !excluded && !/movie theater|movie theatre|cinema/.test(kind)
+        && activity.test(`${kind} ${title} ${v.offerings.join(' ')}`);
+    }
+    if (matches) seen.add(v.placeId);
+    return matches;
+  });
+}
+
 export interface FixtureArea {
   area: string;
   label: string;
@@ -33,16 +56,17 @@ export function loadFixtureAreas(fixturesDir: string): FixtureArea[] {
       lat: d.lat,
       lng: d.lng,
       recordedAt: d.recordedAt,
-      venues: { food: d.food ?? [], activity: d.activity ?? [], movie: d.movie ?? [] },
+      venues: Object.fromEntries(['food', 'activity', 'movie'].map(category => [category, venuesForCategory(d[category] ?? [], category)])),
     });
   }
   return areas;
 }
 
-export function nearestFixture(areas: readonly FixtureArea[], center: LatLng | null): FixtureArea | null {
-  if (areas.length === 0) return null;
-  if (!center) return areas[0];
-  return [...areas].sort((a, b) => haversineKm(center, a) - haversineKm(center, b))[0];
+export function nearestFixture(areas: readonly FixtureArea[], center: LatLng | null, category?: string): FixtureArea | null {
+  const available = category ? areas.filter(a => venuesForCategory(a.venues[category] ?? [], category).length >= 2) : areas;
+  if (available.length === 0) return null;
+  if (!center) return available[0];
+  return [...available].sort((a, b) => haversineKm(center, a) - haversineKm(center, b))[0];
 }
 
 export interface ScoutResult {
@@ -99,7 +123,7 @@ export async function scrapeVenues(
       }
     }
     log.info('apify run done', { status, venues: venues.length, seconds: Math.round((Date.now() - started) / 1000) });
-    return venues.length >= 4 ? { venues, source: 'apify', rawItems: items } : null;
+    return venues.length >= 2 ? { venues, source: 'apify', rawItems: items } : null;
   } catch (err) {
     log.warn('apify run failed', { err: String(err).slice(0, 200) });
     return null;

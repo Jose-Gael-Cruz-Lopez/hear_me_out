@@ -350,6 +350,7 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
           )}
         </header>
         <MergeBanner asPlayer={false} />
+        {room.category === 'movie' && <p className="text-sm text-muted">Meetup time only. Check the cinema's films, showtimes and ticket prices before going.</p>}
         {option && <BusyChart plan={plan} option={option} tzOffsetMin={room.tzOffsetMin} />}
         {option && <MenuProof optionId={option.id} />}
       </div>

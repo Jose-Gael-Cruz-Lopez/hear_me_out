@@ -54,7 +54,9 @@ export const curate = {
   name: 'curate',
   instructions: [
     'Pick exactly n finalists from the candidates (already filtered for the group\'s hard constraints, best first).',
-    'Prefer variety: different cuisines or vibes. Prefer candidates with no stretchNote.',
+    'Prefer variety within the selected category. Prefer candidates with no stretchNote.',
+    'For movie outings these are CINEMAS, not films or showtimes. Never invent a film, screening, ticket price or booking.',
+    'For non-food outings do not claim diet support unless the candidate has explicit dietNotes. Unknown hours are not verified opening hours.',
     'For each finalist write fitSummary (<= 14 words) and one perPlayerFit line per player (<= 14 words), naming why it works',
     'for that person using ONLY the candidate data (diet notes, price, minutes away, tags). groupFitScore is 0-100.',
   ].join('\n'),

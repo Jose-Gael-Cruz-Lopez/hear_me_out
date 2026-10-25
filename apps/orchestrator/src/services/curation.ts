@@ -53,7 +53,7 @@ export function evaluate(venues: readonly Venue[], group: readonly Member[], ctx
     const distanceKm = haversineKm(ctx.center, venue);
     const travelMin = estimateTravelMin(distanceKm);
     const hours = openIntervalsForDay(venue.openingHours, ctx.weekday);
-    const evidence = diets.map(d => dietEvidence(venue, d, isFood));
+    const evidence = isFood ? diets.map(d => dietEvidence(venue, d, true)) : [];
     const dietOk = evidence.every(e => e.confirmed);
     const budgetOk = venue.priceLevel === 0 || venue.priceLevel <= budgetCap;
     const travelOk = travelMin <= travelCap;
@@ -71,7 +71,7 @@ export function evaluate(venues: readonly Venue[], group: readonly Member[], ctx
     score += Math.min(1, Math.log10(venue.reviewCount + 1) / 4) * 10;
     score += venue.priceLevel === 0 ? 9 : budgetOk ? 15 : Math.max(0, 15 - 6 * (venue.priceLevel - budgetCap));
     score += travelOk ? 15 * Math.max(0.3, 1 - travelMin / Math.max(travelCap, 1)) : 0;
-    score += diets.length === 0 ? 15 : (15 * evidence.filter(e => e.confirmed).length) / diets.length;
+    score += !isFood || diets.length === 0 ? 15 : (15 * evidence.filter(e => e.confirmed).length) / diets.length;
     score += Math.min(15, tagHits.length * 5);
 
     const fitLines = group.map(m => {
@@ -135,9 +135,14 @@ export function shortlist(cands: readonly Candidate[], group: readonly Member[],
     () => true,
   ];
   const chosen: Candidate[] = [];
+  const seen = new Set<string>();
   for (const passes of levels) {
-    const fresh = cands.filter(c => passes(c) && !chosen.includes(c)).sort((a, b) => b.score - a.score);
-    for (const c of fresh) chosen.push({ ...c, stretchNote: levels[0](c) ? '' : stretchNoteFor(c, group) });
+    const fresh = cands.filter(c => passes(c) && !seen.has(c.venue.placeId)).sort((a, b) => b.score - a.score);
+    for (const c of fresh) {
+      if (seen.has(c.venue.placeId)) continue;
+      seen.add(c.venue.placeId);
+      chosen.push({ ...c, stretchNote: levels[0](c) ? '' : stretchNoteFor(c, group) });
+    }
     if (chosen.length >= pool) break;
   }
   return chosen.slice(0, pool);

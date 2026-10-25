@@ -45,6 +45,7 @@ export function defaultHints(v: VenueFacts): string[] {
   else if (v.hoursText) hints.push(`Hours today: ${v.hoursText}`);
   if (hints.length < 3 && v.reviewSnippets.length > 0) hints.push(`A reviewer said: "${v.reviewSnippets[0].slice(0, 90)}"`);
   if (hints.length < 3) hints.push(v.category || 'A real place near you');
+  if (hints.length < 3) hints.push(/movie|cinema/i.test(v.category) ? 'Check current films, showtimes and ticket prices before going.' : 'Check opening hours before going.');
   return hints.slice(0, 3);
 }
 

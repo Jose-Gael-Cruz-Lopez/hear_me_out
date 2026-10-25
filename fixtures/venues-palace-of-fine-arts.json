@@ -8655,5 +8655,125 @@
    ]
   }
  ],
- "movie": []
+ "movie": [
+  {
+   "placeId": "osm:node/420514871",
+   "title": "AMC Kabuki 8",
+   "category": "Movie theater",
+   "categories": [
+    "Movie theater"
+   ],
+   "address": "1881 Post St, San Francisco, CA 94115",
+   "neighborhood": "San Francisco",
+   "lat": 37.7850975,
+   "lng": -122.4325871,
+   "priceLevel": 0,
+   "priceText": "",
+   "rating": 0,
+   "reviewCount": 0,
+   "openingHours": [],
+   "mapsUrl": "https://www.google.com/maps/search/?api=1&query=AMC%20Kabuki%208%201881%20Post%20St%2C%20San%20Francisco%2C%20CA%2094115",
+   "imageUrl": "",
+   "website": "https://www.amctheatres.com/movie-theatres/san-francisco/amc-kabuki-8",
+   "busyness": [],
+   "reviewSnippets": [],
+   "offerings": []
+  },
+  {
+   "placeId": "osm:way/263646726",
+   "title": "The Vogue Theater",
+   "category": "Movie theater",
+   "categories": [
+    "Movie theater"
+   ],
+   "address": "3290 Sacramento St, San Francisco, CA 94115",
+   "neighborhood": "San Francisco",
+   "lat": 37.7884344,
+   "lng": -122.4467244,
+   "priceLevel": 0,
+   "priceText": "",
+   "rating": 0,
+   "reviewCount": 0,
+   "openingHours": [],
+   "mapsUrl": "https://www.google.com/maps/search/?api=1&query=The%20Vogue%20Theater%203290%20Sacramento%20St%2C%20San%20Francisco%2C%20CA%2094115",
+   "imageUrl": "",
+   "website": "https://www.voguemovies.com/",
+   "busyness": [],
+   "reviewSnippets": [],
+   "offerings": []
+  },
+  {
+   "placeId": "osm:way/286329774",
+   "title": "The 4 Star Theater",
+   "category": "Movie theater",
+   "categories": [
+    "Movie theater"
+   ],
+   "address": "2200 Clement St, San Francisco, CA 94121",
+   "neighborhood": "San Francisco",
+   "lat": 37.7823436,
+   "lng": -122.4829283,
+   "priceLevel": 0,
+   "priceText": "",
+   "rating": 0,
+   "reviewCount": 0,
+   "openingHours": [],
+   "mapsUrl": "https://www.google.com/maps/search/?api=1&query=The%204%20Star%20Theater%202200%20Clement%20St%2C%20San%20Francisco%2C%20CA%2094121",
+   "imageUrl": "",
+   "website": "https://www.4-star-movies.com/contact",
+   "busyness": [],
+   "reviewSnippets": [],
+   "offerings": []
+  },
+  {
+   "placeId": "osm:node/302742486",
+   "title": "AMC Metreon 16",
+   "category": "Movie theater",
+   "categories": [
+    "Movie theater"
+   ],
+   "address": "135 Fourth St, Suite 3000, San Francisco, CA 94103",
+   "neighborhood": "San Francisco",
+   "lat": 37.784464,
+   "lng": -122.4037068,
+   "priceLevel": 0,
+   "priceText": "",
+   "rating": 0,
+   "reviewCount": 0,
+   "openingHours": [],
+   "mapsUrl": "https://www.google.com/maps/search/?api=1&query=AMC%20Metreon%2016%20135%20Fourth%20St%2C%20Suite%203000%2C%20San%20Francisco%2C%20CA%2094103",
+   "imageUrl": "",
+   "website": "https://www.amctheatres.com/movie-theatres/san-francisco/amc-metreon-16",
+   "busyness": [],
+   "reviewSnippets": [],
+   "offerings": []
+  }
+ ],
+ "movieProvenance": {
+  "verifiedAt": "2026-10-25",
+  "description": "Cinema names and addresses verified against official venue directories; coordinates from OpenStreetMap Nominatim. No film listings, showtimes, ratings, admission prices, or opening hours are asserted.",
+  "sources": [
+   {
+    "title": "AMC Kabuki 8",
+    "url": "https://www.amctheatres.com/movie-theatres/san-francisco/amc-kabuki-8",
+    "coordinatesSource": "https://www.openstreetmap.org/node/420514871"
+   },
+   {
+    "title": "The Vogue Theater",
+    "url": "https://www.voguemovies.com/",
+    "coordinatesSource": "https://www.openstreetmap.org/way/263646726"
+   },
+   {
+    "title": "The 4 Star Theater",
+    "url": "https://www.4-star-movies.com/contact",
+    "coordinatesSource": "https://www.openstreetmap.org/way/286329774"
+   },
+   {
+    "title": "AMC Metreon 16",
+    "url": "https://www.amctheatres.com/movie-theatres/san-francisco/amc-metreon-16",
+    "coordinatesSource": "https://www.openstreetmap.org/node/302742486"
+   }
+  ],
+  "license": "Coordinates: OpenStreetMap contributors, ODbL 1.0"
+ }
 }

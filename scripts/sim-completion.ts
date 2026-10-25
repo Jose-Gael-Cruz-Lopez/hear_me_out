@@ -6,7 +6,10 @@ import { performance } from 'node:perf_hooks';
 import { type DbConnection, type Room } from '@hmo/bindings';
 import { connect, DB, URI, waitFor } from './simlib';
 
-const output = resolve('docs/ui-verification/social-sharing/completion-sim.txt');
+const categoryArg = process.argv.find(arg => arg.startsWith('--category='))?.split('=')[1];
+const category = categoryArg ?? 'food';
+if (!['food', 'activity', 'movie'].includes(category)) throw new Error('Use --category=food, activity or movie');
+const output = resolve(categoryArg ? `docs/ui-verification/category-flows/${category}-completion.txt` : 'docs/ui-verification/social-sharing/completion-sim.txt');
 const transcript: string[] = [];
 const connections: DbConnection[] = [];
 const began = performance.now();
@@ -26,7 +29,7 @@ function check(condition: boolean, label: string): void {
 
 async function main(): Promise<void> {
   if (!['localhost', '127.0.0.1', '[::1]'].includes(new URL(URI).hostname)) throw new Error('This audit only runs against a local server.');
-  log(`Hear Me Out: normal-speed, three-human completion audit`);
+  log(`Hear Me Out: normal-speed, three-human ${category} completion audit`);
   log(`UTC ${new Date().toISOString()}`);
   log(`Server ${URI}; database ${DB}`);
   log('Three independent player identities plus a separate host. Typed pitches only. Existing local fixture worker handles AI jobs.');
@@ -47,7 +50,7 @@ async function main(): Promise<void> {
   })));
   await waitFor('three people visible everywhere', () => connections.every(c => [...c.db.player.iter()].filter(p => p.roomId === roomId && !p.isBot).length === 3));
   check(connections.every(c => [...c.db.player.iter()].filter(p => p.roomId === roomId).length === 3), 'exactly three real players; no bots');
-  await host.reducers.setRoomSetup({ roomId, category: 'food', locationLabel: 'Palace of Fine Arts, San Francisco', lat: 0, lng: 0, hasGeo: false });
+  await host.reducers.setRoomSetup({ roomId, category, locationLabel: 'Palace of Fine Arts, San Francisco', lat: 0, lng: 0, hasGeo: false });
   await host.reducers.startGame({ roomId });
 
   async function phase(name: string): Promise<Room> {
@@ -108,6 +111,10 @@ async function main(): Promise<void> {
   await phase('finalists');
   const options = [...host.db.option.iter()].filter(o => o.roomId === roomId).sort((a, b) => a.sortOrder - b.sortOrder);
   check(options.length >= 2, 'real room has at least two curated fixture finalists');
+  check(new Set(options.map(o => o.placeId)).size === options.length, 'every finalist is a distinct place');
+  if (category === 'movie') check(options.every(o => /movie theater|cinema/i.test(o.category)), 'Movie finalists are cinemas, never activity/food venues');
+  if (category === 'activity') check(options.every(o => !/store|apartment|bus stop|movie theater/i.test(o.category)), 'Activity finalists contain no retail, lodging, transit or cinema results');
+  if (category !== 'food') check(options.every(o => !/vegan|vegetarian/i.test(o.fitSummary + o.perPlayerFit.map(f => f.line).join(' '))), 'non-food plans do not invent diet compatibility');
   const acknowledge = (connection: DbConnection, _index: number, current: Room) => connection.reducers.acknowledgePhase({ roomId, phaseSeq: current.phaseSeq });
   await complete('finalists', acknowledge, true);
   await complete('prevote', connection => connection.reducers.castPrevote({ roomId, optionId: options[0].id }));
@@ -148,6 +155,8 @@ async function main(): Promise<void> {
   await waitFor('shared final plan', () => connections.every(c => [...c.db.plan.iter()].some(p => p.roomId === roomId)));
   const plan = [...host.db.plan.iter()].find(p => p.roomId === roomId)!;
   check(plan.optionId === options[0].id, 'winning plan reflects all three votes');
+  const expectedMinutes = category === 'movie' ? 150 : category === 'activity' ? 120 : 90;
+  check(Number(plan.endAt.microsSinceUnixEpoch - plan.startAt.microsSinceUnixEpoch) / 60_000_000 === expectedMinutes, `${category} plan has the correct ${expectedMinutes}-minute duration`);
   for (let index = 0; index < humans.length; index++) {
     const start = performance.now();
     await humans[index].reducers.setRsvp({ planId: plan.id, status: 'yes' });
