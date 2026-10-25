@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { Identity, Timestamp } from 'spacetimedb';
 import { checkEarly, playableIn, type Ctx } from './core';
 import { acknowledgePhase, answerWarmup, castPrevote, castVote, setLean, submitTypedPitch } from './reducers/game';
-import { finishBotPitches, finishTranscribe, finishWarmup } from './reducers/jobs';
-import { kickPlayer } from './reducers/room';
+import { finishBotPitches, finishScout, finishTranscribe, finishWarmup } from './reducers/jobs';
+import { kickPlayer, setRoomSetup } from './reducers/room';
 import { advancePhase } from './reducers/lifecycle';
 import { applyFallback } from './cleanup';
 
@@ -357,5 +357,46 @@ describe('departed players and late AI jobs cannot corrupt completion', () => {
     expect(f.rows('warmup')).toHaveLength(2);
     expect(f.rows('warmup').every(w => w.answer === 'a')).toBe(true);
     expect(f.room().phase).toBe('scouting');
+  });
+});
+
+
+describe('category changes invalidate old scouting jobs', () => {
+  it('discards both queued and running scouts so late Food results cannot replace Movie', () => {
+    const f = fixture('lobby');
+    Object.assign(f.room(), { category: 'food', locationLabel: 'San Francisco', lat: 0, lng: 0, hasGeo: false, venueKey: 'food-cache' });
+    f.rows('aiJob').push(
+      { id: 51n, roomId: 1n, kind: 'scout', status: 'running', payloadJson: '{"category":"food"}' },
+      { id: 52n, roomId: 1n, kind: 'scout', status: 'queued', payloadJson: '{"category":"activity"}' },
+    );
+    f.asPlayer(100n);
+    setRoomSetup(f.ctx, { roomId: 1n, category: 'movie', locationLabel: 'San Francisco', lat: 0, lng: 0, hasGeo: false });
+    expect(f.room().category).toBe('movie');
+    expect(f.room().venueKey).toBe('');
+    expect(f.room().scoutStatus).toBe('running');
+    expect(f.rows('aiJob').filter(j => j.kind === 'scout')).toHaveLength(1);
+    expect(JSON.parse(f.rows('aiJob')[0].payloadJson as string).category).toBe('movie');
+    f.rows('config').push({ id: 0, adminIdentity: f.ctx.sender });
+    finishScout(f.ctx, { jobId: 51n, venueKey: 'old-food', lat: 1, lng: 1, hasGeo: true, count: 50, source: 'fixture' });
+    expect(f.room().venueKey).toBe('');
+    expect(f.room().scoutStatus).toBe('running');
+  });
+  it('keeps the finished result when the selected category is tapped again', () => {
+    const f = fixture('lobby');
+    Object.assign(f.room(), { category: 'movie', locationLabel: 'SF', lat: 0, lng: 0, hasGeo: false, scoutStatus: 'done', venueKey: 'cinemas', aiStatus: 'Found 4 places.' });
+    f.asPlayer(100n);
+    setRoomSetup(f.ctx, { roomId: 1n, category: 'movie', locationLabel: 'SF', lat: 0, lng: 0, hasGeo: false });
+    expect(f.room().venueKey).toBe('cinemas');
+    expect(f.room().aiStatus).toBe('Found 4 places.');
+    expect(f.rows('aiJob')).toHaveLength(0);
+  });
+
+  it('recognizes a change between typed and geolocated places', () => {
+    const f = fixture('lobby');
+    Object.assign(f.room(), { category: 'movie', locationLabel: 'SF', lat: 0, lng: 0, hasGeo: false, scoutStatus: 'done', venueKey: 'old' });
+    f.asPlayer(100n);
+    setRoomSetup(f.ctx, { roomId: 1n, category: 'movie', locationLabel: 'SF', lat: 0, lng: 0, hasGeo: true });
+    expect(f.room().venueKey).toBe('');
+    expect(f.rows('aiJob')).toHaveLength(1);
   });
 });

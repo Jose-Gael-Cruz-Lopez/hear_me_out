@@ -1,0 +1,32 @@
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+  0.1s  PASS  food: correct category queue
+  2.1s  PASS  food: matched group retains category in its own room
+  2.5s  PASS  food: distinct playable finalists
+  2.5s  PASS  food: every player reaches the final plan
+  2.5s  PASS  food: three independent RSVPs confirm the meetup
+  2.5s  PASS  food: correct 90-minute plan duration
+food: confirmed Udon Mugizo - SF in room KVQD
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+  2.5s  PASS  activity: correct category queue
+  4.6s  PASS  activity: matched group retains category in its own room
+  5.0s  PASS  activity: distinct playable finalists
+  5.0s  PASS  activity: every player reaches the final plan
+  5.0s  PASS  activity: three independent RSVPs confirm the meetup
+  5.0s  PASS  activity: correct 120-minute plan duration
+activity: confirmed Palace Games in room DWSS
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+%cℹ️ INFO%c Connecting to SpacetimeDB WS... color: #fff; background-color: #007bff; padding: 2px 5px; border-radius: 3px; color: #007bff;
+  5.0s  PASS  movie: correct category queue
+  7.1s  PASS  movie: matched group retains category in its own room
+  7.4s  PASS  movie: distinct playable finalists
+  7.4s  PASS  movie: only cinemas in matched game
+  7.4s  PASS  movie: every player reaches the final plan
+  7.4s  PASS  movie: three independent RSVPs confirm the meetup
+  7.4s  PASS  movie: correct 150-minute plan duration
+movie: confirmed The Vogue Theater in room AHHA
+PASS 19 category matchmaking checks

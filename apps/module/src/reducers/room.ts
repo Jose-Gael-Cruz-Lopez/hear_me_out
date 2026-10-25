@@ -71,7 +71,7 @@ export const setRoomSetup = spacetimedb.reducer(
     if (!CATEGORIES.includes(category)) throw new SenderError('Pick food, activity or movie.');
     const label = clampText(locationLabel, 120);
     if (!label && !hasGeo) throw new SenderError('Pick a location.');
-    const changed = r.category !== category || r.locationLabel !== label || r.lat !== lat || r.lng !== lng;
+    const changed = r.category !== category || r.locationLabel !== label || r.lat !== lat || r.lng !== lng || r.hasGeo !== hasGeo;
     ctx.db.room.id.update({
       ...r,
       category,
@@ -81,11 +81,11 @@ export const setRoomSetup = spacetimedb.reducer(
       hasGeo,
       scoutStatus: changed || r.scoutStatus === '' ? 'running' : r.scoutStatus,
       venueKey: changed ? '' : r.venueKey,
-      aiStatus: 'The Judge is scouting the neighborhood…',
+      aiStatus: changed || r.scoutStatus === '' ? 'The Judge is scouting the neighborhood…' : r.aiStatus,
     });
     if (changed || r.scoutStatus === '') {
       for (const j of [...ctx.db.aiJob.roomId.filter(roomId)]) {
-        if (j.kind === 'scout' && j.status === 'queued') ctx.db.aiJob.id.delete(j.id);
+        if (j.kind === 'scout' && (j.status === 'queued' || j.status === 'running')) ctx.db.aiJob.id.delete(j.id);
       }
       enqueueJob(ctx, roomId, 'scout', 0n, { category, locationLabel: label, lat, lng, hasGeo });
     }

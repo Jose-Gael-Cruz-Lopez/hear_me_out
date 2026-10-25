@@ -532,6 +532,7 @@ export function PlayPlan() {
           <div className="plan-kicker">It's a plan</div>
           <div className="ticket-title">{option.title}</div>
           <div className="ticket-time">{plan.slotLabel}</div>
+          {room.category === 'movie' && <p className="m-small">Meetup time only. Check the cinema's films, showtimes and ticket prices before going.</p>}
           <div className="ticket-addr">
             <IconText text={showAddress ? option.address : '📍 Exact address unlocks when you RSVP "I\'m in"'} />
           </div>

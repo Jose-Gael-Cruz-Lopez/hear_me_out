@@ -16,6 +16,8 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Done recently
 
+- Category flow fixes and six complete Friends/matched-game audits · Jose (Codex) · `codex/category-flow-fixes`
+
 - Instagram/Facebook plan sharing, instant completion and live selection sync · Jose (Codex) · `codex/social-share-live-sync`
 
 - Refined vector people, sharper 3D rendering, editorial invitation covers and small-phone accessibility against Updated-for-META · Jose (Codex) · `codex/meta-ui-polish`
@@ -42,6 +44,12 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - `hidden-gems`, `iteration-1`: the old Pitch Fight app (Next.js), superseded.
 
 ## Push log
+
+### 2026-10-25 · codex/category-flow-fixes → Updated-for-META · Jose (Codex)
+- **Changed:** Movie now uses cinema data instead of Activity fallback venues; all category results are filtered/deduplicated; stale scouts cannot overwrite a category change; non-food diet badges and unknown-hours claims are removed; sparse case files keep three hints. Added sourced cinema fallback records and clear cinema/showtime scope in the UI.
+- **Verified:** 126/126 tests, workspace typecheck, production web build; 295 checks across three normal-speed Friends games and 19 across three host-less matched games; browser category switching, Activity/Movie finalists and plans. Local backend published without migration or data deletion. Evidence: `docs/ui-verification/category-flows/`.
+- **Not done / unverified:** production rollout and live paid Muse/Apify calls. Movie chooses a cinema, not a verified film screening; existing simulated reservations remain. The connected Vercel account does not include this project. Trov: not posted (no access).
+
 
 ### 2026-10-24 · codex/social-share-live-sync → Updated-for-META · Jose (Codex)
 - **Changed:** replaced WhatsApp UI with Instagram/Facebook sharing, prepared PNG exports and save/copy/open fallbacks; selections respond immediately and roll back on failure; all-complete tasks advance immediately; viewing steps offer shared readiness per pitch. Stale taps/timers, removed players and late AI callbacks are guarded.

@@ -10,7 +10,7 @@ import { geocode } from '../services/geocode';
 import { crawlMenus, siteUrl } from '../services/menu';
 import { profileSocial } from '../services/social';
 import { botBoldClaim, offlineIcebreakers, offlinePosterPrompt, offlineStylePrompt, offlineTags } from '../services/offline';
-import { DEFAULT_QUERIES, nearestFixture, saveRawScrape, scrapeVenues, venueKey } from '../services/venues';
+import { DEFAULT_QUERIES, nearestFixture, saveRawScrape, scrapeVenues, venueKey, venuesForCategory } from '../services/venues';
 import { log } from '../log';
 import type { Deps } from './deps';
 import { membersOf, optionsOf, playersOf, profileOf, roomOf } from './deps';
@@ -130,23 +130,25 @@ export interface ScoutPayload {
  */
 export async function resolveVenueSet(d: Deps, p: ScoutPayload): Promise<{ key: string; center: LatLng; count: number; source: 'apify' | 'fixture' }> {
   const category = p.category || 'food';
+  if (!DEFAULT_QUERIES[category]) throw new Error('Unknown outing category.');
   let center: LatLng | null = p.hasGeo ? { lat: p.lat, lng: p.lng } : null;
   if (!center && p.locationLabel && !d.cfg.demoMode) center = await geocode(p.locationLabel);
-  const fixture = nearestFixture(d.fixtures, center);
+  const fixture = nearestFixture(d.fixtures, center, category);
   if (!center && fixture && (d.cfg.demoMode || p.locationLabel === d.cfg.demoLocation)) center = { lat: fixture.lat, lng: fixture.lng };
   const queries = DEFAULT_QUERIES[category] ?? DEFAULT_QUERIES.food;
   const key = venueKey(center, p.locationLabel, category, queries);
 
   const live = await scrapeVenues(d.cfg, { center, locationLabel: p.locationLabel, queries, timeoutMs: 85_000 });
-  if (live && live.venues.length >= 4) {
-    const liveCenter = center ?? { lat: live.venues[0].lat, lng: live.venues[0].lng };
+  const liveVenues = venuesForCategory(live?.venues ?? [], category);
+  if (live && liveVenues.length >= 2) {
+    const liveCenter = center ?? { lat: liveVenues[0].lat, lng: liveVenues[0].lng };
     if (live.rawItems) saveRawScrape(d.cfg.fixturesDir, key, live.rawItems);
-    await d.conn.reducers.cacheVenues({ key, category, query: queries.join('+'), source: 'apify', itemsJson: JSON.stringify({ center: liveCenter, venues: live.venues }) });
-    return { key, center: liveCenter, count: live.venues.length, source: 'apify' };
+    await d.conn.reducers.cacheVenues({ key, category, query: queries.join('+'), source: 'apify', itemsJson: JSON.stringify({ center: liveCenter, venues: liveVenues }) });
+    return { key, center: liveCenter, count: liveVenues.length, source: 'apify' };
   }
 
-  if (!fixture) throw new Error('No live venues and no fixtures');
-  const venues = fixture.venues[category]?.length ? fixture.venues[category] : fixture.venues.activity;
+  if (!fixture) throw new Error(`No ${category} venues available. Try another location.`);
+  const venues = fixture.venues[category];
   const fixtureKey = `fixture:${fixture.area}|${category}`;
   const fixtureCenter = { lat: fixture.lat, lng: fixture.lng };
   await d.conn.reducers.cacheVenues({ key: fixtureKey, category, query: queries.join('+'), source: 'fixture', itemsJson: JSON.stringify({ center: fixtureCenter, venues }) });
@@ -203,10 +205,10 @@ function toOptionInput(c: Candidate, fitSummary: string, lines: { playerId: bigi
 function deterministicSummary(c: Candidate, members: Member[]): string {
   const bits: string[] = [];
   const diets = [...new Set(members.flatMap(m => m.dietary))];
-  if (diets.length && c.dietOk) bits.push(`${diets.join(' + ')} ✓`);
+  if (diets.length && c.dietNotes.length && c.dietOk) bits.push(`${diets.join(' + ')} ✓`);
   if (c.venue.priceLevel > 0 && c.budgetOk) bits.push('fits every budget');
   if (c.travelOk) bits.push("within everyone's travel time");
-  if (c.hoursOk) bits.push('open when you are free');
+  if (c.hoursKnown && c.hoursOk) bits.push('open when you are free');
   if (c.tagHits[0]) bits.push(`for the ${c.tagHits[0].replace(/-/g, ' ')} crowd`);
   if (bits.length === 0) bits.push(c.venue.category);
   return bits.slice(0, 3).join(' · ');
@@ -218,10 +220,11 @@ const curate: Handler = async (job, d) => {
   const p = payload<{ forceFixtures?: boolean }>(job);
   const members: Member[] = membersOf(d.conn, room.id);
   let set = p.forceFixtures ? null : loadVenueSet(d, room.venueKey);
+  if (set) set = { ...set, venues: venuesForCategory(set.venues, room.category) };
   if (!set || set.venues.length < 2) {
-    const fx = nearestFixture(d.fixtures, room.hasGeo ? { lat: room.lat, lng: room.lng } : null);
+    const fx = nearestFixture(d.fixtures, room.hasGeo ? { lat: room.lat, lng: room.lng } : null, room.category);
     if (!fx) throw new Error('no venues available');
-    set = { center: { lat: fx.lat, lng: fx.lng }, venues: fx.venues[room.category]?.length ? fx.venues[room.category] : fx.venues.activity };
+    set = { center: { lat: fx.lat, lng: fx.lng }, venues: fx.venues[room.category] };
   }
   const { weekday, minutes } = localNow(Date.now(), room.tzOffsetMin);
   const cands = evaluate(set.venues, members, { center: set.center, weekday, nowMin: minutes, category: room.category });

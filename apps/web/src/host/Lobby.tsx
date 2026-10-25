@@ -102,6 +102,8 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
           ))}
         </div>
 
+        {category === 'movie' && <p className="text-sm text-muted">Choose a cinema together. Film listings, showtimes and ticket prices must be checked with the cinema.</p>}
+
         <div className="space-y-3">
           <div className="text-lg font-bold text-cream/80">Where?</div>
           <form
