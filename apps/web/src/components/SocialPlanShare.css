@@ -1,0 +1,13 @@
+.social-plan{padding:20px;border:1.5px solid #14140f;border-radius:20px;background:#f4f3ef;color:#14140f;min-width:0}
+.social-plan-heading{font-size:12px;font-weight:900;letter-spacing:.12em;margin-bottom:12px}
+.social-plan-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.social-plan-buttons .btn{display:flex;justify-content:center;align-items:center;gap:7px;font-size:16px;min-height:48px;padding:10px 8px;min-width:0}
+.social-plan-note{font-size:12px;line-height:1.45;color:#62615a;margin:10px 0 0}
+.social-plan-tools{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;padding-top:12px;border-top:1px solid #d7d6ce}
+.social-plan-tool{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;flex:1 1 auto;border:1px solid #a4a399;border-radius:12px;padding:8px;font-size:12px;font-weight:800;background:#fff;color:#14140f;text-decoration:none;cursor:pointer}
+.social-plan-tools .social-plan-note{flex-basis:100%;margin-top:0}
+.social-plan-error{color:#a22621}
+.social-plan-hint,.social-plan-tv{font-size:13px;text-align:center;line-height:1.5;color:#62615a}
+.social-plan textarea{margin-top:12px}
+.social-plan :is(button,a):focus-visible{outline:3px solid #315964;outline-offset:3px}
+@media(max-width:359px){.social-plan{padding:15px}.social-plan-buttons{gap:7px}.social-plan-buttons .btn{font-size:14px}}

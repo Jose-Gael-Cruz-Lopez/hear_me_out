@@ -210,22 +210,31 @@ export function checkEarly(ctx: Ctx, roomId: bigint): void {
   if (!r) return;
   const players = playersIn(ctx, roomId);
   const humans = players.filter(p => !p.isBot);
+  // A dropped connection is not consent to skip somebody's turn. Keep their seat in the quorum;
+  // the existing deadline or an explicit host kick handles someone who has really left.
+  const everyoneActed = humans.length > 0 && humans.every(p => p.actedSeq === r.phaseSeq);
   switch (r.phase as Phase) {
     case 'profiles':
-      if (players.every(p => p.ready)) advance(ctx, r);
+      if (players.length > 0 && players.every(p => p.ready)) advance(ctx, r);
       return;
     case 'warmup': {
       const rows = [...ctx.db.warmup.roomId.filter(roomId)];
-      const answered = rows.length > 0 && rows.every(w => w.answer !== '');
-      if (answered && optionsIn(ctx, roomId).length >= 2) advance(ctx, r);
+      // Require a response from each current player, not just every row returned so far. Ignore
+      // orphaned questions after a kick. Venue scouting can finish on its own waiting screen.
+      const answered = players.length > 0 && players.every(p => rows.some(w => w.playerId === p.id && w.answer !== ''));
+      if (answered) advance(ctx, r);
       return;
     }
+    case 'finalists':
     case 'prevote':
+    case 'assignments':
+    case 'playback':
     case 'vote':
-      if (humans.every(p => p.actedSeq === r.phaseSeq)) advance(ctx, r);
+    case 'results':
+      if (everyoneActed) advance(ctx, r);
       return;
     case 'pitching': {
-      const pitches = pitchesIn(ctx, roomId);
+      const pitches = pitchesIn(ctx, roomId).filter(pitch => players.some(p => p.id === pitch.playerId));
       if (pitches.length > 0 && pitches.every(p => p.status === 'ready')) advance(ctx, r);
       return;
     }

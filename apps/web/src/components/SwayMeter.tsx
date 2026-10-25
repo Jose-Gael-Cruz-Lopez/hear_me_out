@@ -4,6 +4,7 @@ import { sway } from '@hmo/module/logic/sway';
 import { useMemo } from 'react';
 import { useCall, useRoom } from '../lib/room';
 import { play } from '../lib/sound';
+import { useLiveChoice } from '../lib/useLiveChoice';
 import { VenueImage } from './ui';
 
 const SWAY_COLORS = ['#f2dc6e', '#d1e6eb', '#f3d8d2', '#dbe4c9'];
@@ -73,27 +74,30 @@ export function SwayMeter({ compact = false }: { compact?: boolean }) {
 export function LeanPicker() {
   const { options, room, myLeanOptionId, me } = useRoom();
   const call = useCall();
+  const choice = useLiveChoice(myLeanOptionId, `${room.id}:playback`);
   if (!me || options.length < 2) return null;
   return (
     <div className="lean-picker">
       <div className="sway-head">
         <span className="sway-kicker">Your lean · private</span>
-        <span className="sway-count">Only the totals reach the TV</span>
+        <span className="sway-count" role="status">{choice.saving ? 'Saving…' : 'Only the totals reach the TV'}</span>
       </div>
       <div className="lean-options">
         {options.map((o, i) => {
-          const on = myLeanOptionId === o.id;
+          const on = choice.value === o.id;
           return (
             <button
               key={String(o.id)}
               type="button"
               aria-pressed={on}
+              aria-busy={choice.saving}
+              disabled={choice.saving}
               className={`lean-option ${on ? 'on' : ''}`}
               style={{ ['--sway' as string]: swayColor(i) }}
               onClick={() => {
                 if (on) return;
                 play('pop');
-                void call(c => c.reducers.setLean({ roomId: room.id, optionId: o.id }), { silent: true });
+                void choice.select(o.id, () => call(c => c.reducers.setLean({ roomId: room.id, optionId: o.id })));
               }}
             >
               <VenueImage option={o} className="lean-photo" />
@@ -113,6 +117,7 @@ export function LeanPicker() {
 export function SwayLeanCard() {
   const { options, room, myLeanOptionId, me, playerById } = useRoom();
   const call = useCall();
+  const choice = useLiveChoice(myLeanOptionId, `${room.id}:playback`);
   const { standings, leaning, persuasive } = useSway();
   if (options.length < 2 || standings.length === 0) return null;
   const even = leaning === 0;
@@ -121,7 +126,7 @@ export function SwayLeanCard() {
     <div className="m-sway">
       <div className="m-sway-head">
         <span className="m-label">LIVE SWAY</span>
-        <span className="m-dim m-small">{me ? 'Tap where you’re leaning' : `${leaning} leaning`}</span>
+        <span className="m-dim m-small" role="status">{choice.saving ? 'Saving…' : me ? 'Tap where you’re leaning' : `${leaning} leaning`}</span>
       </div>
       <div className="m-sway-bar" role="img" aria-label={standings.map((s, i) => `${options[i]?.title}: ${Math.round(s.share * 100)}%`).join(', ')}>
         {standings.map((s, i) => (
@@ -133,18 +138,20 @@ export function SwayLeanCard() {
       {me && (
         <div className="m-lean-grid">
           {options.map((o, i) => {
-            const on = myLeanOptionId === o.id;
+            const on = choice.value === o.id;
             return (
               <button
                 key={String(o.id)}
                 type="button"
                 aria-pressed={on}
+                aria-busy={choice.saving}
+                disabled={choice.saving}
                 className={`m-lean ${on ? 'on' : ''}`}
                 style={{ ['--sway' as string]: swayColor(i) }}
                 onClick={() => {
                   if (on) return;
                   play('pop');
-                  void call(c => c.reducers.setLean({ roomId: room.id, optionId: o.id }), { silent: true });
+                  void choice.select(o.id, () => call(c => c.reducers.setLean({ roomId: room.id, optionId: o.id })));
                 }}
               >
                 <VenueImage option={o} className="m-lean-photo" />

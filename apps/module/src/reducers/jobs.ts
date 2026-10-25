@@ -26,6 +26,7 @@ import {
 } from '../core';
 import { applyFallback } from '../cleanup';
 import { clampText, sanitizeTags } from '../logic/text';
+import { defaultWarmup } from '../logic/fallbacks';
 
 type JobRow = Infer<typeof aiJob.rowType>;
 
@@ -91,11 +92,13 @@ export const finishDistill = spacetimedb.reducer(
 export const finishWarmup = spacetimedb.reducer({ jobId: t.u64(), questions: t.array(WarmupInput) }, (ctx, { jobId, questions }) => {
   const job = finish(ctx, jobId, { count: questions.length });
   if (!job) return;
+  const r = ctx.db.room.id.find(job.roomId);
+  if (!r || (r.phase !== 'warmup' && r.phase !== 'scouting')) return;
   const players = playersIn(ctx, job.roomId);
   for (const old of [...ctx.db.warmup.roomId.filter(job.roomId)]) ctx.db.warmup.id.delete(old.id);
-  for (const q of questions) {
-    const p = players.find(x => x.id === q.playerId);
-    if (!p) continue;
+  players.forEach((p, i) => {
+    // Model output may omit or duplicate a player; everyone still gets exactly one answerable task.
+    const q = questions.find(q => q.playerId === p.id) ?? defaultWarmup(ctx.db.profilePublic.playerId.find(p.id)?.approvedTags ?? [], i);
     ctx.db.warmup.insert({
       id: 0n,
       roomId: job.roomId,
@@ -105,8 +108,9 @@ export const finishWarmup = spacetimedb.reducer({ jobId: t.u64(), questions: t.a
       choiceB: clampText(q.choiceB, 40),
       answer: p.isBot ? (ctx.random() < 0.5 ? 'a' : 'b') : '',
     });
-  }
+  });
   setAiStatus(ctx, job.roomId, '');
+  checkEarly(ctx, job.roomId);
 });
 
 export const cacheVenues = spacetimedb.reducer(
@@ -255,7 +259,7 @@ export const finishBotPitches = spacetimedb.reducer({ jobId: t.u64(), pitches: t
   if (!job) return;
   for (const bp of pitches) {
     const p = ctx.db.pitch.id.find(bp.pitchId);
-    if (!p || p.roomId !== job.roomId || p.status === 'ready') continue;
+    if (!p || p.roomId !== job.roomId || p.status === 'ready' || p.status === 'skipped') continue;
     const ready = { ...p, transcript: clampText(bp.text, 800), transcriptSource: 'bot', status: 'ready' };
     ctx.db.pitch.id.update(ready);
     enqueueFactcheck(ctx, ready);

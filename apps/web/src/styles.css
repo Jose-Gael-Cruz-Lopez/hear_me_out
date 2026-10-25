@@ -699,3 +699,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .m-hero-avatar, .m-live { animation: none; }
   .m-sway-bar > div, .m-dots span, .m-take { transition: none; }
 }
+
+/* Room-wide completion: quiet live progress, one clear phone action. */
+.phase-ready{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;text-align:center}
+.phase-ready .m-btn{width:100%}
+.phase-ready .phase-ready-done:disabled{opacity:1;background:#dbe4c9;color:#14140f;box-shadow:none;transform:translateY(3px)}
+.phase-readiness{text-align:center;font-size:14px;font-weight:600;color:#73736b}

@@ -2,6 +2,7 @@ import { SenderError, t } from 'spacetimedb/server';
 import spacetimedb from '../schema';
 import {
   advance,
+  checkEarly,
   enqueueJob,
   findMyPlayer,
   getRoom,
@@ -153,6 +154,21 @@ export const kickPlayer = spacetimedb.reducer({ roomId: t.u64(), playerId: t.u64
   ctx.db.player.id.delete(p.id);
   ctx.db.profilePublic.playerId.delete(p.id);
   ctx.db.profileDraft.playerId.delete(p.id);
+  ctx.db.assignment.playerId.delete(p.id);
+  ctx.db.prevote.playerId.delete(p.id);
+  ctx.db.lean.playerId.delete(p.id);
+  ctx.db.vote.playerId.delete(p.id);
+  for (const w of [...ctx.db.warmup.roomId.filter(roomId)]) {
+    if (w.playerId === p.id) ctx.db.warmup.id.delete(w.id);
+  }
+  // Once listening begins, playback indices must remain stable. Before that, removed players'
+  // ready/transcribing pitches must not slip into the listening queue after quorum advances.
+  if (r.phase === 'pitching') {
+    for (const pitch of [...ctx.db.pitch.roomId.filter(roomId)]) {
+      if (pitch.playerId === p.id) ctx.db.pitch.id.update({ ...pitch, status: 'skipped', rulingKind: 'none', rulingText: '' });
+    }
+  }
+  checkEarly(ctx, roomId);
 });
 
 export const startGame = spacetimedb.reducer({ roomId: t.u64() }, (ctx, { roomId }) => {

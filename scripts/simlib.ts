@@ -130,6 +130,12 @@ export function autopilot(
     const k = `${r.phaseSeq}`;
     const options = [...conn.db.option.iter()].filter(o => o.roomId === r.id).sort((a, b) => a.sortOrder - b.sortOrder);
     switch (r.phase) {
+      case 'finalists':
+      case 'assignments':
+      case 'playback':
+      case 'results':
+        once(`ready${k}`, () => conn.reducers.acknowledgePhase({ roomId: r.id, phaseSeq: r.phaseSeq }));
+        break;
       case 'profiles': {
         once('profile', () =>
           conn.reducers.submitProfile({

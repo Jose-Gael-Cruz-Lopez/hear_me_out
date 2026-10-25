@@ -16,6 +16,8 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Done recently
 
+- Instagram/Facebook plan sharing, instant completion and live selection sync · Jose (Codex) · `codex/social-share-live-sync`
+
 - Refined vector people, sharper 3D rendering, editorial invitation covers and small-phone accessibility against Updated-for-META · Jose (Codex) · `codex/meta-ui-polish`
 
 - Live Apify scrape every game (no venue reuse); slower, more believable Muse pull (~13 s) and booking (~25 s). · Anish (Claude Code)
@@ -40,6 +42,12 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - `hidden-gems`, `iteration-1`: the old Pitch Fight app (Next.js), superseded.
 
 ## Push log
+
+### 2026-10-24 · codex/social-share-live-sync → Updated-for-META · Jose (Codex)
+- **Changed:** replaced WhatsApp UI with Instagram/Facebook sharing, prepared PNG exports and save/copy/open fallbacks; selections respond immediately and roll back on failure; all-complete tasks advance immediately; viewing steps offer shared readiness per pitch. Stale taps/timers, removed players and late AI callbacks are guarded.
+- **Verified:** workspace typecheck, 106/106 tests, production web build; 95 live simulator checks using three independent human clients plus host and typed pitches. Final actions synced in5–51ms. Local backend published without deleting data. Share poster layouts visually checked; Instagram native share/cancellation exercised.
+- **Not done / unverified:** physical phone social-app handoff and actual posting not tested. Production backend requires publication for the new reducer; only isolated local DB was updated. Existing bundle warnings remain. Trov: not posted (no access).
+
 
 <!-- Newest first. Template:
 ### YYYY-MM-DD · <branch> · <who> (<agent, if any>)

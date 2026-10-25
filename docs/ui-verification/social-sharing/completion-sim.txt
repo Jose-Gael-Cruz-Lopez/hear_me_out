@@ -1,0 +1,114 @@
+Hear Me Out: normal-speed, three-human completion audit
+UTC 2026-10-25T05:07:18.774Z
+Server ws://127.0.0.1:3002; database hear-me-out-meta-ui
+Three independent player identities plus a separate host. Typed pitches only. Existing local fixture worker handles AI jobs.
+PASS four distinct connected identities
+Room RGCL; id 3; fastMode=false
+PASS normal deadlines enabled (not fast-mode simulation)
+PASS exactly three real players; no bots
+PASS profiles: same phase sequence on all four clients
+PASS profiles: same phase sequence on all four clients
+PASS profiles: 1/3 finished, step remains open everywhere
+PASS profiles: 2/3 finished, step remains open everywhere
+PASS profiles: final action occurs with 74890ms left on the normal timer
+PASS profiles: last completion advances all four clients in 5ms → warmup (before deadline)
+PASS warmup: same phase sequence on all four clients
+PASS warmup: same phase sequence on all four clients
+PASS warmup: 1/3 finished, step remains open everywhere
+PASS warmup: 2/3 finished, step remains open everywhere
+PASS warmup: final action occurs with 44859ms left on the normal timer
+PASS warmup: last completion advances all four clients in 11ms → finalists (before deadline)
+PASS finalists: same phase sequence on all four clients
+PASS real room has at least two curated fixture finalists
+PASS finalists: same phase sequence on all four clients
+PASS finalists: 1/3 finished, step remains open everywhere
+PASS finalists: duplicate acknowledgement does not advance
+PASS finalists: 2/3 finished, step remains open everywhere
+PASS finalists: final action occurs with 14893ms left on the normal timer
+PASS finalists: last completion advances all four clients in 48ms → prevote (before deadline)
+PASS finalists: stale acknowledgements cannot skip the following step
+PASS prevote: same phase sequence on all four clients
+PASS prevote: 1/3 finished, step remains open everywhere
+PASS prevote: 2/3 finished, step remains open everywhere
+PASS prevote: final action occurs with 14890ms left on the normal timer
+PASS prevote: last completion advances all four clients in 11ms → assigning (before deadline)
+PASS pre-vote views contain your choice and never expose another player’s choice
+PASS host cannot read private pre-votes
+PASS assignments: same phase sequence on all four clients
+PASS assignments: same phase sequence on all four clients
+PASS assignments: 1/3 finished, step remains open everywhere
+PASS assignments: duplicate acknowledgement does not advance
+PASS assignments: 2/3 finished, step remains open everywhere
+PASS assignments: final action occurs with 11862ms left on the normal timer
+PASS assignments: last completion advances all four clients in 51ms → pitching (before deadline)
+PASS assignments: stale acknowledgements cannot skip the following step
+PASS pitching: same phase sequence on all four clients
+PASS pitching: 1/3 finished, step remains open everywhere
+PASS pitching: 2/3 finished, step remains open everywhere
+PASS pitching: final action occurs with 59888ms left on the normal timer
+PASS pitching: last completion advances all four clients in 11ms → playback (before deadline)
+PASS playback: same phase sequence on all four clients
+PASS playback: correct pitch index 0
+PASS playback 1: live lean reaches all clients in 12ms and does not skip listening
+PASS playback 1: each player sees exactly their own private lean
+PASS playback: same phase sequence on all four clients
+PASS playback: 1/3 finished, step remains open everywhere
+PASS playback: duplicate acknowledgement does not advance
+PASS playback: 2/3 finished, step remains open everywhere
+PASS playback: final action occurs with 11876ms left on the normal timer
+PASS playback: last completion advances all four clients in 49ms → playback (before deadline)
+PASS playback: stale acknowledgements cannot skip the following step
+PASS playback: same phase sequence on all four clients
+PASS playback: correct pitch index 1
+PASS playback 2: live lean reaches all clients in 48ms and does not skip listening
+PASS playback 2: each player sees exactly their own private lean
+PASS playback: same phase sequence on all four clients
+PASS playback: 1/3 finished, step remains open everywhere
+PASS playback: duplicate acknowledgement does not advance
+PASS playback: 2/3 finished, step remains open everywhere
+PASS playback: final action occurs with 11835ms left on the normal timer
+PASS playback: last completion advances all four clients in 49ms → playback (before deadline)
+PASS playback: stale acknowledgements cannot skip the following step
+PASS playback: same phase sequence on all four clients
+PASS playback: correct pitch index 2
+PASS playback 3: live lean reaches all clients in 48ms and does not skip listening
+PASS playback 3: each player sees exactly their own private lean
+PASS playback: same phase sequence on all four clients
+PASS playback: 1/3 finished, step remains open everywhere
+PASS playback: duplicate acknowledgement does not advance
+PASS playback: 2/3 finished, step remains open everywhere
+PASS playback: final action occurs with 11796ms left on the normal timer
+PASS playback: last completion advances all four clients in 50ms → vote (before deadline)
+PASS playback: stale acknowledgements cannot skip the following step
+PASS vote: same phase sequence on all four clients
+PASS vote: 1/3 finished, step remains open everywhere
+PASS vote: 2/3 finished, step remains open everywhere
+PASS vote: final action occurs with 19848ms left on the normal timer
+PASS vote: last completion advances all four clients in 11ms → results (before deadline)
+PASS results: same phase sequence on all four clients
+PASS results: 1/3 finished, step remains open everywhere
+PASS results: duplicate acknowledgement does not advance
+PASS results: 2/3 finished, step remains open everywhere
+PASS results: final action occurs with 14930ms left on the normal timer
+PASS results: last completion advances all four clients in 48ms → plan (before deadline)
+PASS results: stale acknowledgements cannot skip the following step
+PASS plan: same phase sequence on all four clients
+PASS winning plan reflects all three votes
+PASS plan: 1/3 RSVPs synchronize in 7ms
+PASS plan: 2/3 RSVPs synchronize in 48ms
+PASS plan: 3/3 RSVPs synchronize in 52ms
+PASS final plan stays available for sharing after everyone RSVPs
+
+Final-completion latency across all four clients (normal timers):
+  profiles: 5ms; normal deadline had 74890ms remaining
+  warmup: 11ms; normal deadline had 44859ms remaining
+  finalists: 48ms; normal deadline had 14893ms remaining
+  prevote: 11ms; normal deadline had 14890ms remaining
+  assignments: 51ms; normal deadline had 11862ms remaining
+  pitching: 11ms; normal deadline had 59888ms remaining
+  playback 1: 49ms; normal deadline had 11876ms remaining
+  playback 2: 49ms; normal deadline had 11835ms remaining
+  playback 3: 50ms; normal deadline had 11796ms remaining
+  vote: 11ms; normal deadline had 19848ms remaining
+  results: 48ms; normal deadline had 14930ms remaining
+PASS 95 checks; 1671ms total; room RGCL preserved for UI inspection.

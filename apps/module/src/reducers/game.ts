@@ -13,6 +13,17 @@ import {
 } from '../core';
 import { clampText } from '../logic/text';
 
+/** Explicit readiness for a viewing step. A delayed/double tap cannot skip the next phase. */
+export const acknowledgePhase = spacetimedb.reducer({ roomId: t.u64(), phaseSeq: t.u32() }, (ctx, { roomId, phaseSeq }) => {
+  const r = getRoom(ctx, roomId);
+  const me = requireMyPlayer(ctx, roomId);
+  if (r.phaseSeq !== phaseSeq) return;
+  requirePhase(r, 'finalists', 'assignments', 'playback', 'results');
+  if (me.actedSeq === phaseSeq) return;
+  ctx.db.player.id.update({ ...me, actedSeq: phaseSeq });
+  checkEarly(ctx, roomId);
+});
+
 export const answerWarmup = spacetimedb.reducer({ warmupId: t.u64(), answer: t.string() }, (ctx, { warmupId, answer }) => {
   const w = ctx.db.warmup.id.find(warmupId);
   if (!w) throw new SenderError('No such question.');

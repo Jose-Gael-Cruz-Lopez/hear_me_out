@@ -49,6 +49,7 @@ export function applyFallback(ctx: Ctx, job: JobRow, error: string): void {
       return;
     }
     case 'warmup': {
+      if (r.phase !== 'warmup' && r.phase !== 'scouting') return;
       const existing = [...ctx.db.warmup.roomId.filter(r.id)];
       playersIn(ctx, r.id).forEach((p, i) => {
         if (existing.some(w => w.playerId === p.id)) return;
@@ -57,6 +58,7 @@ export function applyFallback(ctx: Ctx, job: JobRow, error: string): void {
         ctx.db.warmup.insert({ id: 0n, roomId: r.id, playerId: p.id, ...q, answer: p.isBot ? (ctx.random() < 0.5 ? 'a' : 'b') : '' });
       });
       setAiStatus(ctx, r.id, '');
+      checkEarly(ctx, r.id);
       return;
     }
     case 'scout': {
@@ -94,7 +96,7 @@ export function applyFallback(ctx: Ctx, job: JobRow, error: string): void {
       const ids = Array.isArray(payload.pitchIds) ? payload.pitchIds.map(x => BigInt(String(x))) : [];
       for (const id of ids) {
         const p = ctx.db.pitch.id.find(id);
-        if (!p || p.status === 'ready') continue;
+        if (!p || p.status === 'ready' || p.status === 'skipped') continue;
         const ready = { ...p, transcript: fallbackBotPitch(ctx, p), transcriptSource: 'bot', status: 'ready' };
         ctx.db.pitch.id.update(ready);
         enqueueFactcheck(ctx, ready);
