@@ -1,5 +1,8 @@
+import { motion } from 'motion/react';
+import { IconText, AvatarMark } from '../components/Ink';
 import { useState } from 'react';
-import { Logo, seatColor } from '../components/ui';
+import { Link } from 'wouter';
+import { Logo } from '../components/ui';
 import { useCall, useRoom } from '../lib/room';
 import { unlockAudio } from '../lib/sound';
 
@@ -11,9 +14,10 @@ export function JoinForm() {
   const taken = new Set(players.map(p => p.avatar));
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState(AVATARS.find(a => !taken.has(a)) ?? AVATARS[0]);
+  const selectedAvatar = taken.has(avatar) ? (AVATARS.find(a => !taken.has(a)) ?? avatar) : avatar;
   const [busy, setBusy] = useState(false);
   const [adult, setAdult] = useState(false);
-  const isPublic = room.mode === 'strangers';
+  const isPublic = room.mode === 'strangers' || room.mode === 'queue';
   const open = room.phase === 'lobby' || room.phase === 'profiles';
 
   return (
@@ -23,7 +27,10 @@ export function JoinForm() {
         Room <span className="tracking-widest text-sun">{room.code}</span>
       </div>
       {!open ? (
-        <div className="card p-6 text-lg">This game already started. Ask the host to start a new room.</div>
+        <div className="card space-y-4 p-6 text-lg">
+          <p>This game already started. Ask the host to start a new room.</p>
+          <Link href="/" className="btn btn-sun w-full">Back home</Link>
+        </div>
       ) : (
         <form
           className="card space-y-5 p-6"
@@ -31,7 +38,7 @@ export function JoinForm() {
             e.preventDefault();
             unlockAudio();
             setBusy(true);
-            await call(c => (isPublic ? c.reducers.joinPublicRoom({ code: room.code, name, avatar, confirmed18: adult }) : c.reducers.joinRoom({ code: room.code, name, avatar })));
+            await call(c => (isPublic ? c.reducers.joinPublicRoom({ code: room.code, name, avatar: selectedAvatar, confirmed18: adult }) : c.reducers.joinRoom({ code: room.code, name, avatar: selectedAvatar })));
             setBusy(false);
           }}
         >
@@ -46,29 +53,32 @@ export function JoinForm() {
             />
           </label>
           <div>
-            <span className="text-sm font-bold text-muted">PICK AN AVATAR</span>
+            <motion.div key={selectedAvatar} initial={{ x: -14, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="character-preview"><AvatarMark value={selectedAvatar} size={100} pose="move" /><strong>That’s you.</strong></motion.div>
+            <span className="text-sm font-bold text-muted">PICK YOUR LITTLE PERSON</span>
             <div className="mt-2 grid grid-cols-8 gap-2">
               {AVATARS.map((a, i) => (
                 <button
                   type="button"
                   key={a}
+                  aria-label={`Avatar ${i+1}`}
+                  aria-pressed={selectedAvatar === a}
                   onClick={() => setAvatar(a)}
                   disabled={taken.has(a)}
-                  className="grid aspect-square place-items-center rounded-2xl text-2xl transition disabled:opacity-20"
-                  style={{ background: avatar === a ? seatColor(i) : 'rgb(255 255 255 / 0.06)', transform: avatar === a ? 'scale(1.1)' : undefined }}
+                  className="avatar-choice grid aspect-square place-items-center rounded-2xl transition disabled:opacity-20"
+                  style={{ background: selectedAvatar === a ? '#f2dc6e' : '#fff', transform: selectedAvatar === a ? 'scale(1.1)' : undefined }}
                 >
-                  {a}
+                  <AvatarMark value={a} size={36} />
                 </button>
               ))}
             </div>
           </div>
           {isPublic && (
             <div className="space-y-2 rounded-2xl bg-sky/10 p-4 text-sm ring-1 ring-sky/30">
-              <div className="font-bold text-sky">🛡️ Public meetup with people you don't know yet</div>
+              <div className="font-bold text-sky"><IconText text={"🛡️ Public meetup with people you don't know yet"} /></div>
               <ul className="list-disc space-y-0.5 pl-5 text-cream/80">
                 <li>First names only</li>
                 <li>Public venues only; the exact address unlocks after you RSVP</li>
-                <li>Block & report anyone, any time</li>
+                <li>Block & report from the lobby or final plan</li>
                 <li>A meetup is confirmed once 3 people RSVP</li>
               </ul>
               <label className="flex items-center gap-2 font-bold">

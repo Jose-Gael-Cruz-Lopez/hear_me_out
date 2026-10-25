@@ -1,5 +1,9 @@
+import { IconText } from '../components/Ink';
 import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSpacetimeDB } from 'spacetimedb/react';
+import { Spinner } from '../components/Muse';
+import { museMemory } from '../lib/muse';
 import { useCall, useRoom } from '../lib/room';
 import { toast } from '../lib/toast';
 
@@ -12,19 +16,9 @@ const WINDOWS = [
   { label: '11pm–late', startMin: 23 * 60, endMin: 26 * 60 },
 ];
 const VIBES = ['Spicy', 'Cheap', 'Cozy', 'Loud', 'Board games', 'Night owl', 'Early bird', 'Outdoors', 'Live music', 'Dessert', 'Drinks', 'Adventurous'];
-// "Connect your Muse" is SIMULATED for the demo: Meta has no public API for personal Muse memory yet.
-// Swap simulatedMuseMemory() for the real import when it exists (see DECISIONS.md).
-const MUSE_MEMORIES = [
-  'Loves spicy ramen and late-night noodle spots. Usually spends about $20 on dinner. Free most evenings after 7pm. Into board game nights and anime. Close friends: Priya and Sam, who are both vegetarian.',
-  'Big on tacos, live music and craft beer. Budget around $25. Free Friday and Saturday nights. Goes bowling with coworkers. Friends with lots of karaoke fans.',
-  'Coffee and dessert person, prefers cozy quiet spots. Vegetarian. Budget about $15-20. Free after 6pm. Joins weekly trivia and escape rooms with college friends.',
-  'Adventurous eater: Korean BBQ, Thai, dumplings. Night owl, free after 8pm. Loves arcades and photography walks. Connected with a climbing group and a film club.',
-];
-function simulatedMuseMemory(seed: string): string {
-  let h = 0;
-  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return MUSE_MEMORIES[h % MUSE_MEMORIES.length];
-}
+// Optional sample-data preview. No personal account or calendar is accessed.
+const PULL_STEPS = ['Loading a sample profile', 'Previewing sample preferences', 'Previewing sample availability', 'Preparing your editable sample'];
+const PULL_MS = [700, 1300, 1200, 1400];
 const SOURCE_LABEL: Record<string, string> = { paste: 'your Muse', chips: 'your picks', basics: 'your basics', social: 'your posts' };
 
 const MUSE_PROMPT = 'Summarize my food likes, budget, and free time this week in 5 bullets.';
@@ -57,6 +51,7 @@ export function ProfileFlow() {
   const { room, me, myDraft, profiles } = useRoom();
   const call = useCall();
   const [step, setStep] = useState<'basics' | 'muse'>('basics');
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [step]);
   const [budget, setBudget] = useState(2);
   const [diets, setDiets] = useState<string[]>([]);
   const [travel, setTravel] = useState(30);
@@ -67,15 +62,33 @@ export function ProfileFlow() {
   const [handle, setHandle] = useState('');
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const submittingRef = useRef(false);
+  const approvingRef = useRef(false);
   const [editedTags, setEditedTags] = useState<string[] | null>(null);
   const [newTag, setNewTag] = useState('');
+  const [manualCopy, setManualCopy] = useState(false);
+  const promptRef = useRef<HTMLDivElement>(null);
+  const { identity } = useSpacetimeDB();
+  const seed = identity?.toHexString() ?? '';
+  const [pulled, setPulled] = useState(-1);
+  const demoLoading = pulled >= 0 && pulled < PULL_STEPS.length;
+  useEffect(() => {
+    if (step !== 'muse' || pulled < 0 || pulled >= PULL_STEPS.length) return;
+    const t = setTimeout(() => {
+      const next = pulled + 1;
+      setPulled(next);
+      if (next === PULL_STEPS.length) setPasted(museMemory(seed));
+    }, PULL_MS[pulled]);
+    return () => clearTimeout(t);
+  }, [step, pulled, seed]);
 
   if (!me) return null;
   if (me.ready) {
     const tags = profiles.get(me.id)?.approvedTags ?? [];
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center">
-        <div className="text-7xl">✅</div>
+        <div className="text-7xl"><IconText text={"✅"} /></div>
         <div className="font-display text-3xl font-black">You're locked in</div>
         <div className="flex flex-wrap justify-center gap-2">
           {tags.map(t => (
@@ -89,23 +102,43 @@ export function ProfileFlow() {
     );
   }
 
-  const submit = async () => {
+  const submit = async (useSavedInputs = false) => {
+    if (submittingRef.current || approvingRef.current || demoLoading) return;
+    const savedProfile = profiles.get(me.id);
+    if (useSavedInputs && (!myDraft || !savedProfile)) return;
+    // Redo means distill the same submitted inputs again. After a reload the local
+    // form contains defaults, while the server still has the original constraints
+    // and private context. Use those saved inputs without overwriting fresh edits.
+    const inputs = useSavedInputs && myDraft && savedProfile
+      ? {
+          budgetMax: savedProfile.budgetMax,
+          dietary: savedProfile.dietary,
+          maxTravelMin: savedProfile.maxTravelMin,
+          availability: savedProfile.availability,
+          vibeChips: myDraft.vibeChips,
+          pastedContext: myDraft.pastedContext,
+          socialLinks: myDraft.socialLinks,
+          consent: myDraft.consent,
+        }
+      : {
+          budgetMax: budget,
+          dietary: diets,
+          maxTravelMin: travel,
+          availability: mergeWindows(times),
+          vibeChips: vibes,
+          pastedContext: pasted,
+          socialLinks: handle.trim() && consent ? [{ platform, handle: handle.trim() }] : [],
+          consent: !!handle.trim() && consent,
+        };
+    submittingRef.current = true;
     setBusy(true);
-    await call(c =>
-      c.reducers.submitProfile({
-        roomId: room.id,
-        budgetMax: budget,
-        dietary: diets,
-        maxTravelMin: travel,
-        availability: mergeWindows(times),
-        vibeChips: vibes,
-        pastedContext: pasted,
-        socialLinks: handle.trim() && consent ? [{ platform, handle: handle.trim() }] : [],
-        consent: !!handle.trim() && consent,
-      })
-    );
-    setEditedTags(null);
-    setBusy(false);
+    try {
+      const ok = await call(c => c.reducers.submitProfile({ roomId: room.id, ...inputs }));
+      if (ok) setEditedTags(null);
+    } finally {
+      submittingRef.current = false;
+      setBusy(false);
+    }
   };
 
   // Step 3: approve the drafted tags (only after the AI has drafted them).
@@ -113,9 +146,7 @@ export function ProfileFlow() {
     if (myDraft.status === 'distilling') {
       return (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-          <motion.div className="text-7xl" animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}>
-            ✨
-          </motion.div>
+          <motion.div className="text-7xl" animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}><IconText text={" ✨ "} /></motion.div>
           <div className="font-display text-2xl font-black">Distilling your vibe…</div>
           {myDraft.socialLinks.length > 0 && <div className="text-cream/70">Reading your public posts with Apify. This can take up to a minute.</div>}
         </div>
@@ -129,7 +160,7 @@ export function ProfileFlow() {
           <div className="font-display text-3xl font-black">Approve your tags</div>
           <div className="mt-1 text-cream/75">Nobody sees these until you approve. Remove anything you don't want shared.</div>
         </div>
-        <div className="chip self-start bg-lime/15 text-lime ring-1 ring-lime/40">🔒 Only what you approve is shared. Private messages are never read.</div>
+        <div className="chip self-start bg-lime/15 text-lime ring-1 ring-lime/40"><IconText text={"🔒 Only what you approve is shared. Private messages are never read."} /></div>
         {myDraft.note && <div className="text-sm text-muted">{myDraft.note}</div>}
         <div className="space-y-2">
           <AnimatePresence>
@@ -141,9 +172,7 @@ export function ProfileFlow() {
                     <div className="font-display text-xl font-black text-sky">#{tag}</div>
                     <div className="text-sm text-cream/70">{why ? `${why.reason} · from ${SOURCE_LABEL[why.source] ?? why.source}` : 'Added by you'}</div>
                   </div>
-                  <button className="chip bg-ink-3 text-cream/80" onClick={() => setEditedTags(tags.filter(t => t !== tag))} aria-label={`Remove ${tag}`}>
-                    ✕
-                  </button>
+                  <button className="chip bg-ink-3 text-cream/80" disabled={busy || approving} onClick={() => setEditedTags(tags.filter(t => t !== tag))} aria-label={`Remove ${tag}`}><IconText text={" ✕ "} /></button>
                 </motion.div>
               );
             })}
@@ -154,6 +183,7 @@ export function ProfileFlow() {
           className="flex gap-2"
           onSubmit={e => {
             e.preventDefault();
+            if (submittingRef.current || approvingRef.current) return;
             const t = newTag.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
             if (!t || tags.includes(t)) return;
             if (tags.length >= 8) return toast('8 tags max');
@@ -161,14 +191,24 @@ export function ProfileFlow() {
             setNewTag('');
           }}
         >
-          <input value={newTag} onChange={e => setNewTag(e.target.value)} placeholder="Add a tag" className="min-w-0 flex-1 rounded-2xl bg-ink px-4 py-3 ring-2 ring-white/10 outline-none focus:ring-sky" />
-          <button className="btn btn-ghost text-base">Add</button>
+          <input value={newTag} disabled={busy || approving} onChange={e => setNewTag(e.target.value)} placeholder="Add a tag" className="min-w-0 flex-1 rounded-2xl bg-ink px-4 py-3 ring-2 ring-white/10 outline-none focus:ring-sky" />
+          <button className="btn btn-ghost text-base" disabled={busy || approving}>Add</button>
         </form>
         <div className="flex gap-3">
-          <button className="btn btn-lime flex-1" onClick={() => call(c => c.reducers.approveTags({ roomId: room.id, tags }))}>
-            Approve & share
+          <button className="btn btn-lime flex-1" disabled={busy || approving} onClick={async () => {
+            if (submittingRef.current || approvingRef.current) return;
+            approvingRef.current = true;
+            setApproving(true);
+            try {
+              await call(c => c.reducers.approveTags({ roomId: room.id, tags }));
+            } finally {
+              approvingRef.current = false;
+              setApproving(false);
+            }
+          }}>
+            {approving ? 'Sharing…' : 'Approve & share'}
           </button>
-          <button className="btn btn-ghost text-base" onClick={() => void submit()}>
+          <button className="btn btn-ghost text-base" disabled={busy || approving || !profiles.has(me.id)} onClick={() => void submit(true)}>
             Redo
           </button>
         </div>
@@ -254,27 +294,53 @@ export function ProfileFlow() {
       <button
         type="button"
         className={`btn ${pasted ? 'btn-lime' : 'btn-sky'} w-full`}
+        disabled={demoLoading}
         onClick={() => {
-          setPasted(simulatedMuseMemory(me.name + room.code));
-          toast('Connected to your Muse: imported your tastes and connections');
+          setPulled(0);
         }}
       >
-        {pasted ? '✓ Muse connected' : '✨ Connect your Muse'}
+        <IconText text={demoLoading ? 'Loading sample…' : 'Try a demo Muse profile'} />
       </button>
+      <p className="text-xs text-muted">The demo button uses sample context. It does not access your Meta AI account or private history.</p>
+      {pulled >= 0 && <div className="card space-y-2 p-4" role="status" aria-live="polite">
+        <div className="font-black">Sample profile preview</div>
+        {PULL_STEPS.slice(0, Math.min(pulled + 1, PULL_STEPS.length)).map((label, i) => <div key={label} className="flex items-center gap-2 text-sm">
+          {i < pulled ? <IconText text="✓" /> : <Spinner size={16} />}
+          <span>{label}{i < pulled ? '' : '…'}</span>
+        </div>)}
+        {!demoLoading && <p className="text-sm text-muted">Sample ready. Review or edit it below before sharing.</p>}
+      </div>}
       <div className="card space-y-3 p-4">
         <div className="text-sm font-bold text-muted">Or ask your Meta AI app:</div>
-        <div className="rounded-2xl bg-ink p-3 font-mono text-sm">{MUSE_PROMPT}</div>
+        <div ref={promptRef} tabIndex={-1} className="rounded-2xl bg-ink p-3 font-mono text-sm select-text">{MUSE_PROMPT}</div>
         <button
           type="button"
           className="chip bg-ink-3 text-cream"
-          onClick={() => {
-            void navigator.clipboard?.writeText(MUSE_PROMPT).then(() => toast('Copied!'), () => toast('Copy it by hand'));
+          onClick={async () => {
+            try {
+              if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+              await navigator.clipboard.writeText(MUSE_PROMPT);
+              setManualCopy(false);
+              toast('Copied!');
+            } catch {
+              setManualCopy(true);
+              const prompt = promptRef.current;
+              if (prompt) {
+                prompt.focus();
+                const range = document.createRange();
+                range.selectNodeContents(prompt);
+                const selection = window.getSelection();
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+              }
+              toast('Copy the selected prompt manually.');
+            }
           }}
-        >
-          📋 Copy prompt
-        </button>
+        ><IconText text={" 📋 Copy prompt "} /></button>
+        {manualCopy && <p className="text-sm text-muted" role="status">Automatic copy is unavailable. Select the prompt above and use your device's Copy command.</p>}
         <textarea
           value={pasted}
+          disabled={demoLoading}
           onChange={e => setPasted(e.target.value.slice(0, 2000))}
           rows={5}
           placeholder="Paste the answer here (optional)"
@@ -312,9 +378,7 @@ export function ProfileFlow() {
         <button className="btn btn-ghost text-base" onClick={() => setStep('basics')}>
           Back
         </button>
-        <button className="btn btn-pop flex-1" disabled={busy || (!!handle.trim() && !consent)} onClick={() => void submit()}>
-          ✨ Distill my vibe
-        </button>
+        <button className="btn btn-pop flex-1" disabled={busy || demoLoading || (!!handle.trim() && !consent)} onClick={() => void submit()}><IconText text={" ✨ Distill my vibe "} /></button>
       </div>
     </div>
   );

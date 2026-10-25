@@ -1,0 +1,34 @@
+{
+  "base": "ffb206d2f0d063e29c4b147d887d223d6693529b",
+  "branch": "codex/find-my-people-design",
+  "verified_at": "2026-10-24T12:33:34.771459+00:00",
+  "frontend": "Vite/React on apps/web; no obsolete Next.js files restored",
+  "backend_changed": false,
+  "checks": {
+    "workspace_typecheck": "passed",
+    "latest_web_typecheck_and_build": "passed after final code changes",
+    "unit_tests": "35/35 passed with pnpm test (default timeout); initial cold ffmpeg test exceeded 5s, subsequent runs passed",
+    "matchmaking_simulation": "pnpm sim:match: six checks passed, fixtures, 16.2 seconds",
+    "browser": "three independent identities Ivy/Jun/Kai joined JYRH, approved tags, automatically moved to UPHF, submitted typed pitches, saw phone playback and rulings, then explicitly RSVPed yes; meetupConfirmed reached at 3/3",
+    "public_lobby": "RENG: category/location/vibe/8PM setup, two bots and presence renderer; browsing showed neighborhood-only listing, board-games match, 2/8 seats",
+    "responsive": "390x844 setup scrollWidth=390; matched phone stage and RSVP tested",
+    "cold_start": "direct /meet initially crashed on eq(undefined); guarded query verified on fresh reload",
+    "rsvp_gates": "before yes RSVP: address withheld in UI, calendar/Maps/share disabled; after yes: address/links enabled",
+    "reducer_call_audit": "all 24 original reducer call expressions retained; one existing leaveRoom call added; no schema/binding/orchestrator changes",
+    "queue_exit": "Lee joined a separate activity queue NMGJ, then Leave queue returned home; fresh page console had no errors"
+  },
+  "limitations": [
+    "External Muse/Apify credentials were not used in this run; recorded fixtures and offline AI were labeled.",
+    "Microphone permission/live capture not exercised; typed pitches and existing audio conversion test were exercised.",
+    "Browser calendar download event did not complete in automation; calendar URLs/RSVP gating and existing shared generation code were inspected; no successful new download claimed.",
+    "Production build warns of >500kB chunks; the Three.js renderer is lazy loaded."
+  ],
+  "evidence": [
+    "screenshots/browse-desktop.jpg",
+    "screenshots/cover-desktop.jpg",
+    "screenshots/matched-plan-mobile.jpg",
+    "screenshots/public-lobby-desktop.jpg",
+    "screenshots/strangers-setup-desktop.jpg",
+    "screenshots/strangers-setup-mobile.jpg"
+  ]
+}

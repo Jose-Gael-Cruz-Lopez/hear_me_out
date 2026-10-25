@@ -1,9 +1,11 @@
+import { IconText, AvatarMark } from '../components/Ink';
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
+import { MuseReservation } from '../components/Muse';
 import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { useRoom } from '../lib/room';
 import { play } from '../lib/sound';
@@ -28,7 +30,7 @@ function Waiting({ emoji, title, sub }: { emoji: string; title: string; sub?: st
     <div className="grid flex-1 place-items-center">
       <div className="text-center">
         <motion.div className="text-[9rem]" animate={{ rotate: [-8, 8, -8], y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1.6 }}>
-          {emoji}
+          <IconText text={emoji} size={96} />
         </motion.div>
         <PhaseTitle title={title} sub={sub} />
       </div>
@@ -41,7 +43,7 @@ export function HostProfiles() {
   return (
     <div className="flex flex-1 flex-col items-center gap-8">
       <PhaseTitle kicker="Step 1" title="Bring your Muse" sub="Set your budget, diet, time and vibe on your device. Approve your tags to lock in." />
-      <div className="chip bg-lime/15 px-5 py-2 text-lg text-lime ring-1 ring-lime/40">🔒 Only what you approve is shared. Private messages are never read.</div>
+      <div className="chip bg-lime/15 px-5 py-2 text-lg text-lime ring-1 ring-lime/40"><IconText text={"🔒 Only what you approve is shared. Private messages are never read."} /></div>
       <div className="grid w-full max-w-6xl grid-cols-2 gap-6 md:grid-cols-4">
         {players.map(p => {
           const tags = profiles.get(p.id)?.approvedTags ?? [];
@@ -194,7 +196,7 @@ export function HostPitching() {
               <Avatar player={p} size={60} done={pt.status === 'ready'} />
               <div className="flex-1">
                 <div className="font-display text-xl font-black">{o?.title}</div>
-                <div className={`font-bold ${s.cls}`}>{p.isBot && pt.status === 'waiting' ? '🤖 writing a pitch…' : s.label}</div>
+                <div className={`font-bold ${s.cls}`}><IconText text={p.isBot && pt.status === 'waiting' ? '🤖 writing a pitch…' : s.label} /></div>
               </div>
             </div>
           );
@@ -237,8 +239,8 @@ export function HostResults() {
     play('fanfare');
     const end = Date.now() + 2500;
     const frame = () => {
-      confetti({ particleCount: 6, angle: 60, spread: 70, origin: { x: 0 } });
-      confetti({ particleCount: 6, angle: 120, spread: 70, origin: { x: 1 } });
+      confetti({ colors: ['#14140f','#f2dc6e','#d1e6eb','#dbe4c9'], disableForReducedMotion: true, particleCount: 6, angle: 60, spread: 70, origin: { x: 0 } });
+      confetti({ colors: ['#14140f','#f2dc6e','#d1e6eb','#dbe4c9'], disableForReducedMotion: true, particleCount: 6, angle: 120, spread: 70, origin: { x: 1 } });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
@@ -250,10 +252,10 @@ export function HostResults() {
       <motion.div initial={{ scale: 0.3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
         <PhaseTitle kicker="The verdict is in" title={<span className="text-sun">{winner?.title ?? '…'}</span>} sub={`${votes.filter(v => v.optionId === room.winnerOptionId).length} of ${players.length} votes`} />
       </motion.div>
-      {room.tiebreakText && <div className="chip bg-grape/30 px-5 py-2 text-lg ring-1 ring-grape/60">⚖️ {room.tiebreakText}</div>}
+      {room.tiebreakText && <div className="chip bg-grape/30 px-5 py-2 text-lg ring-1 ring-grape/60"><IconText text={"⚖️ "} />{room.tiebreakText}</div>}
       <div className="grid w-full max-w-5xl gap-6 md:grid-cols-2">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="card p-6">
-          <div className="font-display text-lg font-black tracking-widest text-pop">🏆 MOST PERSUASIVE</div>
+          <div className="font-display text-lg font-black tracking-widest text-pop"><IconText text={"🏆 MOST PERSUASIVE"} /></div>
           {persuasive.map(a => {
             const p = playerById(a.playerId);
             return p ? (
@@ -266,7 +268,7 @@ export function HostResults() {
           {persuasive.length === 0 && <div className="mt-4 text-cream/60">Deliberating…</div>}
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.6 }} className="card p-6">
-          <div className="font-display text-lg font-black tracking-widest text-sky">💬 BEST LINE</div>
+          <div className="font-display text-lg font-black tracking-widest text-sky"><IconText text={"💬 BEST LINE"} /></div>
           {best ? (
             <div className="mt-4 flex items-center gap-4">
               {playerById(best.playerId) && <Avatar player={playerById(best.playerId)!} size={72} />}
@@ -305,8 +307,18 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
         <MergeBanner asPlayer={false} />
         {room.mode === 'strangers' && (
           <div className={`chip self-start px-4 py-2 text-lg ${plan.meetupConfirmed ? 'bg-lime/20 text-lime' : 'bg-sun/15 text-sun'}`}>
-            {plan.meetupConfirmed ? '✅ Meetup confirmed' : `Meetup needs 3 RSVPs (${rsvps.filter(r => r.status === 'yes').length}/3)`}
+            <IconText text={plan.meetupConfirmed ? '✅ Meetup confirmed' : `Meetup needs 3 RSVPs (${rsvps.filter(r => r.status === 'yes').length}/3)`} />
           </div>
+        )}
+        {option && (
+          <MuseReservation
+            big
+            plan={plan}
+            option={option}
+            category={room.category}
+            party={room.mode === 'strangers' ? rsvps.filter(r => r.status === 'yes').length : players.length - plan.cantMake.length}
+            ready={room.mode !== 'strangers' || plan.meetupConfirmed}
+          />
         )}
         <div className="card p-5 text-xl">{plan.inviteText}</div>
         <div className="card p-5">
@@ -316,7 +328,7 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
               const p = playerById(w.playerId);
               return (
                 <li key={String(w.playerId)} className="flex items-start gap-3 text-lg">
-                  <span className="text-2xl">{p?.avatar}</span>
+                  <span className="text-2xl"><AvatarMark value={p?.avatar} size={28} /></span>
                   <span>{w.line}</span>
                 </li>
               );
@@ -358,5 +370,5 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
 }
 
 export function HostEnded() {
-  return <Waiting emoji="🔨" title="Court adjourned" sub="See you at the plan." />;
+  return <div className="flex flex-1 flex-col gap-6"><Waiting emoji="🔨" title="Court adjourned" sub="See you at the plan." /><Link href="/" className="btn btn-sun self-center">Back home</Link></div>;
 }

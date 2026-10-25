@@ -1,6 +1,7 @@
+import { browserDatabaseUri } from './connection-address';
 import { DbConnection } from '@hmo/bindings';
 
-export const STDB_URI = import.meta.env.VITE_SPACETIMEDB_URI as string;
+export const STDB_URI = browserDatabaseUri(import.meta.env.VITE_SPACETIMEDB_URI as string, window.location.hostname, import.meta.env.DEV);
 export const STDB_DB = import.meta.env.VITE_SPACETIMEDB_DB_NAME as string;
 export const DEMO_LOCATION = (import.meta.env.VITE_DEMO_LOCATION as string) || '';
 

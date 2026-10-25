@@ -1,7 +1,10 @@
+import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { PITCH_REACTIONS } from '../lib/reactions';
 import { buildIcs, googleCalendarUrl, type CalendarEvent } from '@hmo/shared';
 import { MergeBanner } from '../components/MergeBanner';
+import { MuseReservation } from '../components/Muse';
 import { SafetyList } from '../components/Safety';
 import { Avatar, Poster, seatColor, useObjectUrl, VenueCard } from '../components/ui';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
@@ -14,7 +17,7 @@ export function PlayWaiting({ emoji, title, sub }: { emoji: string; title: strin
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
       <motion.div className="text-8xl" animate={{ y: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 1.4 }}>
-        {emoji}
+        <IconText text={emoji} size={96} />
       </motion.div>
       <div className="font-display text-3xl font-black">{title}</div>
       {sub && <div className="text-cream/70">{sub}</div>}
@@ -23,13 +26,13 @@ export function PlayWaiting({ emoji, title, sub }: { emoji: string; title: strin
 }
 
 export function PlayLobby() {
-  const { me, players, room } = useRoom();
+  const { me, players } = useRoom();
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
       {me && <Avatar player={me} size={140} />}
       <div className="font-display text-3xl font-black">You're in!</div>
       <div className="text-lg text-cream/75">
-        {players.length} player{players.length === 1 ? '' : 's'} in room {room.code}. Watch the TV, the host starts the game.
+        {players.length} in. The host starts when you’re ready.
       </div>
       <div className="w-full">
         <SafetyList />
@@ -94,13 +97,16 @@ export function PlayPrevote() {
             play('pop');
             void call(c => c.reducers.castPrevote({ roomId: room.id, optionId: o.id }));
           }}
-          className={`card p-5 text-left font-display text-2xl font-black transition ${myPrevoteOptionId === o.id ? 'ring-4 ring-sun' : ''}`}
+          className="block w-full text-left transition active:scale-[0.99]"
         >
-          {myPrevoteOptionId === o.id ? '🤫 ' : ''}
-          {o.title}
-          <div className="text-sm font-bold text-cream/60">
-            {o.category} · ~{o.travelMin} min
-          </div>
+          <VenueCard option={o} highlight={myPrevoteOptionId === o.id ? 'var(--color-pop)' : undefined}>
+            {myPrevoteOptionId === o.id && (
+              <div className="chip bg-sun text-cream">
+                <IconText text="🤫 " />
+                Your secret pick
+              </div>
+            )}
+          </VenueCard>
         </button>
       ))}
     </div>
@@ -122,7 +128,7 @@ export function BriefCard() {
         <ul className="space-y-1">
           {a.hints.map(h => (
             <li key={h} className="flex gap-2 text-cream/85">
-              <span>🧾</span>
+              <span><IconText text={"🧾"} /></span>
               <span>{h}</span>
             </li>
           ))}
@@ -138,12 +144,10 @@ export function PlayAssignment() {
     <div className="flex flex-col gap-4">
       <div className="text-center font-display text-2xl font-black">Plot twist!</div>
       <BriefCard />
-      <div className="text-center text-cream/70">Recording starts in a moment. Get your persona ready.</div>
+      <div className="text-center text-cream/70">Your pitch starts next. Get into character.</div>
     </div>
   );
 }
-
-const EMOJIS = ['😂', '🔥', '🧑‍⚖️', '🍜', '👏', '😱', '💯', '🤔'];
 
 export function PlayPlayback() {
   const { room, playable, me, playerById, optionById, objections } = useRoom();
@@ -159,11 +163,11 @@ export function PlayPlayback() {
   return (
     <div className="flex flex-1 flex-col gap-5">
       {stage && (
-        <div key={String(pitch.id)} className="flex flex-col">
+        <div key={String(pitch.id)} className="matched-playback flex flex-col">
           <HostPlayback />
         </div>
       )}
-      <div className="card flex items-center gap-4 p-4">
+      {!stage && <div className="card flex items-center gap-4 p-4">
         {speaker && <Avatar player={speaker} size={64} label={false} />}
         <div>
           <div className="text-sm font-bold text-cream/60">{mine ? "You're up!" : `${speaker?.name} is defending`}</div>
@@ -171,32 +175,34 @@ export function PlayPlayback() {
             {option?.title}
           </div>
         </div>
-      </div>
-      <div className="grid grid-cols-4 gap-3">
-        {EMOJIS.map(e => (
+      </div>}
+      <div className="reaction-controls grid grid-cols-3 gap-2">
+        {PITCH_REACTIONS.map(({ emoji, label }) => (
           <button
-            key={e}
-            className="grid aspect-square place-items-center rounded-3xl bg-ink-3 text-4xl shadow-[0_5px_0_rgb(0_0_0/0.35)] active:translate-y-1"
+            key={emoji}
+            type="button"
+            className="flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl bg-ink-3 px-1 py-2 text-xs font-black shadow-[0_5px_0_rgb(0_0_0/0.35)] active:translate-y-1 sm:flex-row sm:gap-2 sm:text-sm"
             onClick={() => {
               if (Date.now() - last.current < 200) return;
               last.current = Date.now();
-              void call(c => c.reducers.react({ pitchId: pitch.id, emoji: e }), { silent: true });
+              void call(c => c.reducers.react({ pitchId: pitch.id, emoji }), { silent: true });
             }}
           >
-            {e}
+            <IconText text={emoji} size={24} />
+            <span>{label}</span>
           </button>
         ))}
       </div>
       {!mine && (
         <button
-          className="btn mt-auto bg-sustain py-6 text-4xl text-white italic"
+          className="btn mt-auto bg-sustain py-3 text-2xl text-white italic"
           disabled={objected}
           onClick={() => {
             play('objection');
             void call(c => c.reducers.raiseObjection({ pitchId: pitch.id }));
           }}
         >
-          {objected ? 'Objection noted ⚖️' : 'OBJECTION!'}
+          <IconText text={objected ? 'Objection noted ⚖️' : 'OBJECTION!'} />
         </button>
       )}
     </div>
@@ -222,7 +228,7 @@ export function PlayVote() {
           }}
           className={`card p-5 text-left font-display text-2xl font-black transition ${mine?.optionId === o.id ? 'ring-4 ring-lime' : ''}`}
         >
-          {mine?.optionId === o.id ? '🗳️ ' : ''}
+          <IconText text={mine?.optionId === o.id ? '🗳️ ' : ''} />
           {o.title}
         </button>
       ))}
@@ -242,7 +248,7 @@ export function PlayResults() {
       {room.tiebreakText && <div className="text-cream/75">{room.tiebreakText}</div>}
       {awards.map(a => (
         <div key={String(a.id)} className="card w-full p-4 text-left">
-          <div className="text-xs font-black tracking-widest text-pop">{a.kind === 'most_persuasive' ? '🏆 MOST PERSUASIVE' : '💬 BEST LINE'}</div>
+          <div className="text-xs font-black tracking-widest text-pop"><IconText text={a.kind === 'most_persuasive' ? '🏆 MOST PERSUASIVE' : '💬 BEST LINE'} /></div>
           <div className="mt-1 font-bold">
             {playerById(a.playerId)?.name}: {a.kind === 'best_line' ? `“${a.text}”` : a.text}
           </div>
@@ -255,6 +261,7 @@ export function PlayResults() {
 export function PlayPlan() {
   const { plan, optionById, players, rsvps, me, media, room } = useRoom();
   const call = useCall();
+  const [manualInvite, setManualInvite] = useState(false);
   const option = plan ? optionById(plan.optionId) : undefined;
   const posterMedia = plan?.posterMediaId ? media.get(plan.posterMediaId) : undefined;
   const posterUrl = useObjectUrl(posterMedia?.bytes, posterMedia?.mime);
@@ -280,10 +287,13 @@ export function PlayPlan() {
   const share = async () => {
     const text = `${plan.inviteText}\n${option.mapsUrl}`;
     try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(text);
+      setManualInvite(false);
       toast('Invite copied. Paste it in the group chat!');
     } catch {
-      toast('Could not copy');
+      setManualInvite(true);
+      toast('Select and copy the invite below.');
     }
   };
   const cantMake = plan.cantMake.includes(me?.id ?? -1n);
@@ -294,14 +304,13 @@ export function PlayPlan() {
   return (
     <div className="flex flex-col gap-5">
       <MergeBanner asPlayer />
-      <Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} />
       {isPublic && (
         <div className={`card p-5 ring-2 ${plan.meetupConfirmed ? 'ring-lime' : 'ring-sun/50'}`}>
           <div className="font-display text-2xl font-black">
             {going} {going === 1 ? 'person' : 'people'} · {option.category} · {plan.slotLabel.split('·').pop()?.trim()}
           </div>
           <div className={plan.meetupConfirmed ? 'font-bold text-lime' : 'text-cream/75'}>
-            {plan.meetupConfirmed ? '✅ Meetup confirmed!' : `Needs 3 RSVPs to confirm (${going}/3)`}
+            <IconText text={plan.meetupConfirmed ? '✅ Meetup confirmed!' : `Needs 3 RSVPs to confirm (${going}/3)`} />
           </div>
           {plan.icebreakers.length > 0 && (
             <ul className="mt-3 list-disc space-y-1 pl-5 text-cream/85">
@@ -315,11 +324,12 @@ export function PlayPlan() {
       <div className="card space-y-2 p-5">
         <div className="font-display text-3xl font-black">{option.title}</div>
         <div className="font-display text-xl font-extrabold text-sky">{plan.slotLabel}</div>
-        <div className="text-sm text-cream/70">{showAddress ? option.address : '📍 Exact address unlocks when you RSVP "I\'m in"'}</div>
+        <div className="text-sm text-cream/70"><IconText text={showAddress ? option.address : '📍 Exact address unlocks when you RSVP "I\'m in"'} /></div>
         {cantMake && <div className="chip bg-tang/20 text-tang">This slot doesn't fit your free time, sorry!</div>}
         <div className="text-cream/80">{plan.inviteText}</div>
-        {plan.whyForEach.find(w => w.playerId === me?.id) && <div className="text-lime">💚 {plan.whyForEach.find(w => w.playerId === me?.id)!.line}</div>}
+        {plan.whyForEach.find(w => w.playerId === me?.id) && <div className="text-lime"><IconText text={"💚 "} />{plan.whyForEach.find(w => w.playerId === me?.id)!.line}</div>}
       </div>
+      <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
       <div className="grid grid-cols-3 gap-3">
         {(['yes', 'maybe', 'no'] as const).map(s => (
           <button key={s} className={`btn text-lg ${mine?.status === s ? 'btn-lime' : 'btn-ghost'}`} onClick={() => call(c => c.reducers.setRsvp({ planId: plan.id, status: s }))}>
@@ -328,25 +338,22 @@ export function PlayPlan() {
         ))}
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <button className="btn btn-sun text-lg" onClick={downloadIcs}>
-          📅 Add to calendar
-        </button>
-        <a className="btn btn-sky text-lg" href={googleCalendarUrl(event)} target="_blank" rel="noreferrer">
-          Google Calendar
-        </a>
+        <button className="btn btn-sun text-lg" disabled={!showAddress} onClick={downloadIcs}><IconText text={" 📅 Add to calendar "} /></button>
+        {showAddress ? <a className="btn btn-sky text-lg" href={googleCalendarUrl(event)} target="_blank" rel="noreferrer">Google Calendar</a> : <button className="btn btn-sky text-lg" disabled>Calendar after RSVP</button>}
         {showAddress ? (
-          <a className="btn btn-ghost text-lg" href={option.mapsUrl} target="_blank" rel="noreferrer">
-            🗺️ Maps
-          </a>
+          <a className="btn btn-ghost text-lg" href={option.mapsUrl} target="_blank" rel="noreferrer"><IconText text={" 🗺️ Maps "} /></a>
         ) : (
-          <button className="btn btn-ghost text-lg" disabled>
-            🗺️ After RSVP
-          </button>
+          <button className="btn btn-ghost text-lg" disabled><IconText text={" 🗺️ After RSVP "} /></button>
         )}
-        <button className="btn btn-ghost text-lg" onClick={() => void share()}>
-          🔗 Share
-        </button>
+        <button className="btn btn-ghost text-lg" disabled={!showAddress} onClick={() => void share()}><IconText text={" 🔗 Share "} /></button>
       </div>
+      <details className="card p-4"><summary className="cursor-pointer font-black">Invitation poster</summary><div className="mt-4"><Poster plan={plan} option={option} imageUrl={posterUrl || plan.posterUrl || undefined} players={players} /></div></details>
+      {manualInvite && showAddress && (
+        <label className="card space-y-2 p-4 font-bold">
+          <span>Copy this invite</span>
+          <textarea aria-label="Invite to copy" readOnly value={`${plan.inviteText}\n${option.mapsUrl}`} onFocus={e => e.currentTarget.select()} className="block min-h-32 w-full rounded-xl bg-ink-3 p-3 text-sm font-normal text-ink" />
+        </label>
+      )}
       <SafetyList />
       <div className="text-center text-xs text-muted">Room {room.code}</div>
     </div>

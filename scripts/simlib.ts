@@ -47,6 +47,7 @@ export function connect(label: string): Promise<DbConnection> {
             tables.myProfileDraft,
             tables.myPrevote,
             tables.myLobbyMatches,
+            tables.myGroupChat,
             tables.adminJobs,
           ]);
       })
