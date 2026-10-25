@@ -8,6 +8,7 @@ import { connect, type Conn } from './stdb';
 export interface Orchestrator {
   conn: Conn;
   stop(): void;
+  drain(timeoutMs?: number): Promise<void>;
 }
 
 /** Connect as the admin identity and start working jobs. Exported so the simulator can run it in-process. */
@@ -17,6 +18,7 @@ export async function startOrchestrator(overrides: Partial<Config> = {}): Promis
   try {
     await conn.reducers.whoAmI({});
   } catch {
+    conn.disconnect();
     throw new Error(
       'This token is not the database publisher identity. Set SPACETIMEDB_TOKEN to the token from `spacetime login show --token` (the identity that ran `spacetime publish`).'
     );
@@ -32,6 +34,14 @@ export async function startOrchestrator(overrides: Partial<Config> = {}): Promis
   const runner = startRunner({ cfg, conn, muse, fixtures });
   return {
     conn,
+    drain: async (timeoutMs = 125_000) => {
+      runner.stop();
+      const deadline = Date.now() + timeoutMs;
+      while (runner.inFlight() > 0 && Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      conn.disconnect();
+    },
     stop: () => {
       runner.stop();
       conn.disconnect();

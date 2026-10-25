@@ -27,10 +27,11 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
  */
 export function startRunner(d: Deps): { stop(): void; inFlight(): number } {
   const running = new Set<string>();
+  let stopping = false;
 
   async function run(job: AiJob): Promise<void> {
     const key = job.id.toString();
-    if (running.has(key) || running.size >= d.cfg.concurrency) return;
+    if (stopping || running.has(key) || running.size >= d.cfg.concurrency) return;
     running.add(key);
     try {
       await d.conn.reducers.claimJob({ jobId: job.id });
@@ -55,6 +56,7 @@ export function startRunner(d: Deps): { stop(): void; inFlight(): number } {
   }
 
   function scan(): void {
+    if (stopping) return;
     for (const job of d.conn.db.adminJobs.iter()) if (job.status === 'queued') void run(job);
   }
 
@@ -67,7 +69,7 @@ export function startRunner(d: Deps): { stop(): void; inFlight(): number } {
   const timer = setInterval(scan, 2000);
   scan();
   return {
-    stop: () => clearInterval(timer),
+    stop: () => { stopping = true; clearInterval(timer); },
     inFlight: () => running.size,
   };
 }

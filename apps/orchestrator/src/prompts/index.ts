@@ -107,6 +107,7 @@ export const planCopy = {
     'The group picked a winner. Write: inviteText (<= 40 words, warm and simple, uses only the supplied venue name and time);',
     'Do not invent venue history, family ownership, slogans, guarantees, special offers or reservation claims.',
     'whyForEach: one line per player naming them and why this plan works for them (from their tags and the fit lines);',
+    'Respect the outing category. For movies this is a cinema meetup, not a confirmed screening or ticket booking. Never claim food/diet support without dietaryNotes, or affordability when price is unknown.',
     'posterPrompt: a text-free contemporary editorial event-cover brief, at most 600 characters: one strong focal object grounded in the venue category, a limited considered palette, clean negative space.',
     'No text, letters, numerals, logos, ornate borders, confetti, collage, cuisine stereotypes or invented venue details/claims. The app composes the accurate venue name and time outside the art.',
     'icebreakers: 3 short conversation starters from the group\'s shared tags.',

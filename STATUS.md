@@ -4,7 +4,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## In progress
 
-<!-- One line each: what · who (agent) · branch -->
+<!-- One line each: what · who (agent) · branch. -->
 - Iterating on the combined build (main + Jose's latest design commits) · Anish (Claude Code) · `fix-names-whatsapp-muse` (same as `deploy-combined` up to `cc94a6a`)
 
 ## Up next / on hold
@@ -15,6 +15,12 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - Trov: the repo was connected but the dashboard still lists no repos for the org (`repos: []`, branches "not connected"). A Trov admin needs to run **Sync GitHub** / give Trov's GitHub app access to jacky_boxie in the web app.
 
 ## Done recently
+
+- Complete Notability sponsor section with 13 captioned original notebook screenshots in chronological order · Jose (Codex) · `codex/vercel-owned-deployment`
+
+- README rewritten for the current game (sway meter, menu check, Instagram/Facebook sharing, hosted Judge worker, test counts) with 9 new screenshots from a live game on the deployed site · Anish (Claude Code) · `codex/vercel-owned-deployment`
+
+- Deployed live-API Activity/Movie end-to-end audit, category-grounded personal fit and fresh Movie regression · Jose (Codex) · `codex/vercel-owned-deployment`
 
 - Category flow fixes and six complete Friends/matched-game audits · Jose (Codex) · `codex/category-flow-fixes`
 
@@ -44,6 +50,45 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - `hidden-gems`, `iteration-1`: the old Pitch Fight app (Next.js), superseded.
 
 ## Push log
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex), Notability documentation
+- **Changed:** added Notability under the README's “How we use each sponsor” section. The explanation follows research, rejected concepts, the hardware pivot, annotated reading, architecture, sketches, profile approval, RSVP design, reaction simplification, icon studies and reflection. All 13 original content pages are embedded with ordered captions and full-resolution links; the blank page is excluded. Early proposed integrations are distinguished from the shipped stack.
+- **Verified:** all 13 PNGs match the original notebook exports byte for byte; image dimensions, sequential page numbers, local paths and blank-page exclusion checked. GitHub's Markdown API rendered all 13 images and five workflow groups. `git diff --check` passed.
+- **Not done / unverified:** documentation and images only; app tests were not rerun because runtime code is unchanged. Trov: not posted (no access).
+
+### 2026-10-25 · codex/vercel-owned-deployment · Anish (Claude Code)
+- **Changed:** README rewritten to match the current build: phones for players, the Muse step and approved tags, live sway meter, menu check for diet claims, Most Persuasive and Best Line, busyness-aware plan time, Instagram/Facebook sharing, Find my people, the Judge worker hosted as a Vercel daemon, no Apify reuse, and current test counts. It also says plainly that the Muse account connection and booking are simulated. New screenshots (home, finalists, playback with a sustained objection, approve tags, case file, verdict, TV plan, phone plan, Find my people) come from two live Food games in Hayes Valley on https://hear-me-out-jose.vercel.app (rooms PAAP and QTRU, typed pitches, two Apify scrapes).
+- **Verified:** `pnpm test` 129/129, `pnpm sim` 36 checks, `pnpm sim:strangers` 15, `pnpm sim:match` 16, vibe-profiler 49/49, all against a local server. Every claim in the README was checked against the code on this branch.
+- **Not done / unverified:** docs only, no code changes. Trov: not posted (no access).
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex), completed live verification
+- **Changed:** recorded the complete production audit and moved the task to done. Code correction `0bba4f0` is live in production deployment `3tTfZbzzsnWHhdBQazTCJ5HYkZKy`; this push changes documentation only.
+- **Verified:** fresh three-player Movie game UMFB completed against the updated hosted worker. All 13 jobs finished first attempt without errors, including a 37-second live Apify search, Muse plan copy and image. Correct personal-fit copy persisted before/after generation; 3/3 yes RSVPs and majority-declined table merge worked. Earlier full Activity TDRR and Movie DEJX checks remain documented in `docs/ui-verification/live-production-2026-10-25.md`. 129 tests, typecheck, web build passed for unchanged code.
+- **Not done / unverified:** physical phones, native mobile sharing and microphone/transcription. Existing account/calendar connectors and booking are simulations; Movie plans require checking real showtimes/tickets. Trov: not posted (no access).
+
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex), deployed live-game audit
+- **Changed:** Movie/Activity personal fit descriptions now use evaluated venue facts through curation and final-plan copy, preventing food claims or invented ticket affordability. Plan-copy prompt receives the outing category. Hosting PR: #8.
+- **Verified:** production `hear-me-out-jose.vercel.app`, deployment `ApPu9zsbMGCimPFAUPUj46u9x96E`: three independent human-player tabs completed Activity room TDRR and Movie room DEJX from joining to final plan with 3/3 RSVPs. Live Apify Activity returned 44 partial results after its 85-second timeout; Movie returned 12 results after 37 seconds (7 category-filtered). Hosted Muse completed profiles, warm-ups, curation, briefs, fact-checks, plan copy and image covers. A false 2 AM closing claim was sustained against the venue's 9 PM close; a true 4.3/285 cinema-rating claim was verified. Typed pitches, reactions, private lean totals, manual voting, ready controls, rejoin persistence, invite/share copy, calendar downloads, poster download and social fallback controls exercised. 129/129 tests, workspace typecheck and production web build pass.
+- **Not done / unverified:** rollout of this copy correction is next. Voice recording excluded at the user's request. Existing Muse account/calendar connection and reservation remain simulations (DECISIONS #40); no real bookings or messages were sent. Movie is a cinema meetup, not confirmed screening/ticket inventory. Trov: not posted (no access).
+
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
+- **Changed:** include the system CA certificate bundle required by the hosted Node runtime. Jose's personal Vercel project is `hear-me-out-jose`; production tracks this branch. Hosting PR: #8.
+- **Verified:** Vercel production deployment `5sG8ZdapJZEDHaw4EvzVAwUDNfmX` built both app and Linux/amd64 daemon successfully. Public site serves the current hero. Hosted daemon parses/starts and explicitly refuses to connect without the database publisher token; local amd64 emulation issue is absent on Vercel.
+- **Not done / unverified:** new CA bundle rollout; own Maincloud database creation and publisher credential await the user's SpacetimeDB sign-in. Meta/Apify secret form is open and blank. `DEMO_MODE=1` is provisional until live keys are added; public gameplay is not ready. Trov: not posted (no access).
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
+- **Changed:** start the daemon directly with Node/tsx, avoiding pnpm's dependency verification under the unprivileged runtime user. Created `hear-me-out-jose` in Jose's personal Vercel account; production branch and backend credentials are still being configured.
+- **Verified:** native Linux container connects as publisher and completes Food, Activity and Movie games: 295 checks with only the container worker running. Linux/amd64 image builds; local amd64 emulation crashes inside esbuild's Go runtime, so hosted amd64 startup remains to verify.
+- **Not done / unverified:** SpacetimeDB account login, live provider keys, correct hosted branch/daemon and public gameplay. Initial import uses the repository's older default branch and is not the finished rollout. Trov: not posted (no access).
+
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
+- **Changed:** root Vercel configuration now deploys the Vite frontend with one continuous Judge daemon; Linux worker container excludes secrets/local artifacts; shutdown stops new claims and drains current jobs. Deployment guidance documents account/database identity and server-only keys.
+- **Verified:** 127/127 tests and workspace typecheck passed; Linux/amd64 container build passed. Additional container/runtime and hosted checks are in progress.
+- **Not done / unverified:** user’s SpacetimeDB account sign-in and live Meta/Apify keys are pending; Vercel project creation/deployment and public gameplay still need verification. Trov: not posted (no access).
+
 
 ### 2026-10-25 · codex/category-flow-fixes → Updated-for-META · Jose (Codex)
 - **Changed:** Movie now uses cinema data instead of Activity fallback venues; all category results are filtered/deduplicated; stale scouts cannot overwrite a category change; non-food diet badges and unknown-hours claims are removed; sparse case files keep three hints. Added sourced cinema fallback records and clear cinema/showtime scope in the UI.
