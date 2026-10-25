@@ -1,0 +1,12 @@
+.git
+**/node_modules
+**/dist
+**/.env*
+**/.vercel
+**/*.log
+docs
+output
+tmp
+fixtures/cache
+fixtures/raw
+.claude

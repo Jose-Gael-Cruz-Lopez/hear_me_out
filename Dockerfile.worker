@@ -1,0 +1,14 @@
+FROM node:24-slim
+WORKDIR /app
+RUN npm install --global pnpm@12.15.0
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/module/package.json ./apps/module/
+COPY apps/orchestrator/package.json ./apps/orchestrator/
+COPY apps/web/package.json ./apps/web/
+COPY packages/bindings/package.json ./packages/bindings/
+COPY packages/shared/package.json ./packages/shared/
+COPY actors/vibe-profiler/package.json ./actors/vibe-profiler/
+RUN pnpm install --frozen-lockfile
+COPY --chown=node:node . .
+USER node
+CMD ["pnpm", "--filter", "@hmo/orchestrator", "exec", "tsx", "src/daemon.ts"]

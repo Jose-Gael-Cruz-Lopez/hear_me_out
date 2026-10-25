@@ -5,6 +5,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 ## In progress
 
 <!-- One line each: what · who (agent) · branch -->
+- Deploy frontend and continuous AI worker to Jose’s Vercel account · Jose (Codex) · `codex/vercel-owned-deployment`
 - Iterating on the combined build (main + Jose's latest design commits) · Anish (Claude Code) · `fix-names-whatsapp-muse` (same as `deploy-combined` up to `cc94a6a`)
 
 ## Up next / on hold
@@ -44,6 +45,12 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - `hidden-gems`, `iteration-1`: the old Pitch Fight app (Next.js), superseded.
 
 ## Push log
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex)
+- **Changed:** root Vercel configuration now deploys the Vite frontend with one continuous Judge daemon; Linux worker container excludes secrets/local artifacts; shutdown stops new claims and drains current jobs. Deployment guidance documents account/database identity and server-only keys.
+- **Verified:** 127/127 tests and workspace typecheck passed; Linux/amd64 container build passed. Additional container/runtime and hosted checks are in progress.
+- **Not done / unverified:** user’s SpacetimeDB account sign-in and live Meta/Apify keys are pending; Vercel project creation/deployment and public gameplay still need verification. Trov: not posted (no access).
+
 
 ### 2026-10-25 · codex/category-flow-fixes → Updated-for-META · Jose (Codex)
 - **Changed:** Movie now uses cinema data instead of Activity fallback venues; all category results are filtered/deduplicated; stale scouts cannot overwrite a category change; non-food diet badges and unknown-hours claims are removed; sparse case files keep three hints. Added sourced cinema fallback records and clear cinema/showtime scope in the UI.
