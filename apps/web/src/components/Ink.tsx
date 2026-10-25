@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { characterSeed } from '../lib/characters';
 import { DoodleIcon, type DoodleIconName } from './DoodleIcon';
 
 // Keep legacy emoji values on the wire (avatars/reactions are validated server-side),
@@ -26,16 +27,16 @@ export function IconText({ text, size }: { text: string; size?: number }) {
 }
 
 export function AvatarMark({ value = '', size = 44 }: { value?: string; size?: number }) {
-  let seed = 0; for (const c of value) seed = (seed * 31 + c.codePointAt(0)!) >>> 0;
+  const seed = characterSeed(value);
   const shirt = seed % 3 === 1;
-  return <svg aria-hidden="true" viewBox="0 0 44 44" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="avatar-mark">
-    <ellipse cx="22" cy="39" rx="9" ry="1.5" fill="currentColor" opacity=".12" stroke="none" />
-    <path d="M17 21q-4 4-4 10l3 1 2-5-1 8-1 3h5l1-6 1 6h5l-1-3-1-8 2 5 3-1q0-6-4-10Z" fill={shirt?'currentColor':'#fff'} />
-    <circle cx="22" cy="15" r="6.5" fill="#fff" />
-    {seed%4===0 && <path d="M14 10h16M17 9V5h10v4" fill="#f4f3ef" />}
-    {seed%4===1 && <path d="M15 12q7-7 14 0" strokeWidth="3" />}
-    {seed%4===2 && <path d="M17 15h4v3h-4Zm6 0h4v3h-4Zm-2 1h2" />}
-    {seed%4!==2 && <path d="M19 16h.2M25 16h.2" strokeWidth="2" />}
-    <path d={seed%2?'M20 20q2 2 4 0':'M21 20h2'} />
+  // Native paths, no raster tracing or blur: the same contour works at 32px and 320px.
+  return <svg aria-hidden="true" focusable="false" viewBox="0 0 96 128" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="avatar-mark">
+    <path d="M32 87l-3 25q-1 6 5 6h9l4-23 3 23h12q6 0 4-6l-4-25" fill="#fffefb" />
+    <path d="M32 57c-12 6-17 20-18 33q0 5 5 5t6-4l4-13-1 19q20 7 40 0l-1-19 5 13q1 5 6 4t4-6c-2-15-7-26-18-32" fill={shirt ? 'currentColor' : '#fffefb'} />
+    <path d="M48 17c-14-1-23 9-23 24 0 15 9 24 23 24s23-10 23-24-9-25-23-24Z" fill="#fffefb" />
+    {seed%4===0 && <path d="M20 27h56M31 26V10h34v16" fill="#fffefb" />}
+    {seed%4===1 && <path d="M27 31c7-17 35-18 43 1" strokeWidth="7" />}
+    {seed%4===2 ? <path d="M31 36h13v11H31Zm21 0h13v11H52ZM44 40h8" /> : <g fill="currentColor" stroke="none"><ellipse cx="38" cy="40" rx="2.2" ry="3" /><ellipse cx="58" cy="40" rx="2.2" ry="3" /></g>}
+    <path d={seed%2 ? 'M41 52q7 7 14 0' : 'M43 54h10'} strokeWidth="2.5" />
   </svg>;
 }

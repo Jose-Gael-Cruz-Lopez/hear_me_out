@@ -59,7 +59,8 @@ export function JoinForm() {
               <input value={name} onChange={e => setName(e.target.value.slice(0, 20))} autoFocus placeholder="Your name" className="meet-input meet-name" />
             </label>
             <div>
-              <span className="meet-label">PICK AN AVATAR</span>
+              <span className="meet-label">PICK YOUR PERSON</span>
+              <div className="m-character-preview" aria-hidden="true"><AvatarMark value={selectedAvatar} size={112} /></div>
               <div className="meet-avatars m-join-avatars">
                 {AVATARS.map((a, i) => (
                   <button type="button" key={a} aria-label={`Avatar ${i + 1}`} aria-pressed={selectedAvatar === a} onClick={() => setAvatar(a)} disabled={taken.has(a)} className="avatar-choice">
@@ -73,8 +74,9 @@ export function JoinForm() {
               <div className="meet-safety">
                 <div className="meet-safety-note">
                   <DoodleIcon name="shield" size={22} />
-                  <span>Public meetup with people you don't know yet. First names only. Public venues only; the exact address unlocks after you RSVP. Block & report from the lobby or final plan. A meetup is confirmed once 3 people RSVP.</span>
+                  <span>First names. Public places. Your choice to join.</span>
                 </div>
+                <details className="m-safety-details"><summary>Meetup safety</summary><ul><li>Address unlocks after you RSVP.</li><li>Three RSVPs confirm the meetup.</li><li>Block or report from the lobby or plan.</li></ul></details>
                 <label className="meet-check">
                   <input type="checkbox" checked={adult} onChange={e => setAdult(e.target.checked)} />
                   <span className="meet-box" aria-hidden="true">{adult && <DoodleIcon name="check" size={16} />}</span>

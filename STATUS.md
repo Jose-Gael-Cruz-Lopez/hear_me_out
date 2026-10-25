@@ -16,6 +16,8 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Done recently
 
+- Refined vector people, sharper 3D rendering, editorial invitation covers and small-phone accessibility against Updated-for-META · Jose (Codex) · `codex/meta-ui-polish`
+
 - Live Apify scrape every game (no venue reuse); slower, more believable Muse pull (~13 s) and booking (~25 s). · Anish (Claude Code)
 - Plan screen redesign: TV is a one-screen dashboard, phone is one ticket; popular-times chart rebuilt. · Prisha (Claude Code)
 - Busyness-aware plan time from Google popular times ("Go at 8:00, not 6:00"). · Prisha (Claude Code)
@@ -45,6 +47,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Verified:**
 - **Not done / unverified:**
 -->
+
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex)
+- **Changed:** preserved the latest Meta mobile flow; redrew scalable character contours, matched selected outfits to the 3D lobby, improved retina rendering and face texture resolution, replaced oversized flat poster decoration with five original vector covers, moved accurate event details above artwork, tightened Muse cover direction, shortened join/scouting copy, and improved safe areas, focus, touch targets and 320px action layout.
+- **Verified:** full workspace typecheck, 70/70 tests and production web build; real local room TYDH at 320px and 390px (join/selected avatar, basics, warm-up, playback/reaction/live sway, vote, plan RSVP and invitation). Reviewed five cover motifs and long titles, enlarged vector portrait, and desktop plan. Browser error log empty. Preview uses an isolated local fixture database, no paid model requests succeeded.
+- **Not done / unverified:** physical iOS/Android devices and microphone capture; the typed-pitch form was inspected but its submission timed out during this run. Live Meta image output not sampled. Higgsfield GPT Image 2.5 max/4K generation rejected because the connected account requires a paid plan; no asset was generated or subscription changed. Existing bundle-size warnings remain. Trov: not posted (no access).
 
 ### 2026-10-24 · Updated-for-META · Prisha (Claude Code)
 - **Changed:** finished the `export/` mobile design: home on phones (join-by-code field, Find my people, "Hosting? Open on a TV or laptop", pinned at the bottom; desktop home unchanged), the join screen (back + room code, "Who's making the case?", 4-column avatars with taken ones faded, safety box, "I'm in!" pinned), and the three profile steps (segmented budget/travel, toggle chips, collapsible dietary needs, Muse cards, tag list with remove + add, actions pinned). Layout and styles only. Anish's latest fixes on `fix-names-whatsapp-muse` (`cc94a6a`, `0496aee`) were already in this branch.

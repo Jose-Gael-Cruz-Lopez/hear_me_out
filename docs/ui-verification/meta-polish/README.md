@@ -1,0 +1,43 @@
+# Meta branch UI review — 2026-10-24
+
+Base: `origin/Updated-for-META` at `6f8960c`.
+Branch: `codex/meta-ui-polish`. Preview: http://localhost:5175/.
+
+## Changes
+
+- Native SVG character contours with readable faces, no bitmap tracing or filters.
+- Selected outfit passed into the existing 3D lobby; higher retina render density
+  under a pixel budget and 256px face textures.
+- Five original vector editorial cover motifs: food, noodles, coffee, movie,
+  activity. Event name and time come first as selectable HTML text.
+- Art-only Muse prompts retain the existing transport safety guard and 600-character
+  storage contract, with crisper contours and stronger composition instructions.
+- Short join/scouting copy, expandable meetup safety, safe-area spacing, 16px fields,
+  visible keyboard focus, touch targets, reduced-motion support and narrow-screen
+  two-column final actions. Latest mobile shell, phase rail and backend calls retained.
+
+## Browser evidence
+
+Used a separate local database `hear-me-out-meta-ui` on the existing local server.
+Room TYDH: two bots and one browser player. Venue and AI outputs were fixtures.
+Checked real game at 390px and 320px: join and selected person, basics screen,
+warm-up, finalists/ballot state, recorder/type form, playback, Funny reaction,
+live lean (visible 67%/33% update), vote/verdict, Yes RSVP and expanded invitation.
+No microphone capture. Typed-pitch submission was not completed before its timer
+expired. Final plan on desktop and all five cover motifs with a long-title fixture
+were visually reviewed. Temporary review routes were removed.
+
+`invitation-390.png` shows the real final plan's invitation and accessible actions.
+Browser console error log: empty on host preview.
+
+## Checks and limits
+
+Full workspace typecheck; 70 tests; production web build. Existing bundle-size
+warnings remain. Responsive browser checks are not physical-device certification.
+No real reservations or messages were sent. No production backend was changed.
+
+Higgsfield: discovered GPT Image 2.5 and requested max quality at 4K. The account
+reported free plan, zero credits, and rejected generation with
+`job_minimum_basic_plan_required`. No generated asset exists, and no paid plan was
+purchased. The delivered artwork is original SVG; live Muse image output remains
+unverified.

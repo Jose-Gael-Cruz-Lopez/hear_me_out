@@ -1,19 +1,19 @@
 /** Art only. Venue names, dates and other accurate typography belong to the UI. */
 export const COVER_ART_RULES = [
   'Art-only event cover: square contemporary editorial still life.',
-  'One strong focal object; tactile still life, soft directional light, subtle grain.',
-  'Clean upper-third negative space. Use only the specified palette.',
+  'One strong focal object; confident editorial composition, crisp contours, quiet paper texture.',
+  'Generous negative space. Strong contrast. Use only the specified palette.',
   'No text, letters, numerals, logos, ornate borders, confetti, collage or cuisine stereotypes.',
   'No invented venue details or claims. The app adds all venue and time typography.',
 ].join(' ');
 
-const FOOD_PALETTE = 'warm ivory, espresso, muted tomato';
+const FOOD_PALETTE = 'warm ivory, cobalt blue, muted tomato';
 const ACTIVITY_PALETTE = 'cream, deep navy, leaf green';
 const MOVIE_PALETTE = 'charcoal, warm ivory, rust orange';
 
 const DIRECTIONS = {
   generic: { subject: 'one folded paper loop', palette: 'paper, ink, dusty blue' },
-  food: { subject: 'one ceramic plate with a single abstract food form', palette: FOOD_PALETTE },
+  food: { subject: 'one ceramic plate with three folded ravioli and a linen napkin', palette: FOOD_PALETTE },
   noodles: { subject: 'one ceramic bowl with a flowing noodle form', palette: FOOD_PALETTE },
   coffee: { subject: 'one unbranded ceramic coffee cup', palette: FOOD_PALETTE },
   bakery: { subject: 'one sculptural folded bread form', palette: FOOD_PALETTE },

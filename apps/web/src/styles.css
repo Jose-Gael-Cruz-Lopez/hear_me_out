@@ -152,7 +152,7 @@ a { color: inherit; }
 .ink-logo.xl span:nth-child(2) { transform: rotate(-2deg); }
 .ink-logo.xl span:last-child { transform: rotate(1deg); }
 .ink-cover { position: relative; isolation: isolate; height: 100dvh; min-height: 680px; overflow: hidden; background: #f4f3ef; }
-.cover-wash { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: #f4f3ef73; }
+.cover-wash { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse at 50% 27%, #f4f3ef9c 0, #f4f3ef24 48%, transparent 75%); }
 .cover-center { position: absolute; z-index: 2; top: 10.5%; left: 50%; transform: translateX(-50%); width: min(94%,900px); text-align: center; pointer-events: none; }
 .cover-center button { pointer-events: auto; }
 .cover-tagline { color: #44443e; margin: 26px 0 22px; font-size: 21px; font-weight: 700; }
@@ -178,13 +178,14 @@ a { color: inherit; }
 .host-content .card { background: #fff; }
 /* Event covers have one visual idea; venue and time remain accurate, selectable text. */
 .event-invitation { margin: 0; overflow: hidden; width: 100%; background: #faf8f2; color: #24251e; border: 1.5px solid #14140f; border-radius: 18px; box-shadow: 3px 4px 0 #14140f; }
-.event-cover { aspect-ratio: 1; overflow: hidden; background: #f1e8d8; }
+.event-cover { aspect-ratio: 4 / 3; overflow: hidden; background: #f8f3e8; border-block: 1px solid #24251e24; }
 .event-cover-art { display: block; width: 100%; height: 100%; object-fit: cover; }
 .event-invitation-copy { padding: clamp(18px,5cqi,28px); }
-.event-invitation-eyebrow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 10px; line-height: 1.4; letter-spacing: .12em; font-weight: 900; text-transform: uppercase; color: #67675b; }
+.event-invitation-eyebrow { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; font-size: 10px; line-height: 1.4; letter-spacing: .12em; font-weight: 900; text-transform: uppercase; color: #67675b; }
 .event-invitation .event-invitation-title { margin: 16px 0 10px; font-family: Nunito,ui-rounded,system-ui,sans-serif; font-size: clamp(26px,8cqi,36px); font-weight: 900; letter-spacing: -.035em; line-height: 1.06; overflow-wrap: anywhere; text-wrap: balance; }
 .event-invitation-time { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.5; }
-.event-invitation-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; padding-top: 15px; border-top: 1px solid #24251e24; }
+.event-invitation-bottom { padding: 12px clamp(18px,5cqi,28px); }
+.event-invitation-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .event-invitation-people { display: flex; flex-wrap: wrap; gap: 1px; }
 .event-invitation-people > span { display: grid; place-items: center; width: 29px; height: 30px; }
 .event-invitation-credit { font-size: 10px; line-height: 1.5; color: #67675b; }
@@ -662,4 +663,37 @@ details.m-card summary { cursor: pointer; }
   .cover-mobile-code { flex: 1; min-width: 0; height: 54px; border: 2px solid #14140f; border-radius: 18px; background: #fff; text-align: center; font-size: 26px; font-weight: 900; letter-spacing: .35em; text-transform: uppercase; outline: none; color: #14140f; }
   .cover-mobile-meet { width: 100%; flex: none !important; }
   .cover-mobile-note { text-align: center; font-size: 12px; font-weight: 700; color: #68685f; }
+}
+
+/* Phone polish: real safe areas, readable fields, visible keyboard focus. */
+.avatar-mark { display: block; flex-shrink: 0; max-width: 100%; overflow: visible; }
+.m-character-preview { display: grid; place-items: center; padding: 6px 0 14px; color: #14140f; }
+.m-me > div > div { border: 0 !important; box-shadow: none !important; background: transparent !important; }
+.m-action { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+.m-header { padding-top: max(12px, env(safe-area-inset-top)); }
+.m-frame { padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }
+.m-body > *, .m-stack > *, .m-stack-sm > * { min-width: 0; }
+.m-input, .m-select, .m-textarea, .meet-input, .meet-select { font-size: 16px; }
+.m-tabs button, .m-x, .m-mini, .m-round { min-height: 44px; }
+.m-x { width: 44px; height: 44px; }
+.m-safety-details { color: #57574f; font-size: 13px; line-height: 1.5; }
+.m-safety-details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; text-decoration: underline; text-underline-offset: 3px; }
+.m-safety-details ul { margin: 0; padding-left: 18px; }
+.m-btn, .m-pick, .m-react, .m-act { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #2649a3; outline-offset: 4px; }
+.m-h1, .m-case-title, .m-speaker-title, .m-fin-title, .m-pick-title, .ticket-title { overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .cover-mobile { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+  .cover-mobile-note { margin: 0; }
+}
+@media (max-width: 360px) {
+  .m-body { padding-inline: 16px; }
+  .m-reactions { gap: 6px; }
+  .m-react { flex-direction: column; gap: 3px; padding: 8px 2px; font-size: 11px; }
+  .m-plan-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .m-h1 { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .m-hero-avatar, .m-live { animation: none; }
+  .m-sway-bar > div, .m-dots span, .m-take { transition: none; }
 }

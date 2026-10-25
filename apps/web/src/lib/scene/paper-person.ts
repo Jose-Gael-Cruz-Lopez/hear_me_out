@@ -113,7 +113,7 @@ function arcDistance(x: number, y: number, cx: number, cy: number, radius: numbe
 
 /** Rasterize the small curved face without DOM/canvas dependencies. */
 function faceTexture(open: number, alert: boolean): THREE.DataTexture {
-  const size = 128;
+  const size = 256;
   const data = new Uint8Array(size * size * 4);
   for (let row = 0; row < size; row++) {
     // Sphere UVs have their top at v=1; typed textures upload row zero at v=0.

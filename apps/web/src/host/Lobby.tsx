@@ -77,7 +77,7 @@ export function HostLobby({ isHost }: { isHost: boolean }) {
           </div>
           {players.length === 0 && <div className="text-xl text-cream/60">Waiting for the jury to arrive…</div>}
           <div className="queue-scene" style={{ height: 300 }}>
-            <Crowd variant="stage" phase="LOBBY" members={players.map(p=>({ id:p.id,name:p.name,connected:p.connected,isBot:p.isBot,status:p.connected?'In the room':'Reconnecting…' }))} />
+            <Crowd variant="stage" phase="LOBBY" members={players.map(p=>({ id:p.id,name:p.name,avatar:p.avatar,connected:p.connected,isBot:p.isBot,status:p.connected?'In the room':'Reconnecting…' }))} />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">{players.map(p=><span className="chip bg-white" key={String(p.id)}>{p.name}{p.isBot?' · bot':''}</span>)}</div>
         </div>
