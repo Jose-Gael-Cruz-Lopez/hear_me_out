@@ -5,7 +5,6 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 ## In progress
 
 <!-- One line each: what · who (agent) · branch -->
-- Verify deployed live-API Activity/Movie games from joining to final plan; fix and redeploy any failures · Jose (Codex) · `codex/vercel-owned-deployment`
 - Iterating on the combined build (main + Jose's latest design commits) · Anish (Claude Code) · `fix-names-whatsapp-muse` (same as `deploy-combined` up to `cc94a6a`)
 
 ## Up next / on hold
@@ -16,6 +15,8 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - Trov: the repo was connected but the dashboard still lists no repos for the org (`repos: []`, branches "not connected"). A Trov admin needs to run **Sync GitHub** / give Trov's GitHub app access to jacky_boxie in the web app.
 
 ## Done recently
+
+- Deployed live-API Activity/Movie end-to-end audit, category-grounded personal fit and fresh Movie regression · Jose (Codex) · `codex/vercel-owned-deployment`
 
 - Category flow fixes and six complete Friends/matched-game audits · Jose (Codex) · `codex/category-flow-fixes`
 
@@ -45,6 +46,12 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - `hidden-gems`, `iteration-1`: the old Pitch Fight app (Next.js), superseded.
 
 ## Push log
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex), completed live verification
+- **Changed:** recorded the complete production audit and moved the task to done. Code correction `0bba4f0` is live in production deployment `3tTfZbzzsnWHhdBQazTCJ5HYkZKy`; this push changes documentation only.
+- **Verified:** fresh three-player Movie game UMFB completed against the updated hosted worker. All 13 jobs finished first attempt without errors, including a 37-second live Apify search, Muse plan copy and image. Correct personal-fit copy persisted before/after generation; 3/3 yes RSVPs and majority-declined table merge worked. Earlier full Activity TDRR and Movie DEJX checks remain documented in `docs/ui-verification/live-production-2026-10-25.md`. 129 tests, typecheck, web build passed for unchanged code.
+- **Not done / unverified:** physical phones, native mobile sharing and microphone/transcription. Existing account/calendar connectors and booking are simulations; Movie plans require checking real showtimes/tickets. Trov: not posted (no access).
+
 
 ### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex), deployed live-game audit
 - **Changed:** Movie/Activity personal fit descriptions now use evaluated venue facts through curation and final-plan copy, preventing food claims or invented ticket affordability. Plan-copy prompt receives the outing category. Hosting PR: #8.
