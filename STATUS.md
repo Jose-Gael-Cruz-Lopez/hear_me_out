@@ -48,6 +48,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Not done / unverified:**
 -->
 
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), native-resolution characters
+- **Changed:** removed the fixed2.5x cap; render at native display density within a12MP framebuffer budget and GPU texture/renderbuffer/viewport limits. Detect monitor/zoom DPR changes. Shared face maps512², contact-shadow texture128², sun-shadow map up to2048². Original geometry, animation, expressions, outfits, camera, colors and SVG avatars unchanged.
+- **Verified:** 70/70 tests, web typecheck/build, source comparison and independent renderer audit. Resolution calculations preserve native3x/4x phone cases and obey pixel/GPU bounds on large canvases. Browser rendered1280×720CSS at2560×1440pixels,120people with frame count advancing beyond2500; screenshot saved in meta-polish/native-resolution-characters.png.
+- **Not done / unverified:** physical-device performance and cross-monitor movement not exercised; density listener cleanup reviewed. Existing bundle warnings remain. Trov: not posted (no access).
+
 ### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), original characters restored
 - **Changed:** restored original 2D avatar paths, 3D outfit seeding, picker presentation, hero wash and badge styling. The only remaining character changes against Updated-for-META are higher canvas pixel density (cap 1.5→2.5, adaptive pixel budget) and face texture resolution (128→256). Poster and mobile usability work retained.
 - **Verified:** exact source comparisons prove geometry, animation, camera, lights, materials, crowd CSS, original avatar art and outfit assignment match the base branch after normalizing only the two resolution changes. Independent read-only character audit agreed. Web typecheck/build and visual hero review passed; screenshot in meta-polish/original-3d-characters.png.

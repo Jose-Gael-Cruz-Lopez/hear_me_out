@@ -6,7 +6,7 @@ Branch: `codex/meta-ui-polish`. Preview: http://localhost:5175/.
 ## Changes
 
 - Original character artwork and outfit assignment preserved exactly.
-- Higher retina render density under a pixel budget and 256px face textures.
+- Native display density under a 12MP/GPU budget and 512px face textures.
   Geometry, camera, materials, lighting and all animation remain unchanged.
 - Muse Image is the primary cover generator, with editorial photography direction.
   The actual venue photo is the pending/failure fallback; if both images fail,
@@ -66,3 +66,20 @@ clarified that characters should only receive higher-resolution rendering. Exact
 source comparison against Updated-for-META passes when normalizing the canvas
 pixel-ratio calculation and face texture size. The new `original-3d-characters.png`
 shows the original animated crowd. Earlier portrait screenshots are historical.
+
+## Final character resolution pass
+
+No fixed2.5x DPR ceiling remains. Native display density is used up to12million
+framebuffer pixels and the GPU's texture, renderbuffer and viewport dimensions.
+This allows full3x/4x density at common phone sizes and native4K rendering for a
+1920×1080CSS viewport at2x. Oversized scenes are bounded for memory usage.
+A rearmed resolution media-query listener handles density changes without a CSS
+resize. Face maps are512×512 (ten shared textures, not per character), contact
+shadows128×128, and sun shadow map2048×2048 capped by GPU support. Soft shadow
+falloff, face styling, geometry, colors and animation remain original.
+
+Observed in the browser:1280×720CSS,2560×1440drawing buffer, ratio2.0,120people,
+frame count advancing beyond2500. Checked3x/4x phone and oversized GPU-bound
+calculation cases.70tests, web typecheck and build pass. Independent source audit
+confirms only texture sizes changed in the character factory. Physical-device
+performance and an actual cross-monitor transition remain unverified.

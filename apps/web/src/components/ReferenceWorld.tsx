@@ -138,7 +138,8 @@ export function ReferenceWorld({ variant = 'cover', members = EMPTY_MEMBERS, pha
     const sun = new THREE.DirectionalLight(0xffffff, 1.5);
     sun.position.set(-19.25, 35, 14.7);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
+    const shadowSize = Math.min(2048, renderer.capabilities.maxTextureSize);
+    sun.shadow.mapSize.set(shadowSize, shadowSize);
     Object.assign(sun.shadow.camera, { left: -24, right: 24, top: 24, bottom: -24, near: 1, far: 100 });
     if (variant === 'cover') Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, far: 160 });
     sun.shadow.bias = -0.001;
@@ -197,14 +198,21 @@ export function ReferenceWorld({ variant = 'cover', members = EMPTY_MEMBERS, pha
       }
     }
 
+    const gl = renderer.getContext();
+    const viewportLimit = gl.getParameter(gl.MAX_VIEWPORT_DIMS) as Int32Array;
+    const bufferLimit = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number;
+    const maxWidth = Math.min(renderer.capabilities.maxTextureSize, bufferLimit, viewportLimit[0]);
+    const maxHeight = Math.min(renderer.capabilities.maxTextureSize, bufferLimit, viewportLimit[1]);
     const resize = () => {
       const bounds = element.getBoundingClientRect();
       width = Math.max(1, bounds.width);
       height = Math.max(1, bounds.height);
-      // Preserve the original scene; only increase framebuffer resolution on retina screens.
-      const pixelBudget = Math.sqrt(6_000_000 / (width * height));
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.5, Math.max(1, pixelBudget)));
+      // Full native density, including 3x/4x phones; bound memory and GPU dimensions.
+      const pixelBudget = Math.sqrt(12_000_000 / (width * height));
+      const ratio = Math.min(window.devicePixelRatio || 1, pixelBudget, maxWidth / width, maxHeight / height);
+      renderer.setPixelRatio(ratio);
       renderer.setSize(width, height, false);
+      element.dataset.renderPixelRatio = ratio.toFixed(3);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     };
@@ -212,6 +220,15 @@ export function ReferenceWorld({ variant = 'cover', members = EMPTY_MEMBERS, pha
     observer.observe(element);
     window.addEventListener('resize', resize);
     resize();
+    // A monitor/zoom change may alter DPR without changing this element's CSS size.
+    let densityQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+    const densityChanged = () => {
+      densityQuery.removeEventListener('change', densityChanged);
+      densityQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+      densityQuery.addEventListener('change', densityChanged);
+      resize();
+    };
+    densityQuery.addEventListener('change', densityChanged);
 
     const reconcileMembers = () => {
       const current = latest.current;
@@ -438,6 +455,7 @@ export function ReferenceWorld({ variant = 'cover', members = EMPTY_MEMBERS, pha
       stopped = true;
       window.cancelAnimationFrame(raf);
       observer.disconnect();
+      densityQuery.removeEventListener('change', densityChanged);
       window.removeEventListener('resize', resize);
       element.removeEventListener('pointermove', pointerMove);
       element.removeEventListener('pointerleave', pointerLeave);
