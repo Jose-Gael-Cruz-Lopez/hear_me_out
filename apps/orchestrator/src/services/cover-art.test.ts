@@ -26,6 +26,8 @@ describe('text-free event cover contract', () => {
     expect(prompt).toContain('One strong focal object');
     expect(prompt).toContain('negative space');
     expect(prompt).toContain('No text, letters, numerals, logos');
+    expect(prompt).toContain('editorial photography');
+    expect(prompt).toContain('No illustration, drawing, CGI');
   });
 
   it('does not pass venue-name instructions or old slot labels through to image generation', () => {

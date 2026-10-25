@@ -1,9 +1,9 @@
 /** Art only. Venue names, dates and other accurate typography belong to the UI. */
 export const COVER_ART_RULES = [
-  'Art-only event cover: square contemporary editorial still life.',
-  'One strong focal object; confident editorial composition, crisp contours, quiet paper texture.',
-  'Generous negative space. Strong contrast. Use only the specified palette.',
-  'No text, letters, numerals, logos, ornate borders, confetti, collage or cuisine stereotypes.',
+  'Art-only event cover: square independent-magazine editorial photography.',
+  'One strong focal object; natural side light, realistic materials, intentional crop, negative space.',
+  'Restrained palette. No illustration, drawing, CGI, plastic gloss, neon or clutter.',
+  'No text, letters, numerals, logos, ornate borders, confetti or cuisine stereotypes.',
   'No invented venue details or claims. The app adds all venue and time typography.',
 ].join(' ');
 
@@ -12,19 +12,19 @@ const ACTIVITY_PALETTE = 'cream, deep navy, leaf green';
 const MOVIE_PALETTE = 'charcoal, warm ivory, rust orange';
 
 const DIRECTIONS = {
-  generic: { subject: 'one folded paper loop', palette: 'paper, ink, dusty blue' },
-  food: { subject: 'one ceramic plate with three folded ravioli and a linen napkin', palette: FOOD_PALETTE },
-  noodles: { subject: 'one ceramic bowl with a flowing noodle form', palette: FOOD_PALETTE },
+  generic: { subject: 'a linen-covered table with a single glass', palette: 'ivory, ink, dusty blue' },
+  food: { subject: 'one ceramic plate and a casually folded linen napkin', palette: FOOD_PALETTE },
+  noodles: { subject: 'one ceramic bowl of noodles, subtle steam', palette: FOOD_PALETTE },
   coffee: { subject: 'one unbranded ceramic coffee cup', palette: FOOD_PALETTE },
-  bakery: { subject: 'one sculptural folded bread form', palette: FOOD_PALETTE },
-  drink: { subject: 'one unbranded glass with a translucent liquid form', palette: FOOD_PALETTE },
-  activity: { subject: 'one folded paper sculpture', palette: ACTIVITY_PALETTE },
-  boardgame: { subject: 'one oversized unmarked wooden game piece', palette: ACTIVITY_PALETTE },
+  bakery: { subject: 'one torn loaf on linen, visible crumb', palette: FOOD_PALETTE },
+  drink: { subject: 'one unbranded glass, condensation and translucent liquid', palette: FOOD_PALETTE },
+  activity: { subject: 'a sunlit picnic blanket and one woven basket', palette: ACTIVITY_PALETTE },
+  boardgame: { subject: 'one unmarked wooden game piece on a table', palette: ACTIVITY_PALETTE },
   bowling: { subject: 'one matte unmarked bowling ball', palette: ACTIVITY_PALETTE },
-  arcade: { subject: 'one unbranded sculptural joystick', palette: ACTIVITY_PALETTE },
-  music: { subject: 'one unbranded sculptural microphone', palette: ACTIVITY_PALETTE },
-  outdoors: { subject: 'one sculptural leaf', palette: ACTIVITY_PALETTE },
-  movie: { subject: 'one unmarked sculptural cinema seat', palette: MOVIE_PALETTE },
+  arcade: { subject: 'one unbranded joystick in warm ambient light', palette: ACTIVITY_PALETTE },
+  music: { subject: 'one unbranded microphone, real metal mesh', palette: ACTIVITY_PALETTE },
+  outdoors: { subject: 'one sunlit leaf with a soft natural shadow', palette: ACTIVITY_PALETTE },
+  movie: { subject: 'one empty velvet cinema seat, raking aisle light', palette: MOVIE_PALETTE },
 } as const;
 
 type Direction = keyof typeof DIRECTIONS;

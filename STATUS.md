@@ -48,6 +48,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Not done / unverified:**
 -->
 
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), poster correction
+- **Changed:** removed illustrated poster covers. Muse Image remains the primary generator with independent-magazine photography direction, real materials and natural light; generated lettering/illustration/CGI are prohibited. Actual venue photo is the loading/failure fallback; missing images leave a clean typographic invitation. Accurate event typography remains native UI. Supersedes the vector-poster direction in the previous entry.
+- **Verified:** web typecheck, 70/70 tests (including photographic prompt requirements and existing safe transport/storage boundaries), production build; real plan visually shows venue-photo fallback with correct attribution. Existing character improvements retained.
+- **Not done / unverified:** live Muse image output not sampled because the isolated preview uses fixture mode; provider transport is covered by mocked tests. Physical-device and microphone checks remain outstanding. Trov: not posted (no access).
+
 ### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex)
 - **Changed:** preserved the latest Meta mobile flow; redrew scalable character contours, matched selected outfits to the 3D lobby, improved retina rendering and face texture resolution, replaced oversized flat poster decoration with five original vector covers, moved accurate event details above artwork, tightened Muse cover direction, shortened join/scouting copy, and improved safe areas, focus, touch targets and 320px action layout.
 - **Verified:** full workspace typecheck, 70/70 tests and production web build; real local room TYDH at 320px and 390px (join/selected avatar, basics, warm-up, playback/reaction/live sway, vote, plan RSVP and invitation). Reviewed five cover motifs and long titles, enlarged vector portrait, and desktop plan. Browser error log empty. Preview uses an isolated local fixture database, no paid model requests succeeded.

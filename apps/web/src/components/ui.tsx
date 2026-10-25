@@ -1,4 +1,3 @@
-import { PlanCoverArt } from './PlanCoverArt';
 import { IconText, AvatarMark } from './Ink';
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -169,8 +168,10 @@ export function VenueCard({ option, players, compact = false, children, highligh
 /** One shared invitation design on the host and phone, including when Muse is offline. */
 export function Poster({ plan, option, imageUrl, players }: { plan: Plan; option: Option | undefined; imageUrl?: string; players: Player[] }) {
   const [failedImage, setFailedImage] = useState<string>();
+  const [failedVenue, setFailedVenue] = useState<string>();
   // Old persisted posters contain model-rendered venue text. Keep those out of the new cover layout.
   const artUrl = plan.posterPrompt.startsWith('Art-only event cover:') && imageUrl !== failedImage ? imageUrl : undefined;
+  const venueUrl = option?.imageUrl && option.imageUrl !== failedVenue ? option.imageUrl : undefined;
   return (
     <figure className="event-invitation">
       <figcaption className="event-invitation-copy">
@@ -178,15 +179,16 @@ export function Poster({ plan, option, imageUrl, players }: { plan: Plan; option
         <h2 className="event-invitation-title">{option?.title ?? 'The plan'}</h2>
         <p className="event-invitation-time">{plan.slotLabel}</p>
       </figcaption>
-      <div className="event-cover">
-        {artUrl ? <img src={artUrl} alt="" decoding="async" className="event-cover-art" onError={() => setFailedImage(artUrl)} /> : <PlanCoverArt category={option?.category ?? ''} title={option?.title ?? ''} />}
-      </div>
+      {(artUrl || venueUrl) && <div className="event-cover">
+        {artUrl ? <img src={artUrl} alt="" decoding="async" className="event-cover-art" onError={() => setFailedImage(artUrl)} />
+          : <img src={venueUrl} alt={option?.title ?? ''} referrerPolicy="no-referrer" decoding="async" className="event-cover-art" onError={() => setFailedVenue(venueUrl)} />}
+      </div>}
       <div className="event-invitation-bottom">
         <div className="event-invitation-footer">
           <div className="event-invitation-people" role="group" aria-label={`Lobby: ${players.map(p => p.name).join(', ')}`}>
             {players.slice(0, 8).map(p => <span key={String(p.id)}><AvatarMark value={p.avatar} size={26} /></span>)}
           </div>
-          <span className="event-invitation-credit">{artUrl ? 'Art by Muse Image' : 'Hear Me Out original art'}</span>
+          <span className="event-invitation-credit">{artUrl ? 'Cover by Muse Image' : venueUrl ? 'Venue photo' : 'You’re invited'}</span>
         </div>
       </div>
     </figure>

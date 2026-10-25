@@ -8,8 +8,10 @@ Branch: `codex/meta-ui-polish`. Preview: http://localhost:5175/.
 - Native SVG character contours with readable faces, no bitmap tracing or filters.
 - Selected outfit passed into the existing 3D lobby; higher retina render density
   under a pixel budget and 256px face textures.
-- Five original vector editorial cover motifs: food, noodles, coffee, movie,
-  activity. Event name and time come first as selectable HTML text.
+- Muse Image is the primary cover generator, with editorial photography direction.
+  The actual venue photo is the pending/failure fallback; if both images fail,
+  the invitation remains typographic. No illustrated poster fallback.
+  Event name and time come first as selectable HTML text.
 - Art-only Muse prompts retain the existing transport safety guard and 600-character
   storage contract, with crisper contours and stronger composition instructions.
 - Short join/scouting copy, expandable meetup safety, safe-area spacing, 16px fields,
@@ -27,7 +29,9 @@ No microphone capture. Typed-pitch submission was not completed before its timer
 expired. Final plan on desktop and all five cover motifs with a long-title fixture
 were visually reviewed. Temporary review routes were removed.
 
-`invitation-390.png` shows the real final plan's invitation and accessible actions.
+`invitation-photo-fallback.png` shows the real final plan with venue-photo fallback.
+The previously reviewed vector covers were removed after the user clarified the
+art direction; their gallery review is historical evidence only.
 Browser console error log: empty on host preview.
 
 ## Checks and limits
@@ -39,5 +43,5 @@ No real reservations or messages were sent. No production backend was changed.
 Higgsfield: discovered GPT Image 2.5 and requested max quality at 4K. The account
 reported free plan, zero credits, and rejected generation with
 `job_minimum_basic_plan_required`. No generated asset exists, and no paid plan was
-purchased. The delivered artwork is original SVG; live Muse image output remains
-unverified.
+purchased. That Higgsfield attempt is historical; poster generation uses the existing Muse
+Image integration. Live Muse image output remains unverified.
