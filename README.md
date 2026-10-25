@@ -98,6 +98,17 @@ flowchart LR
 - **Website Content Crawler** (`apify/website-content-crawler`): reads each finalist's own website to find real dishes that back up diet claims.
 - **vibe-profiler** (our custom actor, `actors/vibe-profiler`): turns a player's own public Instagram, TikTok or Facebook posts (with consent) into interest tags. Raw posts never reach our database.
 
+### Figma
+We designed, prototyped and playtested the game in Figma alongside the code. The full workflow is in our **[Figma workflow and submission deck](https://www.figma.com/deck/x96KxocND7B8E9f3cq43vs/Hear-Me-Out-%C2%B7-Figma-workflow-and-submission?node-id=88-288&t=3iDlRNvKJecby3hA-1)**.
+- **Ideation (FigJam + Figma Design):** hand-drawn wireframes went into one shared FigJam board of sketches, sticky notes and a rough route map. Then every route the old game actually had was mapped as a frame in Figma Design and audited against the code, which became the route and behavior map every later stage built from.
+- **Prototyping (Figma Design + Figma MCP, plus Figma Make):** our coding agent created and wired frames through the Figma MCP. The native prototype has 143 clickable states, 137 valid destinations and no missing targets, covers all three entry paths and doubled as our playtest build. Figma Make was used to try interactions that static frames can't fake.
+- **Handoff (Dev Mode):** controls and artwork link back to their source files, and borders, radii, padding and fills were checked against the code instead of guessed from screenshots.
+- **Code generation (Figma MCP in both directions):** code changes were pushed back into the design file so Figma never fell behind the app. Playtesting cut eight unlabeled reaction icons down to three labeled choices (Funny, Good point, Not convinced), fixed in the shared SVG component first and then in the matching Figma controls.
+
+| Ideation: sketches, FigJam and the route audit | Code generation: eight icons became three labeled reactions |
+| --- | --- |
+| ![Figma ideation stage](docs/screenshots/figma-ideation.jpg) | ![Figma code generation stage](docs/screenshots/figma-code-generation.jpg) |
+
 ## Run it locally
 
 Requirements: Node 22+, pnpm, the [SpacetimeDB CLI](https://spacetimedb.com/install) (`spacetime login` once).
