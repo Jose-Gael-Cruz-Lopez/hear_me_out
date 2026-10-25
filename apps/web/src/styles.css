@@ -153,7 +153,7 @@ a { color: inherit; }
 .ink-logo.xl span:nth-child(2) { transform: rotate(-2deg); }
 .ink-logo.xl span:last-child { transform: rotate(1deg); }
 .ink-cover { position: relative; isolation: isolate; height: 100dvh; min-height: 680px; overflow: hidden; background: #f4f3ef; }
-.cover-wash { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse at 50% 27%, #f4f3ef9c 0, #f4f3ef24 48%, transparent 75%); }
+.cover-wash { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: #f4f3ef73; }
 .cover-center { position: absolute; z-index: 2; top: 10.5%; left: 50%; transform: translateX(-50%); width: min(94%,900px); text-align: center; pointer-events: none; }
 .cover-center button { pointer-events: auto; }
 .cover-tagline { color: #44443e; margin: 26px 0 22px; font-size: 21px; font-weight: 700; }
@@ -671,9 +671,6 @@ details.m-card summary { cursor: pointer; }
 }
 
 /* Phone polish: real safe areas, readable fields, visible keyboard focus. */
-.avatar-mark { display: block; flex-shrink: 0; max-width: 100%; overflow: visible; }
-.m-character-preview { display: grid; place-items: center; padding: 6px 0 14px; color: #14140f; }
-.m-me > div > div { border: 0 !important; box-shadow: none !important; background: transparent !important; }
 .m-action { padding-bottom: max(18px, env(safe-area-inset-bottom)); }
 .m-header { padding-top: max(12px, env(safe-area-inset-top)); }
 .m-frame { padding-inline: env(safe-area-inset-left) env(safe-area-inset-right); }

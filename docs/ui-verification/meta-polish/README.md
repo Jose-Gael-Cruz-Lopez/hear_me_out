@@ -5,9 +5,9 @@ Branch: `codex/meta-ui-polish`. Preview: http://localhost:5175/.
 
 ## Changes
 
-- Native SVG character contours with readable faces, no bitmap tracing or filters.
-- Selected outfit passed into the existing 3D lobby; higher retina render density
-  under a pixel budget and 256px face textures.
+- Original character artwork and outfit assignment preserved exactly.
+- Higher retina render density under a pixel budget and 256px face textures.
+  Geometry, camera, materials, lighting and all animation remain unchanged.
 - Muse Image is the primary cover generator, with editorial photography direction.
   The actual venue photo is the pending/failure fallback; if both images fail,
   the invitation remains typographic. No illustrated poster fallback.
@@ -58,3 +58,11 @@ then exported the rendered markup and fonts to a self-contained `poster.html`.
 produced the photographic artwork. The scene is conceptual cover art, not a
 photograph of the real venue. This supersedes the earlier live-output limitation.
 Other activity categories have not yet received live visual review.
+
+## Character clarification
+
+Restored original avatar paths, outfit seeding, picker and hero wash after the user
+clarified that characters should only receive higher-resolution rendering. Exact
+source comparison against Updated-for-META passes when normalizing the canvas
+pixel-ratio calculation and face texture size. The new `original-3d-characters.png`
+shows the original animated crowd. Earlier portrait screenshots are historical.

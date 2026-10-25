@@ -48,6 +48,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Not done / unverified:**
 -->
 
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), original characters restored
+- **Changed:** restored original 2D avatar paths, 3D outfit seeding, picker presentation, hero wash and badge styling. The only remaining character changes against Updated-for-META are higher canvas pixel density (cap 1.5→2.5, adaptive pixel budget) and face texture resolution (128→256). Poster and mobile usability work retained.
+- **Verified:** exact source comparisons prove geometry, animation, camera, lights, materials, crowd CSS, original avatar art and outfit assignment match the base branch after normalizing only the two resolution changes. Independent read-only character audit agreed. Web typecheck/build and visual hero review passed; screenshot in meta-polish/original-3d-characters.png.
+- **Not done / unverified:** physical-device performance still needs review. Trov: not posted (no access).
+
 ### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), live Muse cover
 - **Changed:** ran two genuine Muse Image generations; refined the coffee composition from a lone empty cup to two filled cups on cobalt linen. Generated covers retain their square composition, with native typography over the quiet upper area for short venue names. Added an image-only preview command that never substitutes fallbacks. Saved both model outputs, generation receipts and a standalone final poster under `docs/ui-verification/meta-polish/muse-live/`.
 - **Verified:** two live provider responses (about 18s and 13.5s); both returned valid viewable JPEGs. Visually compared both and reviewed the final rendered/exported poster. 70/70 tests, full workspace typecheck and web build passed. Credentials used only in the request subprocess environment, never saved to repository files.

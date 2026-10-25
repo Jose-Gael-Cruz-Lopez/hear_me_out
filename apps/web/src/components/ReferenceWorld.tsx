@@ -5,12 +5,10 @@ import * as THREE from 'three';
 import { createPaperPerson, type PaperPerson } from '../lib/scene/paper-person';
 import { createGiantLegs } from '../lib/scene/giant-leg';
 import styles from './ReferenceWorld.module.css';
-import { characterVariant } from '../lib/characters';
 
 export type ReferenceMember = {
   id: bigint | string | number;
   name: string;
-  avatar?: string;
   connected?: boolean;
   isBot?: boolean;
   status?: string;
@@ -57,8 +55,8 @@ function random(seed: number): () => number {
   };
 }
 
-function walker(seed: number, variant?: 'plain' | 'hat' | 'shirt'): Walker {
-  const rig = createPaperPerson({ seed, variant, color: 0xffffff });
+function walker(seed: number): Walker {
+  const rig = createPaperPerson({ seed, color: 0xffffff });
   const leaves: THREE.Mesh[] = [];
   rig.group.traverse(object => { if (object instanceof THREE.Mesh) leaves.push(object); });
   return { rig, leaves, head: rig.group.getObjectByName('head-pivot'),
@@ -203,7 +201,7 @@ export function ReferenceWorld({ variant = 'cover', members = EMPTY_MEMBERS, pha
       const bounds = element.getBoundingClientRect();
       width = Math.max(1, bounds.width);
       height = Math.max(1, bounds.height);
-      // Retina outlines without allocating an unbounded full-screen framebuffer.
+      // Preserve the original scene; only increase framebuffer resolution on retina screens.
       const pixelBudget = Math.sqrt(6_000_000 / (width * height));
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.5, Math.max(1, pixelBudget)));
       renderer.setSize(width, height, false);
@@ -217,7 +215,7 @@ export function ReferenceWorld({ variant = 'cover', members = EMPTY_MEMBERS, pha
 
     const reconcileMembers = () => {
       const current = latest.current;
-      const key = `${current.phase}|${current.members.map(member => `${member.id}:${member.avatar ?? ''}:${member.confirmed ? 1 : 0}`).join(',')}`;
+      const key = `${current.phase}|${current.members.map(member => `${member.id}:${member.confirmed ? 1 : 0}`).join(',')}`;
       if (key === memberSignature) return;
       memberSignature = key;
       const plan = current.phase.toUpperCase() === 'PLAN';
@@ -233,7 +231,7 @@ export function ReferenceWorld({ variant = 'cover', members = EMPTY_MEMBERS, pha
         let person = named.get(id);
         const angle = index / Math.max(1, count) * TAU + 0.35;
         if (!person) {
-          person = walker(seed, member.avatar ? characterVariant(member.avatar) : undefined);
+          person = walker(seed);
           const entryAngle = (seed % 628) / 100;
           person.rig.group.position.set(Math.sin(entryAngle) * 27, 0, Math.cos(entryAngle) * 27);
           named.set(id, person);

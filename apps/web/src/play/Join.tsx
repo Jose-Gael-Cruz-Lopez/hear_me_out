@@ -59,8 +59,7 @@ export function JoinForm() {
               <input value={name} onChange={e => setName(e.target.value.slice(0, 20))} autoFocus placeholder="Your name" className="meet-input meet-name" />
             </label>
             <div>
-              <span className="meet-label">PICK YOUR PERSON</span>
-              <div className="m-character-preview" aria-hidden="true"><AvatarMark value={selectedAvatar} size={112} /></div>
+              <span className="meet-label">PICK AN AVATAR</span>
               <div className="meet-avatars m-join-avatars">
                 {AVATARS.map((a, i) => (
                   <button type="button" key={a} aria-label={`Avatar ${i + 1}`} aria-pressed={selectedAvatar === a} onClick={() => setAvatar(a)} disabled={taken.has(a)} className="avatar-choice">
