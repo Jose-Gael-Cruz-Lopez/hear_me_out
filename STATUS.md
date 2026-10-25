@@ -16,6 +16,8 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Done recently
 
+- README rewritten for the current game (sway meter, menu check, Instagram/Facebook sharing, hosted Judge worker, test counts) with 9 new screenshots from a live game on the deployed site · Anish (Claude Code) · `codex/vercel-owned-deployment`
+
 - Hidden scratch note `apps/web/.flib.md` (ten nonsense commits) · Anish (Cursor Grok) · `codex/vercel-owned-deployment`
 
 - Deployed live-API Activity/Movie end-to-end audit, category-grounded personal fit and fresh Movie regression · Jose (Codex) · `codex/vercel-owned-deployment`
@@ -48,6 +50,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - `hidden-gems`, `iteration-1`: the old Pitch Fight app (Next.js), superseded.
 
 ## Push log
+
+### 2026-10-25 · codex/vercel-owned-deployment · Anish (Claude Code)
+- **Changed:** README rewritten to match the current build: phones for players, the Muse step and approved tags, live sway meter, menu check for diet claims, Most Persuasive and Best Line, busyness-aware plan time, Instagram/Facebook sharing, Find my people, the Judge worker hosted as a Vercel daemon, no Apify reuse, and current test counts. It also says plainly that the Muse account connection and booking are simulated. New screenshots (home, finalists, playback with a sustained objection, approve tags, case file, verdict, TV plan, phone plan, Find my people) come from two live Food games in Hayes Valley on https://hear-me-out-jose.vercel.app (rooms PAAP and QTRU, typed pitches, two Apify scrapes).
+- **Verified:** `pnpm test` 129/129, `pnpm sim` 36 checks, `pnpm sim:strangers` 15, `pnpm sim:match` 16, vibe-profiler 49/49, all against a local server. Every claim in the README was checked against the code on this branch.
+- **Not done / unverified:** docs only, no code changes. Trov: not posted (no access).
 
 ### 2026-10-25 · codex/vercel-owned-deployment · Anish (Cursor Grok)
 - **Changed:** added a hidden scratch markdown file in the web app and ten nonsense commits on this branch.
