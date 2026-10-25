@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { IconText } from '../components/Ink';
 import { motion } from 'motion/react';
 import { Link } from 'wouter';
@@ -43,7 +44,7 @@ export function PlayScreen() {
       case 'warmup':
         return <PlayWarmup />;
       case 'scouting':
-        return <PlayWaiting emoji="🛰️" title="Scouting real places…" sub={room.aiStatus} />;
+        return <PlayWaiting emoji="🛰️" title="Finding your spots…" sub="Real places that fit your group." />;
       case 'finalists':
         return <PlayFinalists />;
       case 'prevote':
@@ -97,6 +98,7 @@ const RAIL: { name: string; phases: string[] }[] = [
 
 function Frame({ children }: { children: React.ReactNode }) {
   const { room, me } = useRoom();
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [room.phase]);
   if (!me) return null;
   const step = RAIL.findIndex(r => r.phases.includes(room.phase));
   const phaseName = room.mode === 'queue' ? 'Finding your group' : room.phase === 'results' ? 'Verdict' : (RAIL[step]?.name ?? '');

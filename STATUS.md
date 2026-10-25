@@ -16,6 +16,8 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Done recently
 
+- Refined vector people, sharper 3D rendering, editorial invitation covers and small-phone accessibility against Updated-for-META · Jose (Codex) · `codex/meta-ui-polish`
+
 - Live Apify scrape every game (no venue reuse); slower, more believable Muse pull (~13 s) and booking (~25 s). · Anish (Claude Code)
 - Plan screen redesign: TV is a one-screen dashboard, phone is one ticket; popular-times chart rebuilt. · Prisha (Claude Code)
 - Busyness-aware plan time from Google popular times ("Go at 8:00, not 6:00"). · Prisha (Claude Code)
@@ -45,6 +47,31 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - **Verified:**
 - **Not done / unverified:**
 -->
+
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), native-resolution characters
+- **Changed:** removed the fixed2.5x cap; render at native display density within a12MP framebuffer budget and GPU texture/renderbuffer/viewport limits. Detect monitor/zoom DPR changes. Shared face maps512², contact-shadow texture128², sun-shadow map up to2048². Original geometry, animation, expressions, outfits, camera, colors and SVG avatars unchanged.
+- **Verified:** 70/70 tests, web typecheck/build, source comparison and independent renderer audit. Resolution calculations preserve native3x/4x phone cases and obey pixel/GPU bounds on large canvases. Browser rendered1280×720CSS at2560×1440pixels,120people with frame count advancing beyond2500; screenshot saved in meta-polish/native-resolution-characters.png.
+- **Not done / unverified:** physical-device performance and cross-monitor movement not exercised; density listener cleanup reviewed. Existing bundle warnings remain. Trov: not posted (no access).
+
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), original characters restored
+- **Changed:** restored original 2D avatar paths, 3D outfit seeding, picker presentation, hero wash and badge styling. The only remaining character changes against Updated-for-META are higher canvas pixel density (cap 1.5→2.5, adaptive pixel budget) and face texture resolution (128→256). Poster and mobile usability work retained.
+- **Verified:** exact source comparisons prove geometry, animation, camera, lights, materials, crowd CSS, original avatar art and outfit assignment match the base branch after normalizing only the two resolution changes. Independent read-only character audit agreed. Web typecheck/build and visual hero review passed; screenshot in meta-polish/original-3d-characters.png.
+- **Not done / unverified:** physical-device performance still needs review. Trov: not posted (no access).
+
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), live Muse cover
+- **Changed:** ran two genuine Muse Image generations; refined the coffee composition from a lone empty cup to two filled cups on cobalt linen. Generated covers retain their square composition, with native typography over the quiet upper area for short venue names. Added an image-only preview command that never substitutes fallbacks. Saved both model outputs, generation receipts and a standalone final poster under `docs/ui-verification/meta-polish/muse-live/`.
+- **Verified:** two live provider responses (about 18s and 13.5s); both returned valid viewable JPEGs. Visually compared both and reviewed the final rendered/exported poster. 70/70 tests, full workspace typecheck and web build passed. Credentials used only in the request subprocess environment, never saved to repository files.
+- **Not done / unverified:** only coffee art direction was visually sampled; other categories still need live visual review. Physical-device/microphone checks remain outstanding. Existing bundle warnings remain. Trov: not posted (no access).
+
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex), poster correction
+- **Changed:** removed illustrated poster covers. Muse Image remains the primary generator with independent-magazine photography direction, real materials and natural light; generated lettering/illustration/CGI are prohibited. Actual venue photo is the loading/failure fallback; missing images leave a clean typographic invitation. Accurate event typography remains native UI. Supersedes the vector-poster direction in the previous entry.
+- **Verified:** web typecheck, 70/70 tests (including photographic prompt requirements and existing safe transport/storage boundaries), production build; real plan visually shows venue-photo fallback with correct attribution. Existing character improvements retained.
+- **Not done / unverified:** live Muse image output not sampled because the isolated preview uses fixture mode; provider transport is covered by mocked tests. Physical-device and microphone checks remain outstanding. Trov: not posted (no access).
+
+### 2026-10-24 · codex/meta-ui-polish → Updated-for-META · Jose (Codex)
+- **Changed:** preserved the latest Meta mobile flow; redrew scalable character contours, matched selected outfits to the 3D lobby, improved retina rendering and face texture resolution, replaced oversized flat poster decoration with five original vector covers, moved accurate event details above artwork, tightened Muse cover direction, shortened join/scouting copy, and improved safe areas, focus, touch targets and 320px action layout.
+- **Verified:** full workspace typecheck, 70/70 tests and production web build; real local room TYDH at 320px and 390px (join/selected avatar, basics, warm-up, playback/reaction/live sway, vote, plan RSVP and invitation). Reviewed five cover motifs and long titles, enlarged vector portrait, and desktop plan. Browser error log empty. Preview uses an isolated local fixture database, no paid model requests succeeded.
+- **Not done / unverified:** physical iOS/Android devices and microphone capture; the typed-pitch form was inspected but its submission timed out during this run. Live Meta image output not sampled. Higgsfield GPT Image 2.5 max/4K generation rejected because the connected account requires a paid plan; no asset was generated or subscription changed. Existing bundle-size warnings remain. Trov: not posted (no access).
 
 ### 2026-10-24 · Updated-for-META · Prisha (Claude Code)
 - **Changed:** finished the `export/` mobile design: home on phones (join-by-code field, Find my people, "Hosting? Open on a TV or laptop", pinned at the bottom; desktop home unchanged), the join screen (back + room code, "Who's making the case?", 4-column avatars with taken ones faded, safety box, "I'm in!" pinned), and the three profile steps (segmented budget/travel, toggle chips, collapsible dietary needs, Muse cards, tag list with remove + add, actions pinned). Layout and styles only. Anish's latest fixes on `fix-names-whatsapp-muse` (`cc94a6a`, `0496aee`) were already in this branch.
