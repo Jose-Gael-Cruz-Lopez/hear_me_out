@@ -29,7 +29,7 @@ export function MHead({ kicker, title, sub, icon }: { kicker?: ReactNode; title:
 /** A quiet status line for the action bar when the game, not the player, moves things on. */
 export function MStatus({ children, live = false }: { children: ReactNode; live?: boolean }) {
   return (
-    <div className="m-status">
+    <div className="m-status" role="status">
       {live && <span className="m-live" />}
       {children}
     </div>

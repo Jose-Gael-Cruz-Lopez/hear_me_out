@@ -6,6 +6,7 @@
 import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
+import AcknowledgePhaseReducer from "../acknowledge_phase_reducer";
 import AddBotReducer from "../add_bot_reducer";
 import AnswerWarmupReducer from "../answer_warmup_reducer";
 import ApproveTagsReducer from "../approve_tags_reducer";
@@ -54,6 +55,7 @@ import VoteMergeReducer from "../vote_merge_reducer";
 import WhoAmIReducer from "../who_am_i_reducer";
 import WriteLiveCaptionReducer from "../write_live_caption_reducer";
 
+export type AcknowledgePhaseParams = __Infer<typeof AcknowledgePhaseReducer>;
 export type AddBotParams = __Infer<typeof AddBotReducer>;
 export type AnswerWarmupParams = __Infer<typeof AnswerWarmupReducer>;
 export type ApproveTagsParams = __Infer<typeof ApproveTagsReducer>;

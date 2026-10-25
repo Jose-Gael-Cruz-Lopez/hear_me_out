@@ -6,7 +6,8 @@ import { Link, useLocation } from 'wouter';
 import type { Player } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
-import { WhatsAppGroup } from '../components/WhatsAppGroup';
+import { SocialPlanShare } from '../components/SocialPlanShare';
+import { PhaseReadiness } from '../components/PhaseReady';
 import { Avatar, PhaseTitle, Poster, seatColor, useObjectUrl, VenueCard, VenueImage } from '../components/ui';
 import { MenuProof } from '../components/MenuProof';
 import { BusyChart } from '../components/BusyChart';
@@ -120,6 +121,7 @@ export function HostFinalists() {
   return (
     <div className="flex flex-1 flex-col gap-6">
       <PhaseTitle kicker="Introducing" title="Tonight's contestants" sub="Real places that work for the whole group." />
+      <PhaseReadiness />
       <div className={`grid gap-5 ${options.length >= 4 ? 'lg:grid-cols-4' : options.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} md:grid-cols-2`}>
         {options.map((o, i) => (
           <motion.div key={String(o.id)} initial={{ opacity: 0, y: 60, rotate: i % 2 ? 4 : -4 }} animate={{ opacity: 1, y: 0, rotate: 0 }} transition={{ delay: 0.3 + i * 0.7, type: 'spring', stiffness: 200, damping: 16 }}>
@@ -153,6 +155,7 @@ export function HostAssignments() {
   return (
     <div className="flex flex-1 flex-col items-center gap-8">
       <PhaseTitle kicker="Plot twist" title="Your case, counselor" sub="Check your device for your brief and hints." />
+      <PhaseReadiness />
       <div className="grid w-full max-w-5xl gap-4">
         {players.map((p, i) => {
           const a = assignments.find(x => x.playerId === p.id);
@@ -292,6 +295,7 @@ export function HostResults() {
           )}
         </motion.div>
       </div>
+      <PhaseReadiness />
     </div>
   );
 }
@@ -371,7 +375,7 @@ export function HostPlan({ isHost }: { isHost: boolean }) {
           </div>
         )}
         {/* Friends only: a public meetup's TV is seen by people who haven't RSVP'd. */}
-        {room.mode === 'friends' && <WhatsAppGroup onTv />}
+        {room.mode === 'friends' && <SocialPlanShare onTv />}
         {isHost && (
           <button className="btn btn-ghost self-start" onClick={() => navigate('/')}>
             New game

@@ -8,7 +8,9 @@ import type { Option } from '@hmo/bindings';
 import { MergeBanner } from '../components/MergeBanner';
 import { MuseReservation } from '../components/Muse';
 import { SafetyList } from '../components/Safety';
-import { WhatsAppGroup } from '../components/WhatsAppGroup';
+import { SocialPlanShare } from '../components/SocialPlanShare';
+import { PhaseReady, useTaskProgress } from '../components/PhaseReady';
+import { useLiveChoice } from '../lib/useLiveChoice';
 import { Avatar, Poster, seatColor, useObjectUrl, VenueImage } from '../components/ui';
 import { MHead, MScreen, MStatus } from '../components/Mobile';
 import { isMatchedRoom, useCall, useRoom } from '../lib/room';
@@ -64,12 +66,14 @@ export function PlayLobby() {
 }
 
 export function PlayWarmup() {
-  const { me, warmups } = useRoom();
+  const { me, warmups, room } = useRoom();
   const call = useCall();
   const w = warmups.find(x => x.playerId === me?.id);
+  const choice = useLiveChoice(w?.answer || undefined, `${room.id}:${room.phaseSeq}`);
+  const progress = useTaskProgress();
   if (!w) return <PlayWaiting emoji="🔥" title="Hot take incoming…" />;
   return (
-    <MScreen center action={<MStatus>{w.answer ? 'Locked in. Change it any time.' : 'Pick one. No wrong answers.'}</MStatus>}>
+    <MScreen center action={<MStatus>{choice.saving ? 'Saving your pick…' : choice.value ? `Saved · ${progress}` : 'Pick one. No wrong answers.'}</MStatus>}>
       <div className="m-center-text">
         <div className="m-kicker m-kicker-center">
           <IconText text="🔥" /> HOT TAKE
@@ -80,11 +84,15 @@ export function PlayWarmup() {
         {(['a', 'b'] as const).map(k => (
           <button
             key={k}
+            type="button"
+            aria-pressed={choice.value === k}
+            aria-busy={choice.saving}
+            disabled={choice.saving}
             onClick={() => {
               play('pop');
-              void call(c => c.reducers.answerWarmup({ warmupId: w.id, answer: k }));
+              void choice.select(k, () => call(c => c.reducers.answerWarmup({ warmupId: w.id, answer: k })));
             }}
-            className={`m-take ${w.answer === k ? 'on' : w.answer ? 'off' : k === 'a' ? 'a' : 'b'}`}
+            className={`m-take ${choice.value === k ? 'on' : choice.value ? 'off' : k === 'a' ? 'a' : 'b'}`}
           >
             {k === 'a' ? w.choiceA : w.choiceB}
           </button>
@@ -140,7 +148,7 @@ export function PlayFinalists() {
   const { options } = useRoom();
   const [idx, setIdx] = useState(0);
   return (
-    <MScreen action={<MStatus>Your secret ballot opens in a moment</MStatus>}>
+    <MScreen action={<PhaseReady label="Ready to choose" />}>
       <MHead kicker={`FINALISTS · ${options.length} REAL PLACES`} title="Tonight's contestants" />
       <div
         className="m-swipe"
@@ -164,9 +172,9 @@ export function PlayFinalists() {
 }
 
 /** One compact choice row for the secret ballot and the final vote. */
-function PickRow({ o, on, onPick }: { o: Option; on: boolean; onPick: () => void }) {
+function PickRow({ o, on, onPick, saving = false }: { o: Option; on: boolean; onPick: () => void; saving?: boolean }) {
   return (
-    <button className={`m-pick ${on ? 'on' : ''}`} onClick={onPick} aria-pressed={on}>
+    <button type="button" className={`m-pick ${on ? 'on' : ''}`} onClick={onPick} aria-pressed={on} disabled={saving} aria-busy={saving}>
       <VenueImage option={o} className="m-pick-photo" />
       <span className="m-pick-text">
         <span className="m-pick-title">{o.title}</span>
@@ -183,19 +191,22 @@ function PickRow({ o, on, onPick }: { o: Option; on: boolean; onPick: () => void
 export function PlayPrevote() {
   const { options, room, myPrevoteOptionId, optionById } = useRoom();
   const call = useCall();
-  const picked = myPrevoteOptionId !== undefined ? optionById(myPrevoteOptionId) : undefined;
+  const choice = useLiveChoice(myPrevoteOptionId, `${room.id}:${room.phaseSeq}`);
+  const progress = useTaskProgress();
+  const picked = choice.value !== undefined ? optionById(choice.value) : undefined;
   return (
-    <MScreen action={<MStatus>{picked ? `🤫 Your secret pick: ${picked.title}. Switch any time.` : 'Tap your secret favorite.'}</MStatus>}>
+    <MScreen action={<MStatus>{choice.saving ? 'Saving your secret pick…' : picked ? `Saved: ${picked.title} · ${progress}` : 'Tap your secret favorite.'}</MStatus>}>
       <MHead kicker="SECRET BALLOT" icon={<DoodleIcon name="lock" size={14} />} title="Your favorite, honestly?" sub="Nobody else sees this." />
       <div className="m-stack">
         {options.map(o => (
           <PickRow
             key={String(o.id)}
             o={o}
-            on={myPrevoteOptionId === o.id}
+            on={choice.value === o.id}
+            saving={choice.saving}
             onPick={() => {
               play('pop');
-              void call(c => c.reducers.castPrevote({ roomId: room.id, optionId: o.id }));
+              void choice.select(o.id, () => call(c => c.reducers.castPrevote({ roomId: room.id, optionId: o.id })));
             }}
           />
         ))}
@@ -255,7 +266,7 @@ export function CaseToggle() {
 
 export function PlayAssignment() {
   return (
-    <MScreen center action={<MStatus>Recording starts in a moment. Get your persona ready.</MStatus>}>
+    <MScreen center action={<PhaseReady label="Ready to make my case" />}>
       <div className="m-twist">Plot twist!</div>
       <div className="m-full">
         <BriefCard />
@@ -329,6 +340,7 @@ export function PlayPlayback() {
           </button>
         ))}
       </div>
+      <PhaseReady key={String(room.phaseSeq)} label="Ready for next pitch" />
     </MScreen>
   );
 }
@@ -337,19 +349,22 @@ export function PlayVote() {
   const { options, room, votes, me, optionById } = useRoom();
   const call = useCall();
   const mine = votes.find(v => v.playerId === me?.id);
-  const picked = mine ? optionById(mine.optionId) : undefined;
+  const choice = useLiveChoice(mine?.optionId, `${room.id}:${room.phaseSeq}`);
+  const progress = useTaskProgress();
+  const picked = choice.value !== undefined ? optionById(choice.value) : undefined;
   return (
-    <MScreen action={<MStatus>{picked ? `🗳️ Voted for ${picked.title}. Change it until time's up.` : 'One vote each.'}</MStatus>}>
+    <MScreen action={<MStatus>{choice.saving ? 'Saving your vote…' : picked ? `Voted: ${picked.title} · ${progress}` : 'One vote each. Next when everyone votes.'}</MStatus>}>
       <MHead kicker="FINAL VOTE" title="Who convinced you?" sub="Vote for the place, not the person." />
       <div className="m-stack">
         {options.map(o => (
           <PickRow
             key={String(o.id)}
             o={o}
-            on={mine?.optionId === o.id}
+            on={choice.value === o.id}
+            saving={choice.saving}
             onPick={() => {
               play('pop');
-              void call(c => c.reducers.castVote({ roomId: room.id, optionId: o.id }));
+              void choice.select(o.id, () => call(c => c.reducers.castVote({ roomId: room.id, optionId: o.id })));
             }}
           />
         ))}
@@ -363,7 +378,7 @@ export function PlayResults() {
   const winner = optionById(room.winnerOptionId);
   const winVotes = votes.filter(v => v.optionId === room.winnerOptionId).length;
   return (
-    <MScreen action={<MStatus>The plan is coming up…</MStatus>}>
+    <MScreen action={<PhaseReady label="See the plan" />}>
       <div className="m-verdict">
         <div className="m-kicker m-kicker-center">THE VERDICT</div>
         {winner && (
@@ -565,7 +580,7 @@ export function PlayPlan() {
         </label>
       )}
       <MuseReservation plan={plan} option={option} category={room.category} party={isPublic ? going : players.length - plan.cantMake.length} ready={!isPublic || plan.meetupConfirmed} />
-      <WhatsAppGroup />
+      <SocialPlanShare />
       <details className="m-card m-card-pad">
         <summary className="m-card-title">Invitation poster</summary>
         <div className="mt-4">

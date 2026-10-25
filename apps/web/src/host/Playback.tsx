@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Avatar, seatColor, useObjectUrl, VenueImage } from '../components/ui';
 import { useRoom } from '../lib/room';
 import { SwayMeter } from '../components/SwayMeter';
+import { PhaseReadiness } from '../components/PhaseReady';
 import { audioContext, isMuted, onMuteChange, play, speak } from '../lib/sound';
 import { tsMs, useNow } from '../lib/time';
 
@@ -174,6 +175,7 @@ export function HostPlayback() {
           </div>
         )}
         <SwayMeter />
+        <PhaseReadiness />
       </div>
     </div>
   );
