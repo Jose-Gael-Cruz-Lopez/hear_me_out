@@ -4,7 +4,7 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## In progress
 
-<!-- One line each: what · who (agent) · branch -->
+<!-- One line each: what · who (agent) · branch. -->
 - Iterating on the combined build (main + Jose's latest design commits) · Anish (Claude Code) · `fix-names-whatsapp-muse` (same as `deploy-combined` up to `cc94a6a`)
 
 ## Up next / on hold
