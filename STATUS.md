@@ -16,6 +16,8 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 
 ## Done recently
 
+- Complete Notability sponsor section with 13 captioned original notebook screenshots in chronological order · Jose (Codex) · `codex/vercel-owned-deployment`
+
 - README rewritten for the current game (sway meter, menu check, Instagram/Facebook sharing, hosted Judge worker, test counts) with 9 new screenshots from a live game on the deployed site · Anish (Claude Code) · `codex/vercel-owned-deployment`
 
 - Deployed live-API Activity/Movie end-to-end audit, category-grounded personal fit and fresh Movie regression · Jose (Codex) · `codex/vercel-owned-deployment`
@@ -48,6 +50,11 @@ What everyone (people and agents) is doing on Hear Me Out. **Every push must upd
 - `hidden-gems`, `iteration-1`: the old Pitch Fight app (Next.js), superseded.
 
 ## Push log
+
+### 2026-10-25 · codex/vercel-owned-deployment · Jose (Codex), Notability documentation
+- **Changed:** added Notability under the README's “How we use each sponsor” section. The explanation follows research, rejected concepts, the hardware pivot, annotated reading, architecture, sketches, profile approval, RSVP design, reaction simplification, icon studies and reflection. All 13 original content pages are embedded with ordered captions and full-resolution links; the blank page is excluded. Early proposed integrations are distinguished from the shipped stack.
+- **Verified:** all 13 PNGs match the original notebook exports byte for byte; image dimensions, sequential page numbers, local paths and blank-page exclusion checked. GitHub's Markdown API rendered all 13 images and five workflow groups. `git diff --check` passed.
+- **Not done / unverified:** documentation and images only; app tests were not rerun because runtime code is unchanged. Trov: not posted (no access).
 
 ### 2026-10-25 · codex/vercel-owned-deployment · Anish (Claude Code)
 - **Changed:** README rewritten to match the current build: phones for players, the Muse step and approved tags, live sway meter, menu check for diet claims, Most Persuasive and Best Line, busyness-aware plan time, Instagram/Facebook sharing, Find my people, the Judge worker hosted as a Vercel daemon, no Apify reuse, and current test counts. It also says plainly that the Muse account connection and booking are simulated. New screenshots (home, finalists, playback with a sustained objection, approve tags, case file, verdict, TV plan, phone plan, Find my people) come from two live Food games in Hayes Valley on https://hear-me-out-jose.vercel.app (rooms PAAP and QTRU, typed pitches, two Apify scrapes).

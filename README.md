@@ -109,6 +109,117 @@ We designed, prototyped and playtested the game in Figma alongside the code. The
 | --- | --- |
 | ![Figma ideation stage](docs/screenshots/figma-ideation.jpg) | ![Figma code generation stage](docs/screenshots/figma-code-generation.jpg) |
 
+### Notability: the notebook behind the game
+
+We used Notability to keep our thinking in one place, including the ideas that did not survive. We collected track requirements and past-project references, imported and annotated background reading, sketched the friends and strangers journeys, and compared interface revisions before carrying the chosen direction into Figma and code.
+
+The notebook shows why we chose a game: strangers could start by doing something playful together instead of having to invent an introduction. It also records smaller decisions that changed the product, such as editable profile tags, a separate choice to attend the meetup, and three readable reactions instead of eight unexplained icons.
+
+Below are all **13 content pages in their original order**, with the blank page omitted. These are exports of our actual notebook, including crossed-out ideas and early proposals. Click a screenshot to read it at full resolution.
+
+<details open>
+<summary><strong>Pages 01–03: research, rejected ideas and the hardware pivot</strong></summary>
+
+#### 01/13 · Our starting point
+
+We collected sponsor requirements and past-project references, then asked which parts of those projects created a reason for people to connect.
+
+[![Notability page 01: Our starting point](docs/notability/notability-page-01.png)](docs/notability/notability-page-01.png)
+
+#### 02/13 · Seven directions we questioned
+
+We compared seven concepts and crossed out directions that lacked a specific connection moment or a convincing way to demonstrate it.
+
+[![Notability page 02: Seven directions we questioned](docs/notability/notability-page-02.png)](docs/notability/notability-page-02.png)
+
+#### 03/13 · Starting again after the hardware pivot
+
+Charging and time constraints took the Ray-Ban direction off the table. We returned to shared activities, group chats and the question of how people could spend time together.
+
+[![Notability page 03: Starting again after the hardware pivot](docs/notability/notability-page-03.png)](docs/notability/notability-page-03.png)
+
+</details>
+
+<details open>
+<summary><strong>Pages 04–06: annotated reading and the game architecture</strong></summary>
+
+#### 04/13 · Research brought into the notebook
+
+We imported the KU News article “How to make friends? Study reveals how many hours it takes” as background reading on time spent together.
+
+[![Notability page 04: Research brought into the notebook](docs/notability/notability-page-04.png)](docs/notability/notability-page-04.png)
+
+#### 05/13 · Turning reading into a design question
+
+Highlights and handwritten notes helped us turn the reading into a product question: how could we create an invitation to do something together, then let the relationship develop between the people themselves?
+
+[![Notability page 05: Turning reading into a design question](docs/notability/notability-page-05.png)](docs/notability/notability-page-05.png)
+
+#### 06/13 · From agent concepts to a shared game
+
+We moved from an agent concept toward a Jackbox-style game for friends and strangers, and explored a WhatsApp direction. This is an early architecture proposal: its Railway, Cartesia and Deepgram notes are not a list of shipped integrations. The current build uses Muse, Apify, SpacetimeDB and Vercel.
+
+[![Notability page 06: From agent concepts to a shared game](docs/notability/notability-page-06.png)](docs/notability/notability-page-06.png)
+
+</details>
+
+<details open>
+<summary><strong>Pages 07–08: interface explorations and user journeys</strong></summary>
+
+#### 07/13 · The first interface directions
+
+We sketched a courtroom for playful debates and a community notice board for finding people, alongside real-time interaction notes and a Don’t Look Up visual reference.
+
+[![Notability page 07: The first interface directions](docs/notability/notability-page-07.png)](docs/notability/notability-page-07.png)
+
+#### 08/13 · Testing a visual direction against the user journey
+
+We placed a generated “The Afterparty” style exploration beside handwritten friends and strangers journeys to compare the visual idea with the steps people actually needed to take.
+
+[![Notability page 08: Testing a visual direction against the user journey](docs/notability/notability-page-08.png)](docs/notability/notability-page-08.png)
+
+</details>
+
+<details open>
+<summary><strong>Pages 09–12: profile approval, RSVPs, reactions and icon studies</strong></summary>
+
+#### 09/13 · Making profile approval understandable
+
+We compared a dense form, a long AI summary and editable tags. We kept editable tags with a clear approval step so players could understand and change what they shared.
+
+[![Notability page 09: Making profile approval understandable](docs/notability/notability-page-09.png)](docs/notability/notability-page-09.png)
+
+#### 10/13 · Making attendance a separate choice
+
+The plan-screen studies brought the venue, time and voluntary RSVP to the front. They also explored hiding the address in the interface until a player opted in.
+
+[![Notability page 10: Making attendance a separate choice](docs/notability/notability-page-10.png)](docs/notability/notability-page-10.png)
+
+#### 11/13 · Simplifying reactions while preserving objections
+
+We replaced eight unexplained icons with three readable responses: Funny, Good point and Not convinced. Objections stayed separate because they ask the Judge to check a factual claim.
+
+[![Notability page 11: Simplifying reactions while preserving objections](docs/notability/notability-page-11.png)](docs/notability/notability-page-11.png)
+
+#### 12/13 · Drawing the controls as one family
+
+We drew a consistent set of icons for recording, typing, playback, groups, navigation and activities, then carried that visual language into the interface.
+
+[![Notability page 12: Drawing the controls as one family](docs/notability/notability-page-12.png)](docs/notability/notability-page-12.png)
+
+</details>
+
+<details open>
+<summary><strong>Page 13: reflection on the complete process</strong></summary>
+
+#### 13/13 · Reflecting on the complete process
+
+Our final reflection connects the research, rejected ideas, hardware pivot, architecture, sketches and revisions that led to Hear Me Out.
+
+[![Notability page 13: Reflecting on the complete process](docs/notability/notability-page-13.png)](docs/notability/notability-page-13.png)
+
+</details>
+
 ## Run it locally
 
 Requirements: Node 22+, pnpm, the [SpacetimeDB CLI](https://spacetimedb.com/install) (`spacetime login` once).
